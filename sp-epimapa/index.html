@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Epimapa SP — arboviroses por distrito</title>
+<meta name="description" content="Mapa de dengue, chikungunya e zika por distrito da cidade de São Paulo, com dados do InfoDengue e da vigilância municipal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root {
+    --paper: #eef1f4;
+    --panel: #ffffff;
+    --ink: #1b2430;
+    --muted: #5c6b7a;
+    --line: #d9dfe5;
+    --accent: #1d5c7a;
+    --accent-soft: #e3eef4;
+    --n1: #3d9a6a;
+    --n2: #e8c04a;
+    --n3: #e8802f;
+    --n4: #c8322b;
+    --radius: 6px;
+    --shadow: 0 1px 2px rgba(27,36,48,.06), 0 8px 24px rgba(27,36,48,.10);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Instrument Sans", system-ui, sans-serif;
+    font-feature-settings: "tnum" 1;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.45;
+  }
+  #map { position: fixed; inset: 0; background: var(--paper); }
+
+  /* ---------- painel ---------- */
+  .panel {
+    position: fixed; top: 16px; left: 16px; bottom: 16px;
+    width: 380px; max-width: calc(100vw - 32px);
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    z-index: 1000;
+  }
+  .panel__scroll { overflow-y: auto; flex: 1; padding: 0 20px 20px; }
+  .panel__head { padding: 20px 20px 12px; }
+  .brand { display: flex; align-items: baseline; gap: 8px; }
+  .brand h1 { font-size: 20px; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+  .brand span { color: var(--muted); font-size: 14px; }
+
+  .seg { display: flex; margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius); padding: 3px; gap: 3px; }
+  .seg button {
+    flex: 1; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 500;
+    padding: 6px 0; border-radius: 4px; color: var(--muted); cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .search { position: relative; margin-top: 12px; }
+  .search input {
+    width: 100%; font: inherit; font-size: 15px; padding: 10px 12px 10px 36px;
+    border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink);
+  }
+  .search input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .search svg { position: absolute; left: 11px; top: 11px; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+  .search__list {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5;
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+    list-style: none; margin: 0; padding: 4px; max-height: 260px; overflow-y: auto; display: none;
+  }
+  .search__list[data-open="true"] { display: block; }
+  .search__list li { padding: 8px 10px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+  .search__list li small { color: var(--muted); }
+  .search__list li:hover, .search__list li[aria-selected="true"] { background: var(--accent-soft); }
+  .search__list .empty { color: var(--muted); cursor: default; }
+
+  .aviso {
+    margin: 14px 0 0; padding: 10px 12px; border-radius: var(--radius);
+    background: #fff5d6; color: #6a4b00; border: 1px solid #f1dd9a; font-size: 13px;
+  }
+  .aviso code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+
+  section { padding: 18px 0 0; border-top: 1px solid var(--line); margin-top: 18px; }
+  section:first-child { border-top: 0; margin-top: 0; }
+  h2 { font-size: 13px; font-weight: 500; color: var(--muted); margin: 0 0 8px; }
+  .titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .titulo strong { font-size: 18px; font-weight: 600; }
+  .titulo .sub { color: var(--muted); font-size: 13px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500;
+    padding: 3px 9px 3px 7px; border-radius: 999px; color: #fff; white-space: nowrap;
+  }
+  .badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.85); }
+  .badge[data-nivel="1"] { background: var(--n1); }
+  .badge[data-nivel="2"] { background: var(--n2); color: #4a3b00; }
+  .badge[data-nivel="2"]::before { background: rgba(74,59,0,.7); }
+  .badge[data-nivel="3"] { background: var(--n3); }
+  .badge[data-nivel="4"] { background: var(--n4); }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-top: 12px; }
+  .stat .v { font-size: 26px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+  .stat .k { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .delta { font-size: 26px; }
+  .delta.up { color: var(--n4); }
+  .delta.down { color: var(--n1); }
+  .delta.flat { color: var(--muted); }
+
+  .spark { margin-top: 12px; width: 100%; height: 56px; display: block; }
+  .spark path.line { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+  .spark path.area { fill: var(--accent-soft); }
+  .spark .dot { fill: var(--accent); }
+  .spark__legend { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .hint { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+
+  .legenda { display: grid; grid-template-columns: 18px 1fr auto; gap: 6px 10px; align-items: center; font-size: 13px; }
+  .legenda i { display: block; width: 18px; height: 14px; border-radius: 3px; }
+  .legenda .lim { color: var(--muted); }
+
+  .fonte { font-size: 12px; color: var(--muted); margin-top: 18px; }
+  .fonte a { color: var(--accent); }
+
+  /* ---------- mapa ---------- */
+  .leaflet-container { font-family: inherit; }
+  .leaflet-control-attribution { font-size: 11px; background: rgba(255,255,255,.8); }
+  .tip {
+    background: var(--ink); color: #fff; border: 0; border-radius: 4px; padding: 6px 9px;
+    font-size: 13px; box-shadow: none; white-space: nowrap;
+  }
+  .tip::before { display: none; }
+  .tip b { font-weight: 600; }
+  .leaflet-top.leaflet-left { left: auto; right: 16px; top: 16px; }
+  .leaflet-bar { border: 0; box-shadow: var(--shadow); }
+  .leaflet-bar a { color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  @media (max-width: 720px) {
+    .panel {
+      top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-width: none;
+      max-height: 50vh; border-radius: 12px 12px 0 0;
+    }
+    .panel__head { padding-top: 14px; }
+    .leaflet-top.leaflet-left { top: 12px; right: 12px; }
+    .stat .v { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="map" role="application" aria-label="Mapa dos distritos de São Paulo"></div>
+
+<aside class="panel" aria-label="Painel de dados">
+  <div class="panel__head">
+    <div class="brand">
+      <h1>Epimapa SP</h1>
+      <span>arboviroses por distrito</span>
+    </div>
+
+    <div class="seg" role="group" aria-label="Doença">
+      <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
+      <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
+      <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
+    </div>
+
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="busca" type="search" placeholder="Buscar distrito ou subprefeitura" autocomplete="off" aria-label="Buscar distrito ou subprefeitura" aria-controls="busca-lista" aria-expanded="false">
+      <ul id="busca-lista" class="search__list" role="listbox"></ul>
+    </div>
+
+    <div id="aviso" class="aviso" hidden></div>
+  </div>
+
+  <div class="panel__scroll">
+    <section id="cidade">
+      <h2>Município de São Paulo</h2>
+      <div class="titulo">
+        <strong id="cid-semana">—</strong>
+        <span id="cid-badge" class="badge" data-nivel="1">—</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v" id="cid-casos">—</div><div class="k">casos estimados na semana</div></div>
+        <div class="stat"><div class="v delta" id="cid-delta">—</div><div class="k">vs. semana anterior</div></div>
+      </div>
+      <svg id="spark" class="spark" viewBox="0 0 340 56" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="spark__legend"><span id="spark-ini">—</span><span>últimas 26 semanas</span><span id="spark-fim">—</span></div>
+    </section>
+
+    <section id="distrito">
+      <h2>Distrito</h2>
+      <div id="dist-vazio">
+        <p class="hint">Clique em um distrito no mapa ou use a busca para ver os números da região.</p>
+      </div>
+      <div id="dist-conteudo" hidden>
+        <div class="titulo">
+          <div><strong id="dist-nome">—</strong><div class="sub" id="dist-sub">—</div></div>
+          <span id="dist-badge" class="badge" data-nivel="1">—</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="v" id="dist-casos">—</div><div class="k">casos na semana</div></div>
+          <div class="stat"><div class="v delta" id="dist-delta">—</div><div class="k">vs. semana anterior</div></div>
+          <div class="stat"><div class="v" id="dist-inc">—</div><div class="k">por 100 mil hab.</div></div>
+          <div class="stat"><div class="v" id="dist-rank">—</div><div class="k">entre os 96 distritos</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Nível de alerta por incidência semanal</h2>
+      <div class="legenda">
+        <i style="background:var(--n1)"></i><span>Verde — baixa</span><span class="lim">até 20 /100 mil</span>
+        <i style="background:var(--n2)"></i><span>Amarelo — atenção</span><span class="lim">20 a 60</span>
+        <i style="background:var(--n3)"></i><span>Laranja — transmissão sustentada</span><span class="lim">60 a 150</span>
+        <i style="background:var(--n4)"></i><span>Vermelho — alta incidência</span><span class="lim">acima de 150</span>
+      </div>
+      <p class="fonte" id="fonte">—</p>
+    </section>
+  </div>
+</aside>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const fmt = new Intl.NumberFormat("pt-BR");
+  const NIVEL_NOME = { 1: "Verde", 2: "Amarelo", 3: "Laranja", 4: "Vermelho" };
+  const NIVEL_COR = { 1: "#3d9a6a", 2: "#e8c04a", 3: "#e8802f", 4: "#c8322b" };
+  const LIMIARES = [0, 20, 60, 150, 300];
+  const reduzMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- carregar dados ----------
+  const [geo, distritoDados, cidadeDados] = await Promise.all([
+    fetch("data/distritos.geojson").then(r => r.json()),
+    fetch("data/casos_distrito.json").then(r => r.json()),
+    fetch("data/infodengue.json").then(r => r.json()),
+  ]);
+
+  let doenca = "dengue";
+  let selecionado = null;      // id do distrito
+  let camadaSel = null;
+
+  // ---------- cor contínua entre os níveis ----------
+  function mix(a, b, t) {
+    const pa = a.match(/\w\w/g).map(h => parseInt(h, 16));
+    const pb = b.match(/\w\w/g).map(h => parseInt(h, 16));
+    return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
+  }
+  function corPorInc(inc) {
+    const cores = [NIVEL_COR[1], NIVEL_COR[1], NIVEL_COR[2], NIVEL_COR[3], NIVEL_COR[4]];
+    for (let i = 1; i < LIMIARES.length; i++) {
+      if (inc < LIMIARES[i]) {
+        const t = (inc - LIMIARES[i - 1]) / (LIMIARES[i] - LIMIARES[i - 1]);
+        return mix(cores[i - 1], cores[i], Math.max(0, Math.min(1, t)));
+      }
+    }
+    return NIVEL_COR[4];
+  }
+
+  const dados = () => distritoDados.doencas[doenca] || {};
+  const dadoDe = (id) => dados()[id] || { casos: 0, casos_anterior: 0, inc100k: 0, nivel: 1 };
+
+  // ---------- mapa ----------
+  const map = L.map("map", { zoomControl: true, attributionControl: true, minZoom: 9, maxZoom: 15 });
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd", maxZoom: 19,
+  }).addTo(map);
+  const labels = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", {
+    subdomains: "abcd", maxZoom: 19, pane: "shadowPane",
+  }).addTo(map);
+
+  function estilo(f) {
+    const d = dadoDe(f.properties.id);
+    const sel = f.properties.id === selecionado;
+    return {
+      fillColor: corPorInc(d.inc100k), fillOpacity: 0.72,
+      color: sel ? "#1b2430" : "#ffffff", weight: sel ? 2.5 : 1, opacity: 1,
+    };
+  }
+
+  const camada = L.geoJSON(geo, {
+    style: estilo,
+    onEachFeature: (f, layer) => {
+      layer.bindTooltip(() => {
+        const d = dadoDe(f.properties.id);
+        return `<b>${f.properties.nome}</b> · ${fmt.format(d.casos)} casos`;
+      }, { className: "tip", sticky: true, direction: "top", offset: [0, -8] });
+      layer.on({
+        mouseover: () => { if (f.properties.id !== selecionado) layer.setStyle({ weight: 2, color: "#1b2430" }); },
+        mouseout: () => { if (f.properties.id !== selecionado) camada.resetStyle(layer); },
+        click: () => selecionar(f.properties.id, { voar: false }),
+      });
+    },
+  }).addTo(map);
+
+  map.fitBounds(camada.getBounds(), { paddingTopLeft: [innerWidth > 720 ? 420 : 0, 20], paddingBottomRight: [20, innerWidth > 720 ? 20 : innerHeight * 0.52] });
+
+  const porId = {};
+  camada.eachLayer(l => { porId[l.feature.properties.id] = l; });
+
+  // ---------- seleção ----------
+  function selecionar(id, { voar = true } = {}) {
+    selecionado = id;
+    camada.setStyle(estilo);
+    const l = porId[id];
+    if (l) {
+      l.bringToFront();
+      if (voar) {
+        const opts = { paddingTopLeft: [innerWidth > 720 ? 420 : 0, 40], paddingBottomRight: [40, innerWidth > 720 ? 40 : innerHeight * 0.52], maxZoom: 13 };
+        reduzMovimento ? map.fitBounds(l.getBounds(), opts) : map.flyToBounds(l.getBounds(), { ...opts, duration: 0.8 });
+      }
+    }
+    renderDistrito();
+  }
+
+  function delta(atual, anterior, el) {
+    const rotulo = el.nextElementSibling;
+    el.classList.remove("up", "down", "flat");
+    if (anterior == null || atual == null) { el.textContent = "—"; rotulo.textContent = "vs. semana anterior"; el.classList.add("flat"); return; }
+    const diff = atual - anterior;
+    const sinal = diff > 0 ? "+" : diff < 0 ? "−" : "";
+    if (diff === 0) { el.textContent = "0%"; el.classList.add("flat"); }
+    else if (anterior === 0) { el.textContent = `${sinal}${fmt.format(Math.abs(diff))}`; el.classList.add("up"); }
+    else { el.textContent = `${sinal}${Math.abs(Math.round(diff / anterior * 100))}%`; el.classList.add(diff > 0 ? "up" : "down"); }
+    rotulo.textContent = diff === 0 ? "igual à semana anterior" : `${sinal}${fmt.format(Math.abs(diff))} casos vs. semana anterior`;
+  }
+
+  function renderDistrito() {
+    const vazio = $("dist-vazio"), cont = $("dist-conteudo");
+    if (!selecionado) { vazio.hidden = false; cont.hidden = true; return; }
+    const f = porId[selecionado].feature.properties;
+    const d = dadoDe(selecionado);
+    const ranking = Object.entries(dados()).sort((a, b) => b[1].inc100k - a[1].inc100k).map(e => e[0]);
+    const pos = ranking.indexOf(selecionado) + 1;
+
+    $("dist-nome").textContent = f.nome;
+    $("dist-sub").textContent = `Subprefeitura ${f.subprefeitura}`;
+    $("dist-badge").textContent = NIVEL_NOME[d.nivel];
+    $("dist-badge").dataset.nivel = d.nivel;
+    $("dist-casos").textContent = fmt.format(d.casos);
+    delta(d.casos, d.casos_anterior, $("dist-delta"));
+    $("dist-inc").textContent = fmt.format(d.inc100k);
+    $("dist-rank").textContent = pos ? `${pos}º` : "—";
+    vazio.hidden = true; cont.hidden = false;
+  }
+
+  // ---------- resumo municipal ----------
+  function renderCidade() {
+    const serie = cidadeDados.doencas[doenca];
+    const atual = serie && serie.atual;
+    if (!atual) {
+      $("cid-semana").textContent = "sem dados"; $("cid-casos").textContent = "—"; $("cid-delta").textContent = "—";
+      $("spark").innerHTML = ""; return;
+    }
+    $("cid-semana").textContent = `Semana ${atual.se}/${atual.ano}`;
+    $("cid-badge").textContent = NIVEL_NOME[atual.nivel] || "—";
+    $("cid-badge").dataset.nivel = atual.nivel || 1;
+    $("cid-casos").textContent = fmt.format(atual.casos_est);
+    const sem = serie.semanas.slice(-26);
+    delta(atual.casos_est, sem.length > 1 ? sem[sem.length - 2].casos_est : null, $("cid-delta"));
+
+    // sparkline
+    const W = 340, H = 56, pad = 4;
+    const max = Math.max(...sem.map(s => s.casos_est), 1);
+    const px = (i) => pad + i * (W - 2 * pad) / Math.max(sem.length - 1, 1);
+    const py = (v) => H - pad - v / max * (H - 2 * pad);
+    const pts = sem.map((s, i) => `${px(i).toFixed(1)},${py(s.casos_est).toFixed(1)}`);
+    const linha = "M" + pts.join(" L");
+    const area = linha + ` L${px(sem.length - 1).toFixed(1)},${H} L${px(0)},${H} Z`;
+    const ult = sem[sem.length - 1];
+    $("spark").innerHTML = `<path class="area" d="${area}"/><path class="line" d="${linha}"/><circle class="dot" cx="${px(sem.length - 1).toFixed(1)}" cy="${py(ult.casos_est).toFixed(1)}" r="3"/>`;
+    $("spark-ini").textContent = `SE ${sem[0].se}/${sem[0].ano}`;
+    $("spark-fim").textContent = `SE ${ult.se}/${ult.ano}`;
+  }
+
+  // ---------- rodapé / aviso ----------
+  function renderFonte() {
+    const amostra = distritoDados.fonte === "amostra" || cidadeDados.fonte === "amostra";
+    const aviso = $("aviso");
+    if (amostra) {
+      aviso.hidden = false;
+      aviso.innerHTML = "Dados de amostra. Os números por distrito são sintéticos até a integração com o boletim da COVISA. Rode <code>scripts/fetch_infodengue.py</code> para trazer a série municipal real.";
+    }
+    const dt = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+    $("fonte").innerHTML =
+      `Série municipal: ${cidadeDados.fonte === "amostra" ? "amostra" : '<a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue (Fiocruz/FGV)</a>'}, atualizada em ${dt(cidadeDados.atualizado_em)}. ` +
+      `Distritos: ${distritoDados.fonte === "amostra" ? "amostra sintética" : distritoDados.fonte}, SE ${distritoDados.se}/${distritoDados.ano}. ` +
+      `Malha: Prefeitura de São Paulo / GeoSampa.`;
+  }
+
+  // ---------- doença ----------
+  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+    doenca = b.dataset.doenca;
+    document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    camada.setStyle(estilo);
+    renderCidade(); renderDistrito();
+  }));
+
+  // ---------- busca ----------
+  const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const indice = geo.features.map(f => ({ id: f.properties.id, nome: f.properties.nome, sub: f.properties.subprefeitura, tipo: "distrito" }));
+  const subs = [...new Set(geo.features.map(f => f.properties.subprefeitura))].map(s => ({ id: s, nome: s, sub: "subprefeitura", tipo: "sub" }));
+  const input = $("busca"), lista = $("busca-lista");
+  let resultados = [], ativo = -1;
+
+  function abrir(itens) {
+    resultados = itens; ativo = -1;
+    lista.innerHTML = itens.length
+      ? itens.map((r, i) => `<li role="option" data-i="${i}">${r.nome}<small>${r.tipo === "sub" ? "subprefeitura" : r.sub}</small></li>`).join("")
+      : `<li class="empty">Nenhum distrito ou subprefeitura com esse nome.</li>`;
+    lista.dataset.open = "true"; input.setAttribute("aria-expanded", "true");
+  }
+  function fechar() { lista.dataset.open = "false"; input.setAttribute("aria-expanded", "false"); }
+  function escolher(r) {
+    fechar(); input.value = r.nome;
+    if (r.tipo === "distrito") { selecionar(r.id); return; }
+    // subprefeitura: enquadra todos os distritos dela e seleciona o de maior incidência
+    const ids = geo.features.filter(f => f.properties.subprefeitura === r.id).map(f => f.properties.id);
+    const grupo = L.featureGroup(ids.map(id => porId[id]));
+    const opts = { paddingTopLeft: [innerWidth > 720 ? 420 : 0, 40], paddingBottomRight: [40, innerWidth > 720 ? 40 : innerHeight * 0.52] };
+    reduzMovimento ? map.fitBounds(grupo.getBounds(), opts) : map.flyToBounds(grupo.getBounds(), { ...opts, duration: 0.8 });
+    const pior = ids.sort((a, b) => dadoDe(b).inc100k - dadoDe(a).inc100k)[0];
+    selecionar(pior, { voar: false });
+  }
+
+  input.addEventListener("input", () => {
+    const q = norm(input.value.trim());
+    if (!q) { fechar(); return; }
+    const hits = [...indice, ...subs].filter(r => norm(r.nome).includes(q) || (r.tipo === "distrito" && norm(r.sub).includes(q)))
+      .sort((a, b) => (norm(a.nome).startsWith(q) ? 0 : 1) - (norm(b.nome).startsWith(q) ? 0 : 1)).slice(0, 8);
+    abrir(hits);
+  });
+  input.addEventListener("keydown", (e) => {
+    if (lista.dataset.open !== "true") return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      ativo = (ativo + (e.key === "ArrowDown" ? 1 : -1) + resultados.length) % resultados.length;
+      [...lista.children].forEach((li, i) => li.setAttribute("aria-selected", i === ativo));
+    } else if (e.key === "Enter") {
+      e.preventDefault(); if (resultados.length) escolher(resultados[Math.max(ativo, 0)]);
+    } else if (e.key === "Escape") { fechar(); }
+  });
+  lista.addEventListener("click", (e) => {
+    const li = e.target.closest("li[data-i]"); if (li) escolher(resultados[+li.dataset.i]);
+  });
+  document.addEventListener("click", (e) => { if (!e.target.closest(".search")) fechar(); });
+
+  renderCidade(); renderDistrito(); renderFonte();
+})();
+</script>
+</body>
+</html>
