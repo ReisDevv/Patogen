@@ -1,0 +1,4 @@
+# Só scripts/fetch_covisa.py precisa disto. Os outros scripts são stdlib pura.
+# pdfplumber: o quadro por distrito do boletim COVISA é um PDF sem grade de tabela;
+# extrair por posição de texto não dá com a biblioteca padrão.
+pdfplumber>=0.11,<0.12

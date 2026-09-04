@@ -24,7 +24,8 @@ python -m http.server 8000
 |---|---|---|
 | `data/distritos.geojson` | polígonos dos 96 distritos, simplificados para 230 KB | Prefeitura de São Paulo (GeoSampa), via [codigourbano/distritos-sp](https://github.com/codigourbano/distritos-sp) |
 | `data/infodengue.json` | série semanal municipal (casos estimados, nível de alerta, Rt) | [InfoDengue](https://info.dengue.mat.br) — Fiocruz/FGV |
-| `data/casos_distrito.json` | casos por distrito, por doença | **amostra sintética** por enquanto (ver abaixo) |
+| `data/casos_distrito.json` | casos por distrito, por doença (acumulado do ano) | boletim semanal de arboviroses da COVISA/SMS-SP, via `scripts/fetch_covisa.py` (ver abaixo) |
+| `data/covisa/SE-AAAA-SS.json` | snapshot imutável de cada boletim já lido | idem |
 
 ### Trazer dados reais do InfoDengue
 
@@ -37,27 +38,41 @@ o aviso amarelo do site some para a série municipal. O workflow em
 `.github/workflows/atualizar-dados.yml` faz isso toda madrugada e commita o
 resultado — é a rotina 1 do projeto rodando no GitHub Actions, sem servidor.
 
-### Por que os dados por distrito são amostra
+### Dados por distrito: boletim da COVISA
 
 O InfoDengue entrega dados por **município**. A única fonte pública com quebra
-por distrito é o boletim semanal de arboviroses da COVISA (Prefeitura de SP),
-que sai em PDF/tabela e não em API. Extrair isso é a etapa 3 do roteiro.
+por distrito é o boletim semanal de arboviroses urbanas da COVISA (Prefeitura
+de SP), um PDF sem API. `scripts/fetch_covisa.py` baixa o boletim mais recente,
+lê os quadros por distrito e grava:
 
-Até lá, `scripts/gerar_amostra.py` gera números sintéticos com um padrão
-espacial plausível, para o mapa exibir toda a escala de cores. O arquivo
-leva `"fonte": "amostra"` e o site mostra um aviso enquanto isso for verdade.
-**Não apresente esses números como reais.**
+```bash
+pip install -r requirements.txt     # pdfplumber, só para este script
+python scripts/fetch_covisa.py      # ou --url URL, --pdf arquivo.pdf, --dry-run
+```
 
-Quando o scraper da COVISA existir, basta ele gravar `data/casos_distrito.json`
-no mesmo formato:
+O que o boletim traz — e o que o site mostra — é o **acumulado do ano** por
+distrito (casos confirmados desde janeiro), não casos da semana. Detalhes do
+formato e da extração em [`docs/covisa-formato.md`](docs/covisa-formato.md).
+
+- **Dengue**: casos confirmados e incidência por 100 mil hab., por distrito.
+- **Chikungunya**: só casos confirmados autóctones, sem incidência.
+- **Zika**: o boletim não tem quadro por distrito desde 2018; o mapa fica
+  vazio e só o resumo municipal aparece.
+- `novos_desde_boletim` é a diferença do acumulado entre o boletim atual e o
+  anterior. Pode ser negativo quando a COVISA revisa semanas passadas.
+
+Cada boletim fica congelado em `data/covisa/SE-AAAA-SS.json`;
+`data/casos_distrito.json` é derivado dos dois mais recentes:
 
 ```json
 {
-  "fonte": "COVISA/SMS-SP, boletim SE 36/2026",
-  "ano": 2026, "se": 36,
+  "fonte": "COVISA/SMS-SP, boletim SE 33/2026",
+  "ano": 2026, "se": 33,
+  "boletim_anterior_se": { "ano": 2026, "se": 32 },
+  "sem_dados_por_distrito": ["zika"],
   "doencas": {
     "dengue": {
-      "itaquera": { "casos": 152, "casos_anterior": 178, "inc100k": 249.0, "nivel": 4 }
+      "itaquera": { "casos_ano": 298, "inc100k_ano": 139.6, "novos_desde_boletim": 4 }
     }
   }
 }
@@ -65,6 +80,10 @@ no mesmo formato:
 
 As chaves de distrito são os `id` do GeoJSON (nome sem acento, em minúsculas,
 com hífen: `freguesia-do-o`, `jardim-sao-luis`).
+
+Sem nenhum snapshot em `data/covisa/`, `scripts/gerar_amostra.py` gera números
+sintéticos no mesmo schema, marcados com `"fonte": "amostra"`; o site mostra um
+aviso enquanto isso for verdade. **Não apresente esses números como reais.**
 
 ## Publicar no GitHub Pages
 
@@ -76,7 +95,7 @@ com hífen: `freguesia-do-o`, `jardim-sao-luis`).
 
 - [x] **1.** Malha + choropleth + busca + série municipal do InfoDengue
 - [ ] **2.** Pipeline InfoDengue → Postgres/PostGIS → API própria
-- [ ] **3.** Scraper do boletim COVISA para dados por distrito
+- [x] **3.** Scraper do boletim COVISA para dados por distrito (em validação; falta entrar no workflow)
 - [ ] **4.** Login leve e relatos da comunidade (camada separada dos dados oficiais)
 - [ ] **5.** Chatbot sobre os agregados
 - [ ] **6.** Pets e parcerias com clínicas

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Gera dados DE AMOSTRA para o mapa abrir preenchido antes de existir a fonte
-real por distrito (boletim COVISA, etapa 3 do roteiro).
+Gera dados DE AMOSTRA para o mapa abrir preenchido quando ainda não há snapshot
+real da COVISA em data/covisa/ (ver scripts/fetch_covisa.py).
 
 Grava:
-  data/casos_distrito.json  -> casos por distrito, por doença (SINTÉTICO)
+  data/casos_distrito.json  -> casos por distrito, por doença (SINTÉTICO), no
+                               mesmo schema que fetch_covisa.py produz
   data/infodengue.json      -> só se ainda não existir; o fetch_infodengue.py
                                sobrescreve com dados reais.
 
@@ -33,8 +34,10 @@ random.seed(2026)
 HOJE = dt.date.today()
 ANO, SE = HOJE.isocalendar()[0], HOJE.isocalendar()[1]
 
-# Cenário de PICO (semelhante a mar-abr 2024) para a amostra exibir toda a escala.
-BASE = {"dengue": 7500, "chikungunya": 260, "zika": 60}
+# Acumulado do ano, na escala de um ano moderado (parecido com 2026 até agosto).
+# Chikungunya por distrito é só autóctone, por isso tão pouco. Zika não tem
+# quadro por distrito no boletim da COVISA — e a amostra respeita isso.
+ACUMULADO_ANO = {"dengue": 9900, "chikungunya": 30}
 
 
 def centroide(feature) -> tuple[float, float]:
@@ -55,7 +58,6 @@ def peso_espacial(lon: float, lat: float, doenca: str) -> float:
     focos = {
         "dengue": [(-46.42, -23.53, 0.08), (-46.72, -23.70, 0.07)],
         "chikungunya": [(-46.47, -23.60, 0.06)],
-        "zika": [(-46.55, -23.48, 0.06)],
     }[doenca]
     for fx, fy, r in focos:
         base += 1.8 * math.exp(-(math.hypot(lon - fx, lat - fy) / r) ** 2)
@@ -72,50 +74,47 @@ def nivel_por_incidencia(inc: float) -> int:
 def main():
     g = json.loads(DISTRITOS.read_text(encoding="utf-8"))
     feats = g["features"]
-
-    # "População" fictícia proporcional à área, só para calcular incidência.
-    pesos = {}
-    for f in feats:
-        lon, lat = centroide(f)
-        pesos[f["properties"]["id"]] = (lon, lat)
+    pesos = {f["properties"]["id"]: centroide(f) for f in feats}
 
     doencas = {}
-    for doenca, total in BASE.items():
+    for doenca, total in ACUMULADO_ANO.items():
         brutos = {}
-        for f in feats:
-            pid = f["properties"]["id"]
-            lon, lat = pesos[pid]
-            ruido = 0.7 + random.random() * 0.6
-            brutos[pid] = peso_espacial(lon, lat, doenca) * ruido
+        for pid, (lon, lat) in pesos.items():
+            brutos[pid] = peso_espacial(lon, lat, doenca) * (0.7 + random.random() * 0.6)
         soma = sum(brutos.values())
         por_distrito = {}
         for pid, w in brutos.items():
-            casos = int(round(total * w / soma))
-            anterior = max(0, int(round(casos * (0.75 + random.random() * 0.5))))
+            casos_ano = int(round(total * w / soma))
+            # Diferença para o "boletim anterior": normalmente positiva, às vezes
+            # negativa, como acontece quando a COVISA revisa semanas passadas.
+            novos = int(round(casos_ano * random.uniform(-0.02, 0.06)))
             pop_fict = 60_000 + (int(hashlib.md5(pid.encode()).hexdigest(), 16) % 120_000)
-            inc = casos / pop_fict * 100_000
+            inc = casos_ano / pop_fict * 100_000 if doenca == "dengue" else None
             por_distrito[pid] = {
-                "casos": casos,
-                "casos_anterior": anterior,
-                "inc100k": round(inc, 1),
-                "nivel": nivel_por_incidencia(inc),
+                "casos_ano": casos_ano,
+                "inc100k_ano": round(inc, 1) if inc is not None else None,
+                "novos_desde_boletim": novos,
             }
         doencas[doenca] = por_distrito
+    doencas["zika"] = {}
 
     SAIDA_DISTRITO.write_text(json.dumps({
         "fonte": "amostra",
         "aviso": "Dados sintéticos gerados por scripts/gerar_amostra.py. Não representam casos reais.",
         "ano": ANO, "se": SE,
         "gerado_em": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "boletim_anterior_se": {"ano": ANO, "se": SE - 1} if SE > 1 else None,
+        "sem_dados_por_distrito": ["zika"],
         "doencas": doencas,
     }, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print(f"gravado {SAIDA_DISTRITO.relative_to(RAIZ)} ({len(feats)} distritos x {len(BASE)} doenças)")
+    print(f"gravado {SAIDA_DISTRITO.relative_to(RAIZ)} ({len(feats)} distritos x {len(ACUMULADO_ANO)} doenças; zika sem dado por distrito)")
 
     if SAIDA_INFODENGUE.exists():
         print(f"{SAIDA_INFODENGUE.relative_to(RAIZ)} já existe, mantido")
         return
 
     # Série municipal fictícia de 26 semanas com formato idêntico ao real.
+    base_semanal = {"dengue": 7500, "chikungunya": 260, "zika": 60}
     saida = {
         "fonte": "amostra",
         "aviso": "Série sintética. Rode scripts/fetch_infodengue.py para dados reais.",
@@ -123,7 +122,7 @@ def main():
         "atualizado_em": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "doencas": {},
     }
-    for doenca, total in BASE.items():
+    for doenca, total in base_semanal.items():
         semanas = []
         inicio = HOJE - dt.timedelta(weeks=25, days=HOJE.weekday())
         for i in range(26):

@@ -25,6 +25,7 @@
     --shadow: 0 1px 2px rgba(27,36,48,.06), 0 8px 24px rgba(27,36,48,.10);
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { height: 100%; margin: 0; }
   body {
     font-family: "Instrument Sans", system-ui, sans-serif;
@@ -200,25 +201,26 @@
       <div id="dist-conteudo" hidden>
         <div class="titulo">
           <div><strong id="dist-nome">—</strong><div class="sub" id="dist-sub">—</div></div>
-          <span id="dist-badge" class="badge" data-nivel="1">—</span>
         </div>
-        <div class="stats">
-          <div class="stat"><div class="v" id="dist-casos">—</div><div class="k">casos na semana</div></div>
-          <div class="stat"><div class="v delta" id="dist-delta">—</div><div class="k">vs. semana anterior</div></div>
-          <div class="stat"><div class="v" id="dist-inc">—</div><div class="k">por 100 mil hab.</div></div>
+        <p class="hint" id="dist-sem-dados" hidden>Sem dados por distrito para esta doença no boletim da COVISA. Veja o resumo municipal acima.</p>
+        <div class="stats" id="dist-stats">
+          <div class="stat"><div class="v" id="dist-casos">—</div><div class="k">casos confirmados no ano</div></div>
+          <div class="stat"><div class="v delta" id="dist-novos">—</div><div class="k">novos desde o boletim anterior</div></div>
+          <div class="stat"><div class="v" id="dist-inc">—</div><div class="k">por 100 mil hab., no ano</div></div>
           <div class="stat"><div class="v" id="dist-rank">—</div><div class="k">entre os 96 distritos</div></div>
         </div>
       </div>
     </section>
 
     <section>
-      <h2>Nível de alerta por incidência semanal</h2>
+      <h2>Cor dos distritos: incidência acumulada no ano</h2>
       <div class="legenda">
-        <i style="background:var(--n1)"></i><span>Verde — baixa</span><span class="lim">até 20 /100 mil</span>
-        <i style="background:var(--n2)"></i><span>Amarelo — atenção</span><span class="lim">20 a 60</span>
-        <i style="background:var(--n3)"></i><span>Laranja — transmissão sustentada</span><span class="lim">60 a 150</span>
-        <i style="background:var(--n4)"></i><span>Vermelho — alta incidência</span><span class="lim">acima de 150</span>
+        <i style="background:var(--n1)"></i><span>mais baixa</span><span class="lim">até 20 /100 mil</span>
+        <i style="background:var(--n2)"></i><span></span><span class="lim">20 a 60</span>
+        <i style="background:var(--n3)"></i><span></span><span class="lim">60 a 150</span>
+        <i style="background:var(--n4)"></i><span>mais alta</span><span class="lim">acima de 150</span>
       </div>
+      <p class="hint" id="legenda-nota">Não é nível de alerta: o nível 1–4 (badge acima) existe só para o município. Na chikungunya o boletim não traz incidência por distrito; a cor é proporcional ao nº de casos autóctones no ano.</p>
       <p class="fonte" id="fonte">—</p>
     </section>
   </div>
@@ -263,7 +265,16 @@
   }
 
   const dados = () => distritoDados.doencas[doenca] || {};
-  const dadoDe = (id) => dados()[id] || { casos: 0, casos_anterior: 0, inc100k: 0, nivel: 1 };
+  const dadoDe = (id) => dados()[id] || { casos_ano: null, inc100k_ano: null, novos_desde_boletim: null };
+  const semDadosDistrito = () => (distritoDados.sem_dados_por_distrito || []).includes(doenca);
+  // Ordena por incidência quando o boletim traz; senão (chikungunya) por casos.
+  const medida = (d) => typeof d.inc100k_ano === "number" ? d.inc100k_ano : (d.casos_ano || 0);
+  const maxCasos = () => Math.max(1, ...Object.values(dados()).map(d => d.casos_ano || 0));
+  function corDe(d) {
+    if (semDadosDistrito() || d.casos_ano == null) return "#c9d1d9";
+    if (typeof d.inc100k_ano === "number") return corPorInc(d.inc100k_ano);
+    return corPorInc(LIMIARES[LIMIARES.length - 1] * d.casos_ano / maxCasos());
+  }
 
   // ---------- mapa ----------
   const map = L.map("map", { zoomControl: true, attributionControl: true, minZoom: 9, maxZoom: 15 });
@@ -279,7 +290,7 @@
     const d = dadoDe(f.properties.id);
     const sel = f.properties.id === selecionado;
     return {
-      fillColor: corPorInc(d.inc100k), fillOpacity: 0.72,
+      fillColor: corDe(d), fillOpacity: semDadosDistrito() ? 0.35 : 0.72,
       color: sel ? "#1b2430" : "#ffffff", weight: sel ? 2.5 : 1, opacity: 1,
     };
   }
@@ -289,7 +300,8 @@
     onEachFeature: (f, layer) => {
       layer.bindTooltip(() => {
         const d = dadoDe(f.properties.id);
-        return `<b>${f.properties.nome}</b> · ${fmt.format(d.casos)} casos`;
+        if (semDadosDistrito() || d.casos_ano == null) return `<b>${f.properties.nome}</b> · sem dados por distrito`;
+        return `<b>${f.properties.nome}</b> · ${fmt.format(d.casos_ano)} casos no ano`;
       }, { className: "tip", sticky: true, direction: "top", offset: [0, -8] });
       layer.on({
         mouseover: () => { if (f.properties.id !== selecionado) layer.setStyle({ weight: 2, color: "#1b2430" }); },
@@ -336,18 +348,33 @@
     if (!selecionado) { vazio.hidden = false; cont.hidden = true; return; }
     const f = porId[selecionado].feature.properties;
     const d = dadoDe(selecionado);
-    const ranking = Object.entries(dados()).sort((a, b) => b[1].inc100k - a[1].inc100k).map(e => e[0]);
-    const pos = ranking.indexOf(selecionado) + 1;
-
     $("dist-nome").textContent = f.nome;
     $("dist-sub").textContent = `Subprefeitura ${f.subprefeitura}`;
-    $("dist-badge").textContent = NIVEL_NOME[d.nivel];
-    $("dist-badge").dataset.nivel = d.nivel;
-    $("dist-casos").textContent = fmt.format(d.casos);
-    delta(d.casos, d.casos_anterior, $("dist-delta"));
-    $("dist-inc").textContent = fmt.format(d.inc100k);
-    $("dist-rank").textContent = pos ? `${pos}º` : "—";
     vazio.hidden = true; cont.hidden = false;
+
+    const semDados = semDadosDistrito() || d.casos_ano == null;
+    $("dist-sem-dados").hidden = !semDados;
+    $("dist-stats").hidden = semDados;
+    if (semDados) return;
+
+    const ranking = Object.entries(dados()).sort((a, b) => medida(b[1]) - medida(a[1])).map(e => e[0]);
+    const pos = ranking.indexOf(selecionado) + 1;
+    $("dist-casos").textContent = fmt.format(d.casos_ano);
+    novos(d.novos_desde_boletim, $("dist-novos"));
+    $("dist-inc").textContent = typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "—";
+    $("dist-rank").textContent = pos ? `${pos}º` : "—";
+  }
+
+  // Diferença de acumulado entre boletins. Pode ser negativa (revisão da COVISA);
+  // mostra como está, nunca como "casos na semana".
+  function novos(n, el) {
+    const rotulo = el.nextElementSibling;
+    el.classList.remove("up", "down", "flat");
+    if (n == null) { el.textContent = "—"; rotulo.textContent = "sem boletim anterior para comparar"; el.classList.add("flat"); return; }
+    const sinal = n > 0 ? "+" : n < 0 ? "−" : "";
+    el.textContent = `${sinal}${fmt.format(Math.abs(n))}`;
+    el.classList.add(n > 0 ? "up" : n < 0 ? "down" : "flat");
+    rotulo.textContent = n < 0 ? "revisado para baixo desde o boletim anterior" : "novos desde o boletim anterior";
   }
 
   // ---------- resumo municipal ----------
@@ -385,12 +412,15 @@
     const aviso = $("aviso");
     if (amostra) {
       aviso.hidden = false;
-      aviso.innerHTML = "Dados de amostra. Os números por distrito são sintéticos até a integração com o boletim da COVISA. Rode <code>scripts/fetch_infodengue.py</code> para trazer a série municipal real.";
+      aviso.innerHTML = "Dados de amostra. Os números por distrito são sintéticos até o primeiro boletim da COVISA ser carregado (<code>scripts/fetch_covisa.py</code>). Rode <code>scripts/fetch_infodengue.py</code> para trazer a série municipal real.";
     }
     const dt = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+    const ant = distritoDados.boletim_anterior_se;
     $("fonte").innerHTML =
       `Série municipal: ${cidadeDados.fonte === "amostra" ? "amostra" : '<a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue (Fiocruz/FGV)</a>'}, atualizada em ${dt(cidadeDados.atualizado_em)}. ` +
-      `Distritos: ${distritoDados.fonte === "amostra" ? "amostra sintética" : distritoDados.fonte}, SE ${distritoDados.se}/${distritoDados.ano}. ` +
+      `Distritos: ${distritoDados.fonte === "amostra" ? "amostra sintética" : distritoDados.fonte}, SE ${distritoDados.se}/${distritoDados.ano} — ` +
+      `acumulado desde janeiro; reflete o pico do primeiro semestre, não só as últimas semanas` +
+      `${ant ? ` (comparado com SE ${ant.se}/${ant.ano})` : ""}. ` +
       `Malha: Prefeitura de São Paulo / GeoSampa.`;
   }
 
@@ -425,7 +455,7 @@
     const grupo = L.featureGroup(ids.map(id => porId[id]));
     const opts = { paddingTopLeft: [innerWidth > 720 ? 420 : 0, 40], paddingBottomRight: [40, innerWidth > 720 ? 40 : innerHeight * 0.52] };
     reduzMovimento ? map.fitBounds(grupo.getBounds(), opts) : map.flyToBounds(grupo.getBounds(), { ...opts, duration: 0.8 });
-    const pior = ids.sort((a, b) => dadoDe(b).inc100k - dadoDe(a).inc100k)[0];
+    const pior = ids.sort((a, b) => medida(dadoDe(b)) - medida(dadoDe(a)))[0];
     selecionar(pior, { voar: false });
   }
 
