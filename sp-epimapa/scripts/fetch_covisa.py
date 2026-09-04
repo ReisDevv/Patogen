@@ -356,7 +356,14 @@ def main() -> int:
 
     destino = PASTA_SNAPSHOTS / f"SE-{snapshot['ano']}-{snapshot['se']:02d}.json"
     if destino.exists() and not args.sobrescrever and not args.dry_run:
-        raise RuntimeError(f"{destino.relative_to(RAIZ)} já existe. A COVISA republicou a SE? Confira e use --sobrescrever se for o caso.")
+        anterior = json.loads(destino.read_text(encoding="utf-8"))
+        if anterior.get("doencas") == snapshot["doencas"]:
+            print(f"{destino.relative_to(RAIZ)} já extraído com os mesmos números; nada a fazer")
+            return 0
+        raise RuntimeError(
+            f"{destino.relative_to(RAIZ)} já existe com números diferentes: a COVISA republicou a SE. "
+            "Confira e use --sobrescrever se for o caso."
+        )
     existentes = [
         json.loads(p.read_text(encoding="utf-8")) for p in sorted(PASTA_SNAPSHOTS.glob("SE-*.json")) if p != destino
     ]

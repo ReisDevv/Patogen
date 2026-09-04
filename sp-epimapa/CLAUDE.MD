@@ -30,11 +30,18 @@ Site estático, sem backend. Publica no GitHub Pages.
 index.html                         # página única: mapa + painel (Leaflet, CSS e JS inline)
 data/distritos.geojson             # 96 distritos, simplificado (~230 KB), NÃO regenerar sem motivo
 data/infodengue.json               # série semanal municipal (InfoDengue)
-data/casos_distrito.json           # casos por distrito, por doença — HOJE É AMOSTRA SINTÉTICA
+data/casos_distrito.json           # casos por distrito, por doença — derivado dos 2 últimos snapshots da COVISA, ou amostra
+data/covisa/SE-AAAA-SS.json        # snapshot imutável de cada boletim COVISA já extraído (um por semana)
 scripts/fetch_infodengue.py        # rotina 1: busca InfoDengue e grava data/infodengue.json
+scripts/fetch_covisa.py            # rotina 1: baixa o boletim COVISA (PDF), extrai por distrito, grava snapshot + casos_distrito.json
 scripts/gerar_amostra.py           # gera dados sintéticos marcados com "fonte": "amostra"
-.github/workflows/atualizar-dados.yml  # roda fetch_infodengue.py toda madrugada e commita
+docs/covisa-formato.md             # como o boletim COVISA é por dentro e como o scraper o lê
+requirements.txt                   # pdfplumber, só para fetch_covisa.py
+../.github/workflows/atualizar-dados.yml  # na RAIZ do repositório (o GitHub só lê ali); roda os dois fetch toda madrugada e commita
 ```
+
+O repositório Git é a pasta de cima (`Patogen/`); este projeto vive em `sp-epimapa/`. Por
+isso o workflow fica na raiz e usa `working-directory: sp-epimapa`.
 
 Rodar local: `python -m http.server 8000` (fetch de JSON não funciona via file://).
 
@@ -45,7 +52,7 @@ Isso é o que mais confunde. Não invente APIs.
 | Fonte | Granularidade | Cadência | Formato | Status no projeto |
 |---|---|---|---|---|
 | InfoDengue (Fiocruz/FGV) `info.dengue.mat.br/api/alertcity` | município (geocode 3550308) | semanal, com nowcast | JSON/CSV, sem chave | integrado |
-| Boletim COVISA/SMS-SP (arboviroses) | **distrito administrativo** | semanal | PDF/tabela em página HTML | fase 3, a fazer |
+| Boletim COVISA/SMS-SP (arboviroses urbanas) | **distrito administrativo** | semanal | PDF de 13 págs., link direto (ver `docs/covisa-formato.md`) | integrado (fase 3): dengue e chikungunya, **acumulado do ano** |
 | OpenDataSUS / SINAN | município | atraso de semanas ou meses | CSV grandes, API Elasticsearch p/ síndrome gripal | avaliar depois |
 | GeoSampa (Prefeitura) | polígonos de distritos, subprefeituras, logradouros | estática | shapefile/GeoJSON | integrado (distritos) |
 | Pets (CCZ, CVE) | boletins esparsos | irregular | PDF | fase 6, sem API pública |
@@ -58,6 +65,13 @@ Regras derivadas disso:
   por `(distrito, doença, ano, se)`, nunca append cego.
 - Níveis de alerta seguem a convenção InfoDengue: 1 verde, 2 amarelo, 3 laranja, 4 vermelho.
   As cores no site são `#3d9a6a`, `#e8c04a`, `#e8802f`, `#c8322b`. Não troque.
+- **Por distrito, a COVISA só publica acumulado do ano** (casos confirmados desde janeiro,
+  por ano de início de sintomas), não casos da semana. Não existe nível de alerta por
+  distrito — o nível 1–4 é só municipal (InfoDengue). Não invente um.
+- Chikungunya por distrito é só de casos **autóctones** confirmados e sem incidência.
+  Zika não tem quadro por distrito desde 2018: o mapa fica vazio com "sem dados por distrito".
+- A COVISA revisa o acumulado de semanas anteriores. `novos_desde_boletim` pode ser
+  negativo; mostre como está, com esse rótulo, nunca como "casos na semana".
 
 ## Honestidade com dados de amostra
 
@@ -74,12 +88,24 @@ Formato de `casos_distrito.json`:
 ```json
 {
   "fonte": "amostra | COVISA/SMS-SP, boletim SE NN/AAAA",
-  "ano": 2026, "se": 36, "gerado_em": "ISO-8601",
+  "ano": 2026, "se": 33, "gerado_em": "ISO-8601",
+  "boletim_anterior_se": { "ano": 2026, "se": 32 },
+  "sem_dados_por_distrito": ["zika"],
   "doencas": {
-    "dengue": { "<id_distrito>": { "casos": 152, "casos_anterior": 178, "inc100k": 249.0, "nivel": 4 } }
+    "dengue":      { "<id_distrito>": { "casos_ano": 287, "inc100k_ano": 100.0, "novos_desde_boletim": 4 } },
+    "chikungunya": { "<id_distrito>": { "casos_ano": 1, "inc100k_ano": null, "novos_desde_boletim": 0 } },
+    "zika": {}
   }
 }
 ```
+
+- `casos_ano` / `inc100k_ano`: acumulado desde janeiro do `ano`, como vem no boletim.
+- `novos_desde_boletim`: `casos_ano` deste boletim − `casos_ano` do boletim em
+  `boletim_anterior_se`. `null` quando não há boletim anterior salvo. Pode ser negativo.
+- `boletim_anterior_se` é `null` no primeiro boletim e na amostra sem histórico.
+- Cada boletim extraído fica congelado em `data/covisa/SE-AAAA-SS.json` (nunca reescrever;
+  se a COVISA republicar a mesma SE, o script falha e a decisão é manual).
+  `casos_distrito.json` é sempre derivado dos dois snapshots mais recentes.
 
 `<id_distrito>` é o `id` do GeoJSON: nome em minúsculas, sem acento, espaços viram hífen
 (`freguesia-do-o`, `jardim-sao-luis`, `vila-curuca`). Ao cruzar nomes vindos da COVISA,
@@ -116,7 +142,8 @@ depois; define o que pode ser construído.
 - Chatbot (fase 5): LLM com tool use sobre 4–6 funções pré-definidas de consulta aos
   agregados. Nada de text-to-SQL livre.
 - Scripts Python só com biblioteca padrão enquanto der. Se precisar de dependência, crie
-  `requirements.txt` e justifique no commit.
+  `requirements.txt` e justifique no commit. Única exceção aceita até agora: `pdfplumber`
+  em `fetch_covisa.py` (tabela em PDF sem grade; não dá com stdlib).
 
 ## Convenções
 
@@ -137,16 +164,24 @@ depois; define o que pode ser construído.
   mobile (390×844).
 - Depois de mudar scripts: roda `python scripts/gerar_amostra.py` e
   `python scripts/fetch_infodengue.py` e valida o JSON com `python -m json.tool`.
+- Depois de mudar `fetch_covisa.py`: roda `python scripts/fetch_covisa.py --pdf <boletim.pdf> --dry-run`
+  num boletim salvo. O script só aceita o resultado se os 96 distritos casarem e a soma
+  dos distritos (+ "em investigação") bater com a linha TOTAL do quadro. Se falhar, é
+  mudança de layout da COVISA — leia `docs/covisa-formato.md` antes de mexer.
 - Depois de mudar o workflow: dispara manualmente em Actions → *Atualizar dados do InfoDengue*.
 - Nunca commite `data/infodengue.json` gerado pela amostra por cima de um real.
 
 ## Próximo passo concreto
 
-Fase 3: scraper do boletim de arboviroses da COVISA.
-Página de entrada: `prefeitura.sp.gov.br/web/saude/w/vigilancia_em_saude/boletim_covisa/arboviroses`.
-Antes de codar, baixe o boletim mais recente, inspecione o formato (PDF? tabela HTML? XLSX?)
-e documente em `docs/covisa-formato.md` quais tabelas trazem casos por distrito e como
-identificar a semana epidemiológica. Só depois escreva `scripts/fetch_covisa.py`.
+Fase 3 em validação. O scraper (`scripts/fetch_covisa.py`) existe e foi conferido contra o
+boletim da SE 33/2026. Falta:
+
+1. Colocar `fetch_covisa.py` no workflow `atualizar-dados.yml` (precisa de
+   `pip install -r requirements.txt`) e commitar snapshot + `casos_distrito.json` toda segunda.
+2. Acompanhar 2–3 boletins seguidos para ver se o layout se mantém e se
+   `novos_desde_boletim` faz sentido (revisões negativas são esperadas, não bug).
+3. Só depois disso abrir a fase 2 (Postgres/PostGIS + API). Os snapshots em `data/covisa/`
+   já são o histórico que a rotina 2 vai carregar.
 
 ## Quando estiver em dúvida
 
