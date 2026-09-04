@@ -81,9 +81,9 @@ Cada boletim fica congelado em `data/covisa/SE-AAAA-SS.json`;
 As chaves de distrito são os `id` do GeoJSON (nome sem acento, em minúsculas,
 com hífen: `freguesia-do-o`, `jardim-sao-luis`).
 
-Sem nenhum snapshot em `data/covisa/`, `scripts/gerar_amostra.py` gera números
-sintéticos no mesmo schema, marcados com `"fonte": "amostra"`; o site mostra um
-aviso enquanto isso for verdade. **Não apresente esses números como reais.**
+Não há dado sintético nem estimado no projeto: o resumo municipal mostra casos
+**notificados** (não o nowcast do InfoDengue) e, quando uma fonte não tem o dado,
+o site diz "sem dados".
 
 ## Publicar no GitHub Pages
 
@@ -104,4 +104,4 @@ aviso enquanto isso for verdade. **Não apresente esses números como reais.**
 
 - Malha de distritos: Prefeitura de São Paulo / GeoSampa, dados abertos.
 - Série epidemiológica: InfoDengue (PROCC/Fiocruz e EMAp/FGV), com dados do SINAN/Ministério da Saúde.
-- Mapa-base: © OpenStreetMap contributors, tiles CARTO.
+- Mapa-base: tiles Esri Light Gray Canvas (Esri, HERE, Garmin, © OpenStreetMap contributors).

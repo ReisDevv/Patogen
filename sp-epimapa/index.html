@@ -4,225 +4,357 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Epimapa SP — arboviroses por distrito</title>
-<meta name="description" content="Mapa de dengue, chikungunya e zika por distrito da cidade de São Paulo, com dados do InfoDengue e da vigilância municipal.">
+<meta name="description" content="Dengue, chikungunya e zika por distrito da cidade de São Paulo, com dados do InfoDengue e do boletim da vigilância municipal (COVISA).">
+<meta property="og:title" content="Epimapa SP — arboviroses por distrito">
+<meta property="og:description" content="A dengue está alta no meu bairro? Mapa por distrito de São Paulo com dados públicos de vigilância.">
+<meta name="theme-color" content="#1d5c7a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231d5c7a'/%3E%3Ccircle cx='13' cy='13' r='6' fill='%23fff'/%3E%3Ccircle cx='21' cy='21' r='4' fill='%23e8802f'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
+  /* Tokens. Um acento só (azul-petróleo), cinzas frios, sombras tingidas com a tinta.
+     Raios: contêineres 12px, controles 8px, badges pílula. */
   :root {
-    --paper: #eef1f4;
-    --panel: #ffffff;
-    --ink: #1b2430;
-    --muted: #5c6b7a;
-    --line: #d9dfe5;
+    --bg: #e9edf1;
+    --surface: #ffffff;
+    --surface-2: #f3f5f8;
+    --ink: #16202b;
+    --muted: #5b6877;
+    --line: #dde3e9;
     --accent: #1d5c7a;
-    --accent-soft: #e3eef4;
-    --n1: #3d9a6a;
-    --n2: #e8c04a;
-    --n3: #e8802f;
-    --n4: #c8322b;
-    --radius: 6px;
-    --shadow: 0 1px 2px rgba(27,36,48,.06), 0 8px 24px rgba(27,36,48,.10);
+    --accent-ink: #0f3a4f;
+    --accent-soft: #e3eef3;
+    --n1: #3d9a6a; --n2: #e8c04a; --n3: #e8802f; --n4: #c8322b;
+    --sem-dado: #c9d1d9;
+    --r-box: 12px; --r-ctl: 8px;
+    --sombra: 0 1px 2px rgba(22,32,43,.05), 0 10px 30px -8px rgba(22,32,43,.18);
+    --sombra-leve: 0 1px 2px rgba(22,32,43,.06);
+    --topo: 64px;
+    --painel-w: 352px;
+    --dur: 180ms;
+    --z-mapa: 0; --z-painel: 700; --z-topo: 900; --z-lista: 950;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { height: 100%; margin: 0; }
   body {
-    font-family: "Instrument Sans", system-ui, sans-serif;
-    font-feature-settings: "tnum" 1;
+    font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-variant-numeric: tabular-nums;
     color: var(--ink);
-    background: var(--paper);
+    background: var(--bg);
     line-height: 1.45;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
   }
-  #map { position: fixed; inset: 0; background: var(--paper); }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  /* ---------- painel ---------- */
-  .panel {
-    position: fixed; top: 16px; left: 16px; bottom: 16px;
-    width: 380px; max-width: calc(100vw - 32px);
-    background: var(--panel);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    display: flex; flex-direction: column;
-    overflow: hidden;
-    z-index: 1000;
+  .skip {
+    position: fixed; left: 12px; top: -48px; z-index: 1000;
+    background: var(--ink); color: #fff; padding: 8px 12px; border-radius: var(--r-ctl);
+    transition: top var(--dur);
   }
-  .panel__scroll { overflow-y: auto; flex: 1; padding: 0 20px 20px; }
-  .panel__head { padding: 20px 20px 12px; }
-  .brand { display: flex; align-items: baseline; gap: 8px; }
-  .brand h1 { font-size: 20px; font-weight: 600; letter-spacing: -.01em; margin: 0; }
-  .brand span { color: var(--muted); font-size: 14px; }
+  .skip:focus { top: 12px; }
 
-  .seg { display: flex; margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius); padding: 3px; gap: 3px; }
+  /* ---------- barra superior ---------- */
+  .topo {
+    position: fixed; inset: 0 0 auto 0; height: var(--topo); z-index: var(--z-topo);
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 20px;
+    padding: 0 20px;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .marca { display: flex; align-items: center; gap: 10px; }
+  .marca__logo {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--accent); position: relative; flex: none;
+  }
+  .marca__logo::before, .marca__logo::after { content: ""; position: absolute; border-radius: 50%; }
+  .marca__logo::before { width: 11px; height: 11px; background: #fff; left: 6px; top: 6px; }
+  .marca__logo::after { width: 7px; height: 7px; background: var(--n3); right: 6px; bottom: 6px; }
+  .marca h1 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; margin: 0; line-height: 1.1; }
+  .marca span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  .seg {
+    display: inline-flex; justify-self: center; gap: 2px; padding: 3px;
+    background: var(--surface-2); border-radius: var(--r-ctl);
+  }
   .seg button {
-    flex: 1; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 500;
-    padding: 6px 0; border-radius: 4px; color: var(--muted); cursor: pointer;
+    border: 0; background: transparent; padding: 7px 14px; border-radius: 6px;
+    font-weight: 500; color: var(--muted);
+    transition: background var(--dur), color var(--dur), transform var(--dur);
   }
-  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
-  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .seg button:hover { color: var(--ink); background: rgba(22,32,43,.05); }
+  .seg button:active { transform: scale(.98); }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent-ink); box-shadow: var(--sombra-leve); }
 
-  .search { position: relative; margin-top: 12px; }
-  .search input {
-    width: 100%; font: inherit; font-size: 15px; padding: 10px 12px 10px 36px;
-    border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink);
+  .busca { position: relative; width: 300px; }
+  .busca input {
+    width: 100%; padding: 9px 12px 9px 36px;
+    border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface);
+    transition: border-color var(--dur), box-shadow var(--dur);
   }
-  .search input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-  .search svg { position: absolute; left: 11px; top: 11px; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
-  .search__list {
-    position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5;
-    background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
-    list-style: none; margin: 0; padding: 4px; max-height: 260px; overflow-y: auto; display: none;
+  .busca input::placeholder { color: #7a8794; }
+  .busca input:hover { border-color: #c6ced6; }
+  .busca input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .busca svg { position: absolute; left: 11px; top: 10px; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+  .busca__lista {
+    position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: var(--z-lista);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-box); box-shadow: var(--sombra);
+    list-style: none; margin: 0; padding: 6px; max-height: 300px; overflow-y: auto; display: none;
   }
-  .search__list[data-open="true"] { display: block; }
-  .search__list li { padding: 8px 10px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
-  .search__list li small { color: var(--muted); }
-  .search__list li:hover, .search__list li[aria-selected="true"] { background: var(--accent-soft); }
-  .search__list .empty { color: var(--muted); cursor: default; }
+  .busca__lista[data-open="true"] { display: block; }
+  .busca__lista li { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
+  .busca__lista li small { color: var(--muted); }
+  .busca__lista li:hover, .busca__lista li[aria-selected="true"] { background: var(--accent-soft); }
+  .busca__lista .vazio { color: var(--muted); cursor: default; }
 
-  .aviso {
-    margin: 14px 0 0; padding: 10px 12px; border-radius: var(--radius);
-    background: #fff5d6; color: #6a4b00; border: 1px solid #f1dd9a; font-size: 13px;
+  /* ---------- mapa ---------- */
+  #map { position: fixed; inset: 0; z-index: var(--z-mapa); background: var(--bg); }
+  .leaflet-container { font-family: inherit; }
+  /* O foco no mapa e nos polígonos era o retângulo que aparecia ao clicar num distrito.
+     O selecionado já é destacado pelo contorno escuro; teclado ganha um traço mais grosso. */
+  .leaflet-container:focus, .leaflet-interactive:focus { outline: none; }
+  .leaflet-interactive:focus-visible { outline: none; stroke: var(--accent-ink); stroke-width: 3; }
+  .leaflet-control-attribution { font-size: 11px; background: rgba(255,255,255,.85); }
+  .leaflet-top.leaflet-right { top: calc(var(--topo) + 12px); right: 12px; }
+  .leaflet-bar { border: 0; box-shadow: var(--sombra); border-radius: var(--r-ctl); overflow: hidden; }
+  .leaflet-bar a { color: var(--ink); border-bottom-color: var(--line); transition: background var(--dur); }
+  .leaflet-bar a:hover { background: var(--surface-2); }
+  .distrito { transition: fill-opacity var(--dur), stroke var(--dur), stroke-width var(--dur); }
+  .tip {
+    background: var(--ink); color: #fff; border: 0; border-radius: 6px; padding: 6px 9px;
+    font-size: 13px; box-shadow: none; white-space: nowrap;
   }
-  .aviso code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .tip::before { display: none; }
+  .tip b { font-weight: 600; }
 
-  section { padding: 18px 0 0; border-top: 1px solid var(--line); margin-top: 18px; }
-  section:first-child { border-top: 0; margin-top: 0; }
-  h2 { font-size: 13px; font-weight: 500; color: var(--muted); margin: 0 0 8px; }
-  .titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-  .titulo strong { font-size: 18px; font-weight: 600; }
-  .titulo .sub { color: var(--muted); font-size: 13px; }
+  /* ---------- painel de dados ---------- */
+  .painel {
+    position: fixed; top: calc(var(--topo) + 16px); left: 16px; bottom: 16px;
+    width: var(--painel-w); z-index: var(--z-painel);
+    display: flex; flex-direction: column;
+    background: var(--surface); border-radius: var(--r-box); box-shadow: var(--sombra);
+    overflow: hidden;
+  }
+  .painel__alca { display: none; }
+  .painel__corpo { overflow-y: auto; flex: 1; min-height: 0; padding: 4px 20px 18px; }
+
+  .bloco { padding: 18px 0; border-top: 1px solid var(--line); }
+  .bloco:first-child { border-top: 0; }
+  .bloco__cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .bloco h2 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .bloco .sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; text-wrap: pretty; }
 
   .badge {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500;
-    padding: 3px 9px 3px 7px; border-radius: 999px; color: #fff; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500;
+    padding: 3px 9px 3px 7px; border-radius: 999px; color: #fff; white-space: nowrap; flex: none;
   }
-  .badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.85); }
+  .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.85); }
   .badge[data-nivel="1"] { background: var(--n1); }
   .badge[data-nivel="2"] { background: var(--n2); color: #4a3b00; }
   .badge[data-nivel="2"]::before { background: rgba(74,59,0,.7); }
   .badge[data-nivel="3"] { background: var(--n3); }
   .badge[data-nivel="4"] { background: var(--n4); }
 
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-top: 12px; }
-  .stat .v { font-size: 26px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
-  .stat .k { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .delta { font-size: 26px; }
+  .destaque { display: flex; align-items: baseline; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .destaque--compacto { margin-top: 6px; }
+  .destaque .v { font-size: 34px; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+  .destaque .k { color: var(--muted); }
+  .delta { font-weight: 500; }
   .delta.up { color: var(--n4); }
   .delta.down { color: var(--n1); }
   .delta.flat { color: var(--muted); }
 
-  .spark { margin-top: 12px; width: 100%; height: 56px; display: block; }
-  .spark path.line { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; margin-top: 14px; }
+  .stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+  .stat .k { font-size: 12.5px; color: var(--muted); margin-top: 3px; text-wrap: pretty; }
+
+  .spark { margin-top: 14px; width: 100%; height: 56px; display: block; }
+  .spark path.linha { fill: none; stroke: var(--accent); stroke-width: 1.6; }
   .spark path.area { fill: var(--accent-soft); }
-  .spark .dot { fill: var(--accent); }
-  .spark__legend { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .spark .ponto { fill: var(--accent); }
+  .spark__legenda { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-top: 4px; }
 
-  .hint { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+  .dica { color: var(--muted); margin: 8px 0 0; text-wrap: pretty; }
 
-  .legenda { display: grid; grid-template-columns: 18px 1fr auto; gap: 6px 10px; align-items: center; font-size: 13px; }
-  .legenda i { display: block; width: 18px; height: 14px; border-radius: 3px; }
-  .legenda .lim { color: var(--muted); }
+  /* estado vazio do distrito: os 5 de maior incidência */
+  .top5 { list-style: none; margin: 12px 0 0; padding: 0; counter-reset: pos; }
+  .top5 li + li { margin-top: 2px; }
+  .top5 button {
+    width: 100%; display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 10px;
+    padding: 8px 10px; border: 0; border-radius: var(--r-ctl); background: transparent; text-align: left;
+    transition: background var(--dur), transform var(--dur);
+  }
+  .top5 button::before { counter-increment: pos; content: counter(pos); color: var(--muted); font-size: 12px; }
+  .top5 button:hover { background: var(--surface-2); }
+  .top5 button:active { transform: scale(.99); }
+  .top5 .num { color: var(--muted); font-size: 12.5px; }
+  #dist-vazio h3 { font-size: 12.5px; font-weight: 500; color: var(--muted); margin: 14px 0 0; }
+  .fechar {
+    border: 0; background: transparent; color: var(--muted); padding: 4px 8px; border-radius: 6px; flex: none;
+    transition: background var(--dur), color var(--dur);
+  }
+  .fechar:hover { background: var(--surface-2); color: var(--ink); }
 
-  .fonte { font-size: 12px; color: var(--muted); margin-top: 18px; }
+  /* legenda: escala contínua */
+  .escala { margin-top: 12px; }
+  .escala__barra {
+    height: 10px; border-radius: 999px;
+    background: linear-gradient(90deg, var(--n1) 0 6.7%, var(--n2) 20%, var(--n3) 50%, var(--n4) 100%);
+  }
+  .escala__ticks { position: relative; height: 16px; font-size: 11.5px; color: var(--muted); }
+  .escala__ticks span { position: absolute; top: 3px; transform: translateX(-50%); }
+  .escala__ticks span:first-child { transform: none; }
+  .escala__ticks span:last-child { transform: translateX(-100%); }
+  .nota { font-size: 12.5px; color: var(--muted); margin: 10px 0 0; text-wrap: pretty; }
+  .fonte { font-size: 12px; color: var(--muted); margin: 14px 0 0; text-wrap: pretty; }
   .fonte a { color: var(--accent); }
 
-  /* ---------- mapa ---------- */
-  .leaflet-container { font-family: inherit; }
-  .leaflet-control-attribution { font-size: 11px; background: rgba(255,255,255,.8); }
-  .tip {
-    background: var(--ink); color: #fff; border: 0; border-radius: 4px; padding: 6px 9px;
-    font-size: 13px; box-shadow: none; white-space: nowrap;
+  /* esqueleto de carregamento e erro */
+  .esq { display: none; }
+  body.carregando .esq { display: block; }
+  body.carregando .dados { display: none; }
+  .esq i {
+    display: block; height: 12px; border-radius: 6px; margin-top: 10px;
+    background: linear-gradient(90deg, var(--surface-2) 25%, #e9edf1 50%, var(--surface-2) 75%);
+    background-size: 200% 100%; animation: brilho 1.4s linear infinite;
   }
-  .tip::before { display: none; }
-  .tip b { font-weight: 600; }
-  .leaflet-top.leaflet-left { left: auto; right: 16px; top: 16px; }
-  .leaflet-bar { border: 0; box-shadow: var(--shadow); }
-  .leaflet-bar a { color: var(--ink); }
+  .esq i.grande { height: 34px; width: 55%; }
+  .esq i.media { width: 75%; }
+  .esq i.curta { width: 40%; }
+  @keyframes brilho { to { background-position: -200% 0; } }
+  .erro { margin: 18px 0 0; padding: 12px 14px; border-radius: var(--r-ctl); background: #fdecec; color: #7a1f1a; border: 1px solid #f3c2bf; }
 
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
 
+  /* ---------- mobile: barra em duas linhas, painel vira bottom sheet ---------- */
   @media (max-width: 720px) {
-    .panel {
-      top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-width: none;
-      max-height: 50vh; border-radius: 12px 12px 0 0;
+    :root { --topo: 104px; }
+    .topo { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 8px 12px; padding: 10px 14px; }
+    .marca span { display: none; }
+    .seg { justify-self: end; }
+    .seg button { padding: 6px 10px; font-size: 13px; }
+    .busca { grid-column: 1 / -1; width: 100%; }
+    .leaflet-top.leaflet-right { top: calc(var(--topo) + 8px); }
+
+    .painel {
+      top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+      border-radius: 16px 16px 0 0; max-height: 78vh;
+      transform: translateY(calc(100% - 64px));
+      transition: transform var(--dur) ease-out;
     }
-    .panel__head { padding-top: 14px; }
-    .leaflet-top.leaflet-left { top: 12px; right: 12px; }
-    .stat .v { font-size: 22px; }
+    .painel.aberto { transform: none; }
+    .painel__alca {
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
+      width: 100%; height: 64px; padding: 0 20px; border: 0; background: transparent; text-align: left;
+      position: relative;
+    }
+    .painel__alca::before {
+      content: ""; position: absolute; left: 50%; top: 8px; width: 40px; height: 4px; border-radius: 2px;
+      background: var(--line); transform: translateX(-50%);
+    }
+    .painel__alca strong { font-weight: 600; }
+    .painel__alca span { color: var(--muted); font-size: 12.5px; display: block; }
+    .painel__corpo { padding-top: 0; }
+    .destaque .v { font-size: 30px; }
   }
 </style>
 </head>
-<body>
+<body class="carregando">
+
+<a class="skip" href="#painel">Pular para os dados</a>
+
+<header class="topo">
+  <div class="marca">
+    <span class="marca__logo" aria-hidden="true"></span>
+    <div><h1>Epimapa SP</h1><span>arboviroses por distrito</span></div>
+  </div>
+
+  <div class="seg" role="group" aria-label="Doença">
+    <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
+    <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
+    <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
+  </div>
+
+  <div class="busca">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="busca" type="search" placeholder="Buscar distrito ou subprefeitura" autocomplete="off" aria-label="Buscar distrito ou subprefeitura" aria-controls="busca-lista" aria-expanded="false">
+    <ul id="busca-lista" class="busca__lista" role="listbox"></ul>
+  </div>
+</header>
 
 <div id="map" role="application" aria-label="Mapa dos distritos de São Paulo"></div>
 
-<aside class="panel" aria-label="Painel de dados">
-  <div class="panel__head">
-    <div class="brand">
-      <h1>Epimapa SP</h1>
-      <span>arboviroses por distrito</span>
-    </div>
+<aside id="painel" class="painel" aria-label="Painel de dados">
+  <button type="button" class="painel__alca" id="alca" aria-expanded="false" aria-controls="painel-corpo">
+    <div><strong id="alca-titulo">Carregando…</strong><span id="alca-sub">dados do município e do distrito</span></div>
+    <span id="alca-badge" class="badge" data-nivel="1" hidden>—</span>
+  </button>
 
-    <div class="seg" role="group" aria-label="Doença">
-      <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
-      <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
-      <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
-    </div>
-
-    <div class="search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="busca" type="search" placeholder="Buscar distrito ou subprefeitura" autocomplete="off" aria-label="Buscar distrito ou subprefeitura" aria-controls="busca-lista" aria-expanded="false">
-      <ul id="busca-lista" class="search__list" role="listbox"></ul>
-    </div>
-
-    <div id="aviso" class="aviso" hidden></div>
-  </div>
-
-  <div class="panel__scroll">
-    <section id="cidade">
-      <h2>Município de São Paulo</h2>
-      <div class="titulo">
-        <strong id="cid-semana">—</strong>
-        <span id="cid-badge" class="badge" data-nivel="1">—</span>
+  <div class="painel__corpo" id="painel-corpo">
+    <section class="bloco" id="cidade">
+      <div class="esq" aria-hidden="true"><i class="media"></i><i class="curta"></i><i class="grande"></i><i></i></div>
+      <div class="dados">
+        <div class="bloco__cab">
+          <div><h2>São Paulo, município</h2><div class="sub" id="cid-semana">—</div></div>
+          <span id="cid-badge" class="badge" data-nivel="1" title="Nível de alerta semanal (InfoDengue)">—</span>
+        </div>
+        <div class="destaque">
+          <span class="v" id="cid-casos">—</span>
+          <span class="k">casos notificados na semana</span>
+        </div>
+        <div class="destaque destaque--compacto">
+          <span class="delta" id="cid-delta">—</span>
+          <span class="k">vs. semana anterior</span>
+        </div>
+        <svg id="spark" class="spark" viewBox="0 0 340 56" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="spark__legenda"><span id="spark-ini">—</span><span>últimas 26 semanas</span><span id="spark-fim">—</span></div>
+        <p class="nota">Notificações ainda entram por algumas semanas; as últimas semanas tendem a subir na próxima atualização.</p>
       </div>
-      <div class="stats">
-        <div class="stat"><div class="v" id="cid-casos">—</div><div class="k">casos estimados na semana</div></div>
-        <div class="stat"><div class="v delta" id="cid-delta">—</div><div class="k">vs. semana anterior</div></div>
-      </div>
-      <svg id="spark" class="spark" viewBox="0 0 340 56" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <div class="spark__legend"><span id="spark-ini">—</span><span>últimas 26 semanas</span><span id="spark-fim">—</span></div>
     </section>
 
-    <section id="distrito">
-      <h2>Distrito</h2>
-      <div id="dist-vazio">
-        <p class="hint">Clique em um distrito no mapa ou use a busca para ver os números da região.</p>
-      </div>
-      <div id="dist-conteudo" hidden>
-        <div class="titulo">
-          <div><strong id="dist-nome">—</strong><div class="sub" id="dist-sub">—</div></div>
+    <section class="bloco" id="distrito">
+      <div class="esq" aria-hidden="true"><i class="media"></i><i class="curta"></i><i></i><i></i><i></i></div>
+      <div class="dados">
+        <div id="dist-vazio">
+          <div class="bloco__cab"><div><h2>Distrito</h2><div class="sub" id="dist-ref">—</div></div></div>
+          <p class="dica">Clique em um distrito no mapa ou use a busca.</p>
+          <h3 id="top5-titulo" hidden>Maior incidência acumulada no ano</h3>
+          <ol class="top5" id="top5" hidden></ol>
+          <p class="dica" id="dist-vazio-sem-dados" hidden>O boletim da COVISA não traz esta doença por distrito. Veja o resumo municipal acima.</p>
         </div>
-        <p class="hint" id="dist-sem-dados" hidden>Sem dados por distrito para esta doença no boletim da COVISA. Veja o resumo municipal acima.</p>
-        <div class="stats" id="dist-stats">
-          <div class="stat"><div class="v" id="dist-casos">—</div><div class="k">casos confirmados no ano</div></div>
-          <div class="stat"><div class="v delta" id="dist-novos">—</div><div class="k">novos desde o boletim anterior</div></div>
-          <div class="stat"><div class="v" id="dist-inc">—</div><div class="k">por 100 mil hab., no ano</div></div>
-          <div class="stat"><div class="v" id="dist-rank">—</div><div class="k">entre os 96 distritos</div></div>
+        <div id="dist-conteudo" hidden>
+          <div class="bloco__cab">
+            <div><h2 id="dist-nome">—</h2><div class="sub" id="dist-sub">—</div></div>
+            <button type="button" class="fechar" id="dist-voltar" aria-label="Fechar distrito">✕</button>
+          </div>
+          <p class="dica" id="dist-sem-dados" hidden>Sem dados por distrito para esta doença no boletim da COVISA. Veja o resumo municipal acima.</p>
+          <div class="stats" id="dist-stats">
+            <div class="stat"><div class="v" id="dist-casos">—</div><div class="k">casos confirmados no ano</div></div>
+            <div class="stat"><div class="v delta" id="dist-novos">—</div><div class="k">novos desde o boletim anterior</div></div>
+            <div class="stat"><div class="v" id="dist-inc">—</div><div class="k">por 100 mil hab., no ano</div></div>
+            <div class="stat"><div class="v" id="dist-rank">—</div><div class="k">entre os 96 distritos</div></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section>
-      <h2>Cor dos distritos: incidência acumulada no ano</h2>
-      <div class="legenda">
-        <i style="background:var(--n1)"></i><span>mais baixa</span><span class="lim">até 20 /100 mil</span>
-        <i style="background:var(--n2)"></i><span></span><span class="lim">20 a 60</span>
-        <i style="background:var(--n3)"></i><span></span><span class="lim">60 a 150</span>
-        <i style="background:var(--n4)"></i><span>mais alta</span><span class="lim">acima de 150</span>
+    <section class="bloco dados" id="legenda">
+      <h2 id="escala-titulo">Cor no mapa: incidência acumulada no ano</h2>
+      <div class="escala">
+        <div class="escala__barra" id="escala-barra"></div>
+        <div class="escala__ticks" id="escala-ticks"></div>
       </div>
-      <p class="hint" id="legenda-nota">Não é nível de alerta: o nível 1–4 (badge acima) existe só para o município. Na chikungunya o boletim não traz incidência por distrito; a cor é proporcional ao nº de casos autóctones no ano.</p>
+      <p class="nota" id="escala-nota">Casos por 100 mil habitantes desde janeiro. Não é nível de alerta: o nível 1–4 existe só para o município.</p>
       <p class="fonte" id="fonte">—</p>
     </section>
+
+    <div class="erro" id="erro" hidden></div>
   </div>
 </aside>
 
@@ -235,17 +367,29 @@
   const NIVEL_COR = { 1: "#3d9a6a", 2: "#e8c04a", 3: "#e8802f", 4: "#c8322b" };
   const LIMIARES = [0, 20, 60, 150, 300];
   const reduzMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const mobile = () => innerWidth <= 720;
 
   // ---------- carregar dados ----------
-  const [geo, distritoDados, cidadeDados] = await Promise.all([
-    fetch("data/distritos.geojson").then(r => r.json()),
-    fetch("data/casos_distrito.json").then(r => r.json()),
-    fetch("data/infodengue.json").then(r => r.json()),
-  ]);
+  let geo, distritoDados, cidadeDados;
+  try {
+    [geo, distritoDados, cidadeDados] = await Promise.all([
+      fetch("data/distritos.geojson").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch("data/casos_distrito.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch("data/infodengue.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+    ]);
+  } catch (e) {
+    document.body.classList.remove("carregando");
+    document.querySelectorAll(".dados").forEach(el => el.hidden = true);
+    const erro = $("erro");
+    erro.hidden = false;
+    erro.textContent = "Não foi possível carregar os dados. Se abriu o arquivo direto, sirva a pasta com um servidor local (python -m http.server) e recarregue.";
+    $("alca-titulo").textContent = "Erro ao carregar";
+    return;
+  }
+  document.body.classList.remove("carregando");
 
   let doenca = "dengue";
   let selecionado = null;      // id do distrito
-  let camadaSel = null;
 
   // ---------- cor contínua entre os níveis ----------
   function mix(a, b, t) {
@@ -267,6 +411,7 @@
   const dados = () => distritoDados.doencas[doenca] || {};
   const dadoDe = (id) => dados()[id] || { casos_ano: null, inc100k_ano: null, novos_desde_boletim: null };
   const semDadosDistrito = () => (distritoDados.sem_dados_por_distrito || []).includes(doenca);
+  const temIncidencia = () => Object.values(dados()).some(d => typeof d.inc100k_ano === "number");
   // Ordena por incidência quando o boletim traz; senão (chikungunya) por casos.
   const medida = (d) => typeof d.inc100k_ano === "number" ? d.inc100k_ano : (d.casos_ano || 0);
   const maxCasos = () => Math.max(1, ...Object.values(dados()).map(d => d.casos_ano || 0));
@@ -275,23 +420,26 @@
     if (typeof d.inc100k_ano === "number") return corPorInc(d.inc100k_ano);
     return corPorInc(LIMIARES[LIMIARES.length - 1] * d.casos_ano / maxCasos());
   }
+  const ranking = () => Object.entries(dados()).sort((a, b) => medida(b[1]) - medida(a[1])).map(e => e[0]);
 
   // ---------- mapa ----------
-  const map = L.map("map", { zoomControl: true, attributionControl: true, minZoom: 9, maxZoom: 15 });
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: "abcd", maxZoom: 19,
+  // Base Esri Light Gray: "Base" sem rótulos embaixo do choropleth, "Reference" só com rótulos em cima.
+  // (Os tiles da CARTO passaram a exigir chave de API em 2026.)
+  const map = L.map("map", { zoomControl: false, attributionControl: true, minZoom: 10, maxZoom: 16 });
+  L.control.zoom({ position: "topright" }).addTo(map);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors', maxZoom: 16,
   }).addTo(map);
-  const labels = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", {
-    subdomains: "abcd", maxZoom: 19, pane: "shadowPane",
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 16, pane: "shadowPane",
   }).addTo(map);
-
   function estilo(f) {
     const d = dadoDe(f.properties.id);
     const sel = f.properties.id === selecionado;
     return {
+      className: "distrito",
       fillColor: corDe(d), fillOpacity: semDadosDistrito() ? 0.35 : 0.72,
-      color: sel ? "#1b2430" : "#ffffff", weight: sel ? 2.5 : 1, opacity: 1,
+      color: sel ? "#16202b" : "#ffffff", weight: sel ? 2.5 : 1, opacity: 1,
     };
   }
 
@@ -304,17 +452,33 @@
         return `<b>${f.properties.nome}</b> · ${fmt.format(d.casos_ano)} casos no ano`;
       }, { className: "tip", sticky: true, direction: "top", offset: [0, -8] });
       layer.on({
-        mouseover: () => { if (f.properties.id !== selecionado) layer.setStyle({ weight: 2, color: "#1b2430" }); },
+        mouseover: () => { if (f.properties.id !== selecionado) layer.setStyle({ weight: 2, color: "#16202b" }); },
         mouseout: () => { if (f.properties.id !== selecionado) camada.resetStyle(layer); },
         click: () => selecionar(f.properties.id, { voar: false }),
       });
     },
   }).addTo(map);
 
-  map.fitBounds(camada.getBounds(), { paddingTopLeft: [innerWidth > 720 ? 420 : 0, 20], paddingBottomRight: [20, innerWidth > 720 ? 20 : innerHeight * 0.52] });
+  // Espaço ocupado pela barra, pelo painel (esquerda no desktop, embaixo no mobile).
+  const topo = () => parseInt(getComputedStyle(document.documentElement).getPropertyValue("--topo"));
+  const margens = (extra = 20) => ({
+    paddingTopLeft: [mobile() ? extra : 352 + 32, topo() + extra],
+    paddingBottomRight: [extra, mobile() ? innerHeight * 0.45 : extra],
+  });
+  map.fitBounds(camada.getBounds(), margens());
+  map.setMaxBounds(camada.getBounds().pad(0.6));
 
   const porId = {};
   camada.eachLayer(l => { porId[l.feature.properties.id] = l; });
+  const props = (id) => porId[id].feature.properties;
+
+  // ---------- painel no mobile ----------
+  const painel = $("painel"), alca = $("alca");
+  function abrirPainel(aberto) {
+    painel.classList.toggle("aberto", aberto);
+    alca.setAttribute("aria-expanded", String(aberto));
+  }
+  alca.addEventListener("click", () => abrirPainel(!painel.classList.contains("aberto")));
 
   // ---------- seleção ----------
   function selecionar(id, { voar = true } = {}) {
@@ -324,11 +488,30 @@
     if (l) {
       l.bringToFront();
       if (voar) {
-        const opts = { paddingTopLeft: [innerWidth > 720 ? 420 : 0, 40], paddingBottomRight: [40, innerWidth > 720 ? 40 : innerHeight * 0.52], maxZoom: 13 };
+        const opts = { ...margens(40), maxZoom: 13 };
         reduzMovimento ? map.fitBounds(l.getBounds(), opts) : map.flyToBounds(l.getBounds(), { ...opts, duration: 0.8 });
       }
     }
     renderDistrito();
+    if (mobile()) abrirPainel(true);
+  }
+  function limparSelecao() {
+    selecionado = null;
+    camada.setStyle(estilo);
+    renderDistrito();
+  }
+  $("dist-voltar").addEventListener("click", limparSelecao);
+
+  // Diferença de acumulado entre boletins. Pode ser negativa (revisão da COVISA);
+  // mostra como está, nunca como "casos na semana".
+  function novos(n, el) {
+    const rotulo = el.nextElementSibling;
+    el.classList.remove("up", "down", "flat");
+    if (n == null) { el.textContent = "—"; rotulo.textContent = "sem boletim anterior para comparar"; el.classList.add("flat"); return; }
+    const sinal = n > 0 ? "+" : n < 0 ? "−" : "";
+    el.textContent = `${sinal}${fmt.format(Math.abs(n))}`;
+    el.classList.add(n > 0 ? "up" : n < 0 ? "down" : "flat");
+    rotulo.textContent = n < 0 ? "revisado para baixo desde o boletim anterior" : "novos desde o boletim anterior";
   }
 
   function delta(atual, anterior, el) {
@@ -343,83 +526,127 @@
     rotulo.textContent = diff === 0 ? "igual à semana anterior" : `${sinal}${fmt.format(Math.abs(diff))} casos vs. semana anterior`;
   }
 
+  const refBoletim = () => `Boletim COVISA SE ${distritoDados.se}/${distritoDados.ano} · acumulado desde janeiro`;
+
+  function renderTop5() {
+    const lista = $("top5"), titulo = $("top5-titulo"), semDados = $("dist-vazio-sem-dados");
+    const vazio = semDadosDistrito();
+    semDados.hidden = !vazio;
+    lista.hidden = titulo.hidden = vazio;
+    if (vazio) { lista.innerHTML = ""; return; }
+    titulo.textContent = temIncidencia() ? "Maior incidência acumulada no ano" : "Mais casos autóctones no ano";
+    const top = ranking().slice(0, 5);
+    lista.innerHTML = top.map(id => {
+      const d = dadoDe(id);
+      return `<li><button type="button" data-id="${id}"><span>${props(id).nome}</span><span class="num">${
+        typeof d.inc100k_ano === "number" ? `${fmt.format(d.inc100k_ano)} /100 mil` : `${fmt.format(d.casos_ano)} casos`
+      }</span></button></li>`;
+    }).join("");
+  }
+  $("top5").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-id]"); if (b) selecionar(b.dataset.id);
+  });
+
   function renderDistrito() {
     const vazio = $("dist-vazio"), cont = $("dist-conteudo");
-    if (!selecionado) { vazio.hidden = false; cont.hidden = true; return; }
-    const f = porId[selecionado].feature.properties;
+    $("dist-ref").textContent = refBoletim();
+    if (!selecionado) { vazio.hidden = false; cont.hidden = true; renderTop5(); renderAlca(); return; }
+    const f = props(selecionado);
     const d = dadoDe(selecionado);
     $("dist-nome").textContent = f.nome;
-    $("dist-sub").textContent = `Subprefeitura ${f.subprefeitura}`;
+    $("dist-sub").textContent = `Subprefeitura ${f.subprefeitura} · ${refBoletim()}`;
     vazio.hidden = true; cont.hidden = false;
 
     const semDados = semDadosDistrito() || d.casos_ano == null;
     $("dist-sem-dados").hidden = !semDados;
     $("dist-stats").hidden = semDados;
+    renderAlca();
     if (semDados) return;
 
-    const ranking = Object.entries(dados()).sort((a, b) => medida(b[1]) - medida(a[1])).map(e => e[0]);
-    const pos = ranking.indexOf(selecionado) + 1;
+    const pos = ranking().indexOf(selecionado) + 1;
     $("dist-casos").textContent = fmt.format(d.casos_ano);
     novos(d.novos_desde_boletim, $("dist-novos"));
     $("dist-inc").textContent = typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "—";
     $("dist-rank").textContent = pos ? `${pos}º` : "—";
   }
 
-  // Diferença de acumulado entre boletins. Pode ser negativa (revisão da COVISA);
-  // mostra como está, nunca como "casos na semana".
-  function novos(n, el) {
-    const rotulo = el.nextElementSibling;
-    el.classList.remove("up", "down", "flat");
-    if (n == null) { el.textContent = "—"; rotulo.textContent = "sem boletim anterior para comparar"; el.classList.add("flat"); return; }
-    const sinal = n > 0 ? "+" : n < 0 ? "−" : "";
-    el.textContent = `${sinal}${fmt.format(Math.abs(n))}`;
-    el.classList.add(n > 0 ? "up" : n < 0 ? "down" : "flat");
-    rotulo.textContent = n < 0 ? "revisado para baixo desde o boletim anterior" : "novos desde o boletim anterior";
+  // Resumo de uma linha na alça do bottom sheet (mobile).
+  function renderAlca() {
+    const serie = cidadeDados.doencas[doenca], atual = serie && serie.atual;
+    if (selecionado) {
+      const d = dadoDe(selecionado);
+      $("alca-titulo").textContent = props(selecionado).nome;
+      $("alca-sub").textContent = d.casos_ano == null ? "sem dados por distrito" : `${fmt.format(d.casos_ano)} casos no ano · toque para detalhes`;
+      $("alca-badge").hidden = true;
+    } else {
+      $("alca-titulo").textContent = "São Paulo, município";
+      $("alca-sub").textContent = atual ? `${fmt.format(atual.casos)} casos notificados · SE ${atual.se}/${atual.ano}` : "sem dados";
+      $("alca-badge").hidden = !atual;
+      if (atual) { $("alca-badge").textContent = NIVEL_NOME[atual.nivel] || "—"; $("alca-badge").dataset.nivel = atual.nivel || 1; }
+    }
   }
 
-  // ---------- resumo municipal ----------
+  // ---------- resumo municipal (casos notificados, não a estimativa/nowcast) ----------
   function renderCidade() {
     const serie = cidadeDados.doencas[doenca];
     const atual = serie && serie.atual;
+    $("cid-badge").hidden = !atual;
     if (!atual) {
-      $("cid-semana").textContent = "sem dados"; $("cid-casos").textContent = "—"; $("cid-delta").textContent = "—";
-      $("spark").innerHTML = ""; return;
+      $("cid-semana").textContent = "Sem dados no InfoDengue para esta doença";
+      $("cid-casos").textContent = "—"; $("cid-delta").textContent = "—"; $("cid-delta").className = "delta flat";
+      $("cid-delta").nextElementSibling.textContent = "";
+      $("spark").innerHTML = ""; $("spark-ini").textContent = "—"; $("spark-fim").textContent = "—";
+      return;
     }
-    $("cid-semana").textContent = `Semana ${atual.se}/${atual.ano}`;
+    $("cid-semana").textContent = `Semana ${atual.se}/${atual.ano} · InfoDengue`;
     $("cid-badge").textContent = NIVEL_NOME[atual.nivel] || "—";
     $("cid-badge").dataset.nivel = atual.nivel || 1;
-    $("cid-casos").textContent = fmt.format(atual.casos_est);
+    $("cid-casos").textContent = fmt.format(atual.casos);
     const sem = serie.semanas.slice(-26);
-    delta(atual.casos_est, sem.length > 1 ? sem[sem.length - 2].casos_est : null, $("cid-delta"));
+    delta(atual.casos, sem.length > 1 ? sem[sem.length - 2].casos : null, $("cid-delta"));
 
-    // sparkline
     const W = 340, H = 56, pad = 4;
-    const max = Math.max(...sem.map(s => s.casos_est), 1);
+    const max = Math.max(...sem.map(s => s.casos), 1);
     const px = (i) => pad + i * (W - 2 * pad) / Math.max(sem.length - 1, 1);
     const py = (v) => H - pad - v / max * (H - 2 * pad);
-    const pts = sem.map((s, i) => `${px(i).toFixed(1)},${py(s.casos_est).toFixed(1)}`);
+    const pts = sem.map((s, i) => `${px(i).toFixed(1)},${py(s.casos).toFixed(1)}`);
     const linha = "M" + pts.join(" L");
     const area = linha + ` L${px(sem.length - 1).toFixed(1)},${H} L${px(0)},${H} Z`;
     const ult = sem[sem.length - 1];
-    $("spark").innerHTML = `<path class="area" d="${area}"/><path class="line" d="${linha}"/><circle class="dot" cx="${px(sem.length - 1).toFixed(1)}" cy="${py(ult.casos_est).toFixed(1)}" r="3"/>`;
+    $("spark").innerHTML = `<path class="area" d="${area}"/><path class="linha" d="${linha}"/><circle class="ponto" cx="${px(sem.length - 1).toFixed(1)}" cy="${py(ult.casos).toFixed(1)}" r="3"/>`;
     $("spark-ini").textContent = `SE ${sem[0].se}/${sem[0].ano}`;
     $("spark-fim").textContent = `SE ${ult.se}/${ult.ano}`;
   }
 
-  // ---------- rodapé / aviso ----------
-  function renderFonte() {
-    const amostra = distritoDados.fonte === "amostra" || cidadeDados.fonte === "amostra";
-    const aviso = $("aviso");
-    if (amostra) {
-      aviso.hidden = false;
-      aviso.innerHTML = "Dados de amostra. Os números por distrito são sintéticos até o primeiro boletim da COVISA ser carregado (<code>scripts/fetch_covisa.py</code>). Rode <code>scripts/fetch_infodengue.py</code> para trazer a série municipal real.";
+  // ---------- legenda ----------
+  function renderLegenda() {
+    const barra = $("escala-barra"), ticks = $("escala-ticks");
+    if (semDadosDistrito()) {
+      $("escala-titulo").textContent = "Cor no mapa";
+      barra.style.background = "var(--sem-dado)"; ticks.innerHTML = "";
+      $("escala-nota").textContent = "Sem dados por distrito para esta doença: todos os distritos ficam em cinza.";
+      return;
     }
+    barra.style.background = "";
+    if (temIncidencia()) {
+      $("escala-titulo").textContent = "Cor no mapa: incidência acumulada no ano";
+      ticks.innerHTML = LIMIARES.map((v, i) => `<span style="left:${(v / 300 * 100).toFixed(1)}%">${i === LIMIARES.length - 1 ? v + "+" : v}</span>`).join("");
+      $("escala-nota").textContent = "Casos por 100 mil habitantes desde janeiro. Não é nível de alerta: o nível 1–4 existe só para o município.";
+    } else {
+      const max = maxCasos();
+      $("escala-titulo").textContent = "Cor no mapa: casos autóctones no ano";
+      ticks.innerHTML = `<span style="left:0">0</span><span style="left:50%">${fmt.format(Math.round(max / 2))}</span><span style="left:100%">${fmt.format(max)}</span>`;
+      $("escala-nota").textContent = "O boletim não traz incidência por distrito para chikungunya; a cor é proporcional ao número de casos autóctones desde janeiro.";
+    }
+  }
+
+  // ---------- rodapé ----------
+  function renderFonte() {
     const dt = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
     const ant = distritoDados.boletim_anterior_se;
     $("fonte").innerHTML =
-      `Série municipal: ${cidadeDados.fonte === "amostra" ? "amostra" : '<a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue (Fiocruz/FGV)</a>'}, atualizada em ${dt(cidadeDados.atualizado_em)}. ` +
-      `Distritos: ${distritoDados.fonte === "amostra" ? "amostra sintética" : distritoDados.fonte}, SE ${distritoDados.se}/${distritoDados.ano} — ` +
-      `acumulado desde janeiro; reflete o pico do primeiro semestre, não só as últimas semanas` +
+      `Série municipal: <a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue (Fiocruz/FGV)</a>, casos notificados, atualizada em ${dt(cidadeDados.atualizado_em)}. ` +
+      `Distritos: ${distritoDados.fonte} — acumulado desde janeiro; reflete o pico do primeiro semestre, não só as últimas semanas` +
       `${ant ? ` (comparado com SE ${ant.se}/${ant.ano})` : ""}. ` +
       `Malha: Prefeitura de São Paulo / GeoSampa.`;
   }
@@ -429,7 +656,7 @@
     doenca = b.dataset.doenca;
     document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
     camada.setStyle(estilo);
-    renderCidade(); renderDistrito();
+    renderCidade(); renderDistrito(); renderLegenda();
   }));
 
   // ---------- busca ----------
@@ -443,17 +670,17 @@
     resultados = itens; ativo = -1;
     lista.innerHTML = itens.length
       ? itens.map((r, i) => `<li role="option" data-i="${i}">${r.nome}<small>${r.tipo === "sub" ? "subprefeitura" : r.sub}</small></li>`).join("")
-      : `<li class="empty">Nenhum distrito ou subprefeitura com esse nome.</li>`;
+      : `<li class="vazio">Nenhum distrito ou subprefeitura com esse nome.</li>`;
     lista.dataset.open = "true"; input.setAttribute("aria-expanded", "true");
   }
   function fechar() { lista.dataset.open = "false"; input.setAttribute("aria-expanded", "false"); }
   function escolher(r) {
     fechar(); input.value = r.nome;
     if (r.tipo === "distrito") { selecionar(r.id); return; }
-    // subprefeitura: enquadra todos os distritos dela e seleciona o de maior incidência
+    // subprefeitura: enquadra todos os distritos dela e seleciona o de maior medida
     const ids = geo.features.filter(f => f.properties.subprefeitura === r.id).map(f => f.properties.id);
     const grupo = L.featureGroup(ids.map(id => porId[id]));
-    const opts = { paddingTopLeft: [innerWidth > 720 ? 420 : 0, 40], paddingBottomRight: [40, innerWidth > 720 ? 40 : innerHeight * 0.52] };
+    const opts = margens(40);
     reduzMovimento ? map.fitBounds(grupo.getBounds(), opts) : map.flyToBounds(grupo.getBounds(), { ...opts, duration: 0.8 });
     const pior = ids.sort((a, b) => medida(dadoDe(b)) - medida(dadoDe(a)))[0];
     selecionar(pior, { voar: false });
@@ -479,9 +706,10 @@
   lista.addEventListener("click", (e) => {
     const li = e.target.closest("li[data-i]"); if (li) escolher(resultados[+li.dataset.i]);
   });
-  document.addEventListener("click", (e) => { if (!e.target.closest(".search")) fechar(); });
+  document.addEventListener("click", (e) => { if (!e.target.closest(".busca")) fechar(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && selecionado && document.activeElement !== input) limparSelecao(); });
 
-  renderCidade(); renderDistrito(); renderFonte();
+  renderCidade(); renderDistrito(); renderLegenda(); renderFonte();
 })();
 </script>
 </body>
