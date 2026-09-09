@@ -1,11 +1,12 @@
 # Rotina 2 do Epimapa SP: publica o site no GitHub Pages.
 #
-# O site vive em sp-epimapa/ (index.html + data/), mas o Pages precisa servir
-# essa pasta como RAIZ do site — senão https://<user>.github.io/Patogen/ cai
-# num 404, porque a raiz do repositório não tem index.html.
+# O site (index.html + data/) fica na RAIZ do repositório justamente para que
+# https://<user>.github.io/Patogen/ funcione nos dois modos do Pages:
 #
-# Para isso funcionar, em Settings > Pages o "Source" precisa estar em
-# "GitHub Actions" (e não em "Deploy from a branch").
+#   - Settings > Pages > Source = "Deploy from a branch" (main, / root):
+#     o Pages publica sozinho e este workflow é dispensável.
+#   - Settings > Pages > Source = "GitHub Actions": quem publica é este
+#     workflow, empacotando a raiz do repositório.
 #
 # Roda a cada push na main, então os commits de dados feitos por
 # atualizar-dados.yml republicam o site automaticamente.
@@ -35,9 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      - name: Empacotar sp-epimapa como raiz do site
+      - name: Empacotar a raiz do repositório como site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: sp-epimapa
+          path: .
       - id: deploy
         uses: actions/deploy-pages@v4

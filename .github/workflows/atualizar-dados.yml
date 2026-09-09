@@ -2,9 +2,6 @@
 # semanal da COVISA toda noite e faz commit dos JSONs atualizados. Com o
 # GitHub Pages ligado, o site publicado passa a refletir os dados novos.
 #
-# Este arquivo precisa ficar na raiz do repositório (.github/workflows/);
-# o projeto em si vive em sp-epimapa/, por isso o working-directory abaixo.
-#
 # O boletim da COVISA sai às segundas; nos outros dias fetch_covisa.py
 # reconhece que a SE já foi extraída e não faz nada.
 name: Atualizar dados (InfoDengue e COVISA)
@@ -17,10 +14,6 @@ on:
 permissions:
   contents: write
 
-defaults:
-  run:
-    working-directory: sp-epimapa
-
 jobs:
   atualizar:
     runs-on: ubuntu-latest
@@ -30,7 +23,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: sp-epimapa/requirements.txt
+          cache-dependency-path: requirements.txt
       - name: Instalar dependências (pdfplumber, só para o scraper da COVISA)
         run: pip install -r requirements.txt
       - name: Buscar InfoDengue

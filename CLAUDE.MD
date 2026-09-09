@@ -36,11 +36,14 @@ scripts/fetch_infodengue.py        # rotina 1: busca InfoDengue e grava data/inf
 scripts/fetch_covisa.py            # rotina 1: baixa o boletim COVISA (PDF), extrai por distrito, grava snapshot + casos_distrito.json
 docs/covisa-formato.md             # como o boletim COVISA é por dentro e como o scraper o lê
 requirements.txt                   # pdfplumber, só para fetch_covisa.py
-../.github/workflows/atualizar-dados.yml  # na RAIZ do repositório (o GitHub só lê ali); roda os dois fetch toda madrugada e commita
+.github/workflows/atualizar-dados.yml  # roda os dois fetch toda madrugada e commita
+.github/workflows/deploy-pages.yml     # publica o site no GitHub Pages a cada push na main
 ```
 
-O repositório Git é a pasta de cima (`Patogen/`); este projeto vive em `sp-epimapa/`. Por
-isso o workflow fica na raiz e usa `working-directory: sp-epimapa`.
+O projeto ocupa a raiz do repositório (`Patogen/`). Isso é requisito do GitHub
+Pages: ele publica a raiz da branch, então `index.html` precisa estar ali para
+que `https://reisdevv.github.io/Patogen/` abra o site em vez de um 404. Não mova
+o site para uma subpasta.
 
 Rodar local: `python -m http.server 8000` (fetch de JSON não funciona via file://).
 
