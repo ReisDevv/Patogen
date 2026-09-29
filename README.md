@@ -98,7 +98,6 @@ o site diz "sem dados".
 - [x] **3.** Scraper do boletim COVISA para dados por distrito (em validação; falta entrar no workflow)
 - [ ] **4.** Login leve e relatos da comunidade (camada separada dos dados oficiais)
 - [ ] **5.** Chatbot sobre os agregados
-- [ ] **6.** Pets e parcerias com clínicas
 
 ## Créditos e licenças dos dados
 
