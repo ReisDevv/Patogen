@@ -94,10 +94,9 @@ o site diz "sem dados".
 ## Roteiro
 
 - [x] **1.** Malha + choropleth + busca + série municipal do InfoDengue
-- [ ] **2.** Pipeline InfoDengue → Postgres/PostGIS → API própria
-- [x] **3.** Scraper do boletim COVISA para dados por distrito (em validação; falta entrar no workflow)
-- [ ] **4.** Login leve e relatos da comunidade (camada separada dos dados oficiais)
-- [ ] **5.** Chatbot sobre os agregados
+- [x] **2.** Scraper do boletim COVISA para dados por distrito (em validação; falta entrar no workflow)
+- [ ] **3.** Login leve e relatos da comunidade (camada separada dos dados oficiais)
+- [ ] **4.** Chatbot sobre os agregados
 
 ## Créditos e licenças dos dados
 
