@@ -4,7 +4,7 @@
   "description": "Dengue, chikungunya e zika por distrito da cidade de São Paulo, com dados oficiais de vigilância.",
   "lang": "pt-BR",
   "dir": "ltr",
-  "start_url": "./",
+  "start_url": "./mapa.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#e9edf1",

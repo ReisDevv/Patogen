@@ -10,8 +10,9 @@
  * tendência). Na fase 5, um LLM com tool use pode chamar essas mesmas funções no lugar
  * do reconhecimento por palavras-chave, sem mudar de onde vêm os números.
  *
- * Uso: index.html chama EpiChat.iniciar(ctx) depois de carregar os dados, ou
- * EpiChat.iniciar(null) se o carregamento falhou (aí só os textos fixos funcionam).
+ * Uso: mapa.html e a página inicial (index.html) chamam EpiChat.iniciar(ctx) depois de
+ * carregar os dados, ou EpiChat.iniciar(null) se o carregamento falhou (aí só os textos
+ * fixos funcionam). Na página inicial, selecionar(id) abre o mapa no distrito.
  *   ctx = { distritos: [{id, nome, sub}], distritoDados, cidadeDados,
  *           doenca(), selecionado(), trocarDoenca(d), selecionar(id) }
  */
@@ -24,7 +25,7 @@
   const NOME = { dengue: "dengue", chikungunya: "chikungunya", zika: "zika" };
   const NIVEL_NOME = { 1: "verde", 2: "amarelo", 3: "laranja", 4: "vermelho" };
   const reduzMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const mobile = () => matchMedia("(max-width: 900px) and (min-height: 500px), (max-width: 560px)").matches; // mesma consulta do CSS do index.html
+  const mobile = () => matchMedia("(max-width: 900px) and (min-height: 500px), (max-width: 560px)").matches; // mesma consulta do CSS do mapa.html e do index.html
 
   // minúsculas, sem acento, pontuação vira espaço: "M'Boi Mirim?" -> "m boi mirim"
   const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -171,7 +172,7 @@
     },
   };
 
-  // APELIDOS também serve à busca do topo (index.html), para as duas entenderem os mesmos bairros.
+  // APELIDOS também serve às buscas do mapa e da página inicial: todas entendem os mesmos bairros.
   window.EpiChat = { iniciar, APELIDOS };
 
   function iniciar(ctx) {

@@ -8,9 +8,9 @@
 <meta property="og:title" content="Epimapa SP — arboviroses por distrito">
 <meta property="og:description" content="A dengue está alta no meu bairro? Mapa por distrito de São Paulo com dados públicos de vigilância.">
 <meta name="theme-color" content="#1d5c7a">
-<link rel="canonical" href="https://reisdevv.github.io/Patogen/">
+<link rel="canonical" href="https://reisdevv.github.io/Patogen/mapa.html">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://reisdevv.github.io/Patogen/">
+<meta property="og:url" content="https://reisdevv.github.io/Patogen/mapa.html">
 <meta property="og:site_name" content="Epimapa SP">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:image" content="https://reisdevv.github.io/Patogen/img/compartilhar.jpg">
@@ -339,6 +339,7 @@
      Peças novas com os mesmos tokens. Nada aqui muda o mapa ou o painel. */
   .topo { grid-template-columns: auto 1fr auto auto; }
   .topo__acoes { display: flex; align-items: center; }
+  a.marca { color: inherit; text-decoration: none; border-radius: var(--r-ctl); }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     border: 1px solid transparent; border-radius: var(--r-ctl); padding: 9px 14px;
@@ -397,29 +398,6 @@
   .modal p { margin: 8px 0 0; }
   .modal .sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
   .modal a { color: var(--accent); }
-
-  /* apresentação (primeira visita) */
-  .intro__marca { display: flex; align-items: center; gap: 10px; color: var(--muted); font-weight: 500; }
-  .intro h2 { font-size: 24px; margin-top: 18px; }
-  .intro__lead { color: var(--muted); font-size: 15px; }
-  .passos { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 14px; counter-reset: passo; }
-  .passos li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
-  .passos li::before {
-    counter-increment: passo; content: counter(passo);
-    width: 28px; height: 28px; border-radius: var(--r-pilula); display: grid; place-items: center;
-    background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; font-size: 13px;
-  }
-  .passos strong { display: block; font-weight: 600; }
-  .passos span { color: var(--muted); }
-  .passos .escala { margin-top: 8px; max-width: 260px; }
-  .agora {
-    margin: 20px 0 0; padding: 12px 14px; border-radius: var(--r-ctl); background: var(--surface-2);
-    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  }
-  .agora .k { color: var(--muted); font-size: 12.5px; }
-  .agora strong { font-weight: 600; }
-  .intro__acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; align-items: center; }
-  .intro__acoes .link { margin-left: auto; }
 
   /* "Sobre": abas com o mesmo desenho do seletor de doença */
   .abas {
@@ -578,9 +556,6 @@
     .abas { margin: 14px 18px 0; }
     .lista__ferramentas { padding: 12px 18px 0; }
     .principios, .contatos { grid-template-columns: 1fr; }
-    .intro h2 { font-size: 22px; }
-    .intro__acoes .btn { flex: 1; }
-    .intro__acoes .link { margin: 4px auto 0; }
     .tabela td, .tabela th button { padding-left: 6px; padding-right: 6px; }
   }
 </style>
@@ -590,10 +565,10 @@
 <a class="skip" href="#painel">Pular para os dados</a>
 
 <header class="topo">
-  <div class="marca">
+  <a class="marca" href="./" title="Página inicial do Epimapa SP">
     <span class="marca__logo" aria-hidden="true"></span>
     <div><h1>Epimapa SP</h1><span>arboviroses por distrito</span></div>
-  </div>
+  </a>
 
   <div class="seg" role="group" aria-label="Doença">
     <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
@@ -713,32 +688,6 @@
 
 <div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
 
-<dialog class="modal intro" id="intro" aria-labelledby="intro-titulo">
-  <div class="modal__corpo" style="padding-top:24px">
-    <div class="intro__marca"><span class="marca__logo" aria-hidden="true"></span>Epimapa SP</div>
-    <h2 id="intro-titulo">A dengue está alta no meu bairro?</h2>
-    <p class="intro__lead">Casos de dengue, chikungunya e zika nos 96 distritos de São Paulo, a partir dos boletins oficiais da vigilância.</p>
-
-    <ol class="passos">
-      <li><div><strong>Escolha a doença</strong><span>Dengue, chikungunya ou zika, no alto da página.</span></div></li>
-      <li><div><strong>Encontre seu distrito</strong><span>Busque pelo nome, toque no mapa ou use sua localização.</span></div></li>
-      <li><div><strong>Leia a cor</strong><span>Do verde ao vermelho: casos por 100 mil habitantes desde janeiro.</span>
-        <div class="escala" aria-hidden="true"><div class="escala__barra"></div></div></div></li>
-    </ol>
-
-    <div class="agora" id="intro-agora" hidden>
-      <div><div class="k" id="intro-agora-ref">Cidade de São Paulo</div><strong id="intro-agora-v">—</strong></div>
-      <span class="badge" id="intro-agora-badge" data-nivel="1">—</span>
-    </div>
-
-    <div class="intro__acoes">
-      <button type="button" class="btn btn--primario" id="intro-ver" autofocus>Ver o mapa</button>
-      <button type="button" class="btn btn--secundario" id="intro-localizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Meu distrito</button>
-      <button type="button" class="link" data-sobre="projeto">Como funciona</button>
-    </div>
-  </div>
-</dialog>
-
 <dialog class="modal modal--largo" id="sobre" aria-labelledby="sobre-titulo">
   <div class="modal__cab">
     <div><h2 id="sobre-titulo">Sobre o Epimapa SP</h2><div class="sub">Dados públicos de vigilância epidemiológica, por distrito.</div></div>
@@ -777,7 +726,7 @@
       <h3>O que o site não faz</h3>
       <p>Não mostra casos por rua nem por dia: a menor unidade publicada é o distrito, e a cadência é semanal. Também não diagnostica nem substitui atendimento médico.</p>
 
-      <p class="rodape-modal">Projeto independente, sem vínculo com a Prefeitura, o Ministério da Saúde ou a Fiocruz. O código é público e erros podem ser avisados em <a href="https://github.com/ReisDevv/Patogen" target="_blank" rel="noopener">github.com/ReisDevv/Patogen</a>. <button type="button" class="link" id="rever-intro">Rever a apresentação</button></p>
+      <p class="rodape-modal">Projeto independente, sem vínculo com a Prefeitura, o Ministério da Saúde ou a Fiocruz. O código é público e erros podem ser avisados em <a href="https://github.com/ReisDevv/Patogen" target="_blank" rel="noopener">github.com/ReisDevv/Patogen</a>. <a class="link" href="./">Página inicial</a></p>
     </section>
 
     <section class="aba" id="aba-ler" role="tabpanel" aria-labelledby="tab-ler" tabindex="0" hidden>
@@ -856,7 +805,7 @@
         <li>As buscas e os distritos que você abre ficam no seu navegador e não são enviados a lugar nenhum.</li>
         <li>O que você escreve para o Epi não é enviado nem guardado: a conversa some quando você fecha a página.</li>
         <li>Se você usar "Meu distrito", a localização é usada só no seu aparelho para achar o distrito. Ela não é enviada nem guardada.</li>
-        <li>O navegador guarda apenas um aviso de que você já viu a apresentação inicial, para não repeti-la.</li>
+        <li>O site não grava nada no seu aparelho.</li>
       </ul>
       <p>O mapa-base (Esri), a fonte tipográfica (Google Fonts) e a biblioteca do mapa (Cloudflare) vêm de servidores de terceiros. Eles recebem o endereço IP do seu aparelho, como em qualquer site, e o servidor do mapa-base também recebe quais pedaços do mapa estão na tela, como em qualquer mapa on-line.</p>
     </section>
@@ -928,18 +877,12 @@
     if (suportaDialogo) d.close();
     else { d.removeAttribute("open"); d.dispatchEvent(new Event("close")); }
   }
-  // Guarda só "já viu a apresentação". Nada sobre a pessoa, nada que saia do navegador.
-  const CHAVE_INTRO = "epimapa:intro-vista";
-  const lerLocal = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
-  const gravarLocal = (k, v) => { try { localStorage.setItem(k, v); } catch { /* modo privado */ } };
-  const intro = $("intro"), sobre = $("sobre"), listaDlg = $("lista");
-  // O que depende do mapa (localização, lista) espera ele ficar pronto.
+  // A versão de 2026-10-07 guardava "já viu a apresentação". O site não grava mais nada: limpa a sobra.
+  try { localStorage.removeItem("epimapa:intro-vista"); } catch { /* sem acesso ao armazenamento */ }
+  const sobre = $("sobre"), listaDlg = $("lista");
+  // A lista depende do mapa: um clique antes de ele ficar pronto espera.
   let quandoMapaPronto;
   const mapaPronto = new Promise(r => { quandoMapaPronto = r; });
-
-  intro.addEventListener("close", () => gravarLocal(CHAVE_INTRO, "1"));
-  $("intro-ver").addEventListener("click", () => fecharDialogo(intro));
-  $("intro-localizar").addEventListener("click", () => { fecharDialogo(intro); mapaPronto.then(m => m.localizar()); });
 
   const abas = [...sobre.querySelectorAll('[role="tab"]')];
   function mostrarAba(nome, focar = false) {
@@ -962,12 +905,11 @@
     });
   });
   function abrirSobre(aba = "projeto") {
-    fecharDialogo(intro); fecharDialogo(listaDlg);
+    fecharDialogo(listaDlg);
     mostrarAba(aba);
     abrirDialogo(sobre);
   }
   $("abrir-sobre").addEventListener("click", () => abrirSobre());
-  $("rever-intro").addEventListener("click", () => { fecharDialogo(sobre); abrirDialogo(intro); });
   document.addEventListener("click", (e) => {
     const s = e.target.closest("[data-sobre]");
     if (s) { abrirSobre(s.dataset.sobre); return; }
@@ -976,14 +918,11 @@
     if (f) fecharDialogo(f.closest("dialog"));
   });
   // Toque no fundo escurecido fecha.
-  [intro, sobre, listaDlg].forEach(d => d.addEventListener("click", (e) => {
+  [sobre, listaDlg].forEach(d => d.addEventListener("click", (e) => {
     if (e.target !== d) return;
     const r = d.getBoundingClientRect();
     if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) fecharDialogo(d);
   }));
-
-  // Link compartilhado (#doença/distrito) vai direto aos dados, sem apresentação.
-  if (!location.hash && !lerLocal(CHAVE_INTRO)) abrirDialogo(intro);
 
   // Botão "voltar" do Android fecha o painel aberto em vez de sair do site.
   let vigiaPainel = null;
@@ -1032,7 +971,6 @@
     };
     alternarPainel(true);
     $("alca").addEventListener("click", () => alternarPainel(!$("painel").classList.contains("aberto")));
-    $("intro-localizar").hidden = true;
     // O assistente ainda responde sobre as doenças, só sem números.
     if (window.EpiChat) EpiChat.iniciar(null);
     return;
@@ -1414,6 +1352,8 @@
     try { partes = decodeURIComponent(location.hash.slice(1)).split("/"); } catch { return; }
     const d = partes[0], id = partes[1];
     if (NOME_DOENCA[d] && d !== doenca) trocarDoenca(d);
+    // "#dengue/lista" (link da página inicial) abre a lista dos 96 distritos.
+    if (id === "lista") { history.replaceState(null, "", "#" + doenca); abrirLista(); return; }
     if (id && porId[id]) { if (id !== selecionado) selecionar(id); }
     else if (selecionado && NOME_DOENCA[d]) limparSelecao();
   }
@@ -1577,7 +1517,7 @@
     $("lista-vazia").hidden = ids.length > 0;
   }
   function abrirLista() {
-    fecharDialogo(intro); fecharDialogo(sobre);
+    fecharDialogo(sobre);
     if (ordemLista.campo === "medida" && !temIncidencia()) ordemLista = { campo: "casos", desc: true };
     renderLista();
     abrirDialogo(listaDlg);
@@ -1623,19 +1563,12 @@
     e.preventDefault(); input.focus(); input.select();
   });
 
-  // ---------- textos que dependem dos dados (apresentação e "Sobre") ----------
+  // ---------- textos do "Sobre" que dependem dos dados ----------
   function renderTextosDialogos() {
     const dt = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "data desconhecida";
     $("sobre-atualizacao").textContent =
       `Dados no site agora: boletim da COVISA da semana ${distritoDados.se}/${distritoDados.ano} para os distritos ` +
       `e série do InfoDengue atualizada em ${dt(cidadeDados.atualizado_em)}.`;
-    const ag = cidadeDados.doencas.dengue && cidadeDados.doencas.dengue.atual;
-    if (!ag) return;
-    $("intro-agora-ref").textContent = `Dengue na cidade, semana ${ag.se}/${ag.ano} (InfoDengue)`;
-    $("intro-agora-v").textContent = `${fmt.format(ag.casos)} casos notificados`;
-    $("intro-agora-badge").textContent = NIVEL_NOME[ag.nivel] || "—";
-    $("intro-agora-badge").dataset.nivel = ag.nivel || 1;
-    $("intro-agora").hidden = false;
   }
 
   renderCidade(); renderDistrito(); renderLegenda(); renderFonte(); renderTextosDialogos();
@@ -1651,7 +1584,7 @@
     selecionar: (id) => selecionar(id),
   });
 
-  quandoMapaPronto({ localizar, abrirLista });
+  quandoMapaPronto({ abrirLista });
   // Link compartilhado: abre a doença e o distrito do endereço.
   if (location.hash) lerHash();
 })();

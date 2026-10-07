@@ -39,6 +39,9 @@
   }
   a.btn:hover { background: var(--accent-ink); }
   a.btn:active { transform: scale(.98); }
+  .acoes { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; }
+  .acoes a.link { margin-top: 20px; color: var(--accent); font-weight: 500; text-underline-offset: 2px; }
+  .acoes a.link:hover { color: var(--accent-ink); }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -48,7 +51,10 @@
   <div class="marca"><span class="logo" aria-hidden="true"></span>Epimapa SP</div>
   <h1>Página não encontrada</h1>
   <p>O endereço pode estar incompleto ou ter mudado. O mapa de dengue, chikungunya e zika por distrito continua no mesmo lugar.</p>
-  <a class="btn" href="/Patogen/">Ir para o mapa</a>
+  <div class="acoes">
+    <a class="btn" href="/Patogen/mapa.html">Abrir o mapa</a>
+    <a class="link" href="/Patogen/">Página inicial</a>
+  </div>
 </main>
 </body>
 </html>
