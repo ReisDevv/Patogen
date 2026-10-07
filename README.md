@@ -5,13 +5,16 @@ Esta é a **etapa 1** do projeto: um site estático que já mostra o produto
 funcionando de ponta a ponta — malha dos 96 distritos, busca por distrito ou
 subprefeitura, resumo municipal com série de 26 semanas e detalhe por distrito.
 
+O site tem duas páginas: a **página inicial** (`index.html`), que explica o projeto,
+mostra a situação da semana com os dados ao vivo e leva ao **mapa** (`mapa.html`).
+
 O que dá para fazer no site:
 
 - ver dengue, chikungunya e zika por distrito, com a fonte e a semana do boletim ao lado de cada número;
 - achar o distrito pela busca (inclusive alguns bairros conhecidos), pelo mapa ou por **Meu distrito**,
   que usa a localização do aparelho sem enviá-la a lugar nenhum;
 - abrir a **lista dos 96 distritos**, ordenar, filtrar e baixar em CSV;
-- compartilhar o link de um distrito (`…/Patogen/#dengue/pinheiros` abre direto nele);
+- compartilhar o link de um distrito (`…/Patogen/mapa.html#dengue/pinheiros` abre direto nele);
 - perguntar ao **Epi**, o assistente do canto da tela;
 - ler o **Sobre**: como ler o mapa, fontes, prevenção e privacidade.
 
@@ -25,7 +28,8 @@ HTTP simples:
 
 ```bash
 python -m http.server 8000
-# abra http://localhost:8000
+# página inicial: http://localhost:8000
+# mapa:           http://localhost:8000/mapa.html
 ```
 
 ## Dados

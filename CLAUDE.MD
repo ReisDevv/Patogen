@@ -27,7 +27,8 @@ Cada fase entra quando a anterior estiver validada.
 Site estático, sem backend. Publica no GitHub Pages.
 
 ```
-index.html                         # página única: mapa + painel + apresentação, "Sobre" e lista dos 96 distritos (Leaflet, CSS e JS inline)
+index.html                         # página inicial: o que é, situação agora (dados ao vivo), como usar, prevenção, fontes, privacidade, perguntas
+mapa.html                          # o mapa: mapa + painel + "Sobre" + lista dos 96 distritos (Leaflet, CSS e JS inline)
 chat.js                            # Epi, assistente do canto inferior direito (regras + dados já carregados, sem API)
 404.html                           # página de endereço inexistente (o GitHub Pages serve sozinho)
 manifest.webmanifest               # nome e ícones para "Adicionar à tela inicial"
@@ -47,9 +48,11 @@ requirements.txt                   # pdfplumber, só para fetch_covisa.py
 O projeto ocupa a raiz do repositório (`Patogen/`). Isso é requisito do GitHub
 Pages: ele publica a raiz da branch, então `index.html` precisa estar ali para
 que `https://reisdevv.github.io/Patogen/` abra o site em vez de um 404. Não mova
-o site para uma subpasta.
+o site para uma subpasta. A página inicial (`index.html`) e o mapa (`mapa.html`)
+ficam os dois na raiz.
 
 Rodar local: `python -m http.server 8000` (fetch de JSON não funciona via file://).
+Página inicial em `http://localhost:8000/`, mapa em `http://localhost:8000/mapa.html`.
 
 ## Fontes de dados — o que existe de verdade
 
@@ -160,13 +163,18 @@ depois; define o que pode ser construído.
   com textos fixos de orientação do Ministério da Saúde. Roda só no navegador: não envia nem
   guarda o que a pessoa digita. Na fase 5 o LLM chama as mesmas `CONSULTAS` como ferramentas.
   Teste no console: `EpiChat.responder("dengue em Itaquera")`. `EpiChat.APELIDOS` (bairros que
-  não são distritos) também alimenta a busca do topo: mantenha uma lista só.
-- Navegação do site (2026-10, pré-banca): apresentação na primeira visita, "Sobre" (projeto, como
-  ler, fontes, prevenção, privacidade), lista dos 96 distritos com CSV e "Meu distrito"
-  (geolocalização calculada no aparelho, nunca enviada). Tudo em `<dialog>` nativo por cima do
-  mapa: mapa e painel não mudam. O endereço guarda a seleção como `#doença/distrito`, com
-  `history.replaceState` (não polui o histórico). Único dado guardado no navegador:
-  `localStorage["epimapa:intro-vista"] = "1"`. Não guarde mais nada sem perguntar.
+  não são distritos) também alimenta as buscas do mapa e da página inicial: mantenha uma lista só.
+- Duas páginas (2026-10, pré-banca). A raiz é a página inicial: explica o site, mostra a situação
+  agora com os mesmos JSONs (prévia SVG dos 96 distritos com as cores do mapa, cidade, top 5) e
+  leva ao mapa. O mapa (`mapa.html`) abre direto, sem janela por cima, igual ao vídeo da banca.
+  A página inicial copia de `mapa.html` os tokens, os componentes (seletor, busca, badges,
+  gráfico, escala, Epi) e as regras de cor: se mudar o desenho ou as cores lá, replique aqui.
+- Navegação no mapa: "Sobre" (projeto, como ler, fontes, prevenção, privacidade), lista dos 96
+  distritos com CSV e "Meu distrito" (geolocalização calculada no aparelho, nunca enviada), em
+  `<dialog>` nativo por cima do mapa. O endereço guarda a seleção como `#doença/distrito`
+  (`history.replaceState`, não polui o histórico); `#doença/lista` abre a lista. Endereços
+  `#doença/...` na raiz são levados ao mapa. O site não grava nada no navegador (o mapa apaga
+  a sobra `epimapa:intro-vista` de uma versão anterior). Não grave nada sem perguntar.
 - `img/compartilhar.jpg` mostra só o contorno dos distritos, sem cor de incidência nem número:
   a prévia fica meses no cache do WhatsApp e não pode parecer dado. Se regenerar, mesma regra.
 - Scripts Python só com biblioteca padrão enquanto der. Se precisar de dependência, crie
@@ -181,7 +189,7 @@ depois; define o que pode ser construído.
   no topo explicando uso.
 - JS: sem transpilação; funciona no navegador direto. Nomes em português.
 - Não formate o GeoJSON com indentação (tamanho importa). JSON de dados pode ter `indent=1`.
-- Tamanho de página: manter `index.html` + dados abaixo de 500 KB no total.
+- Tamanho de página: cada página (`index.html` ou `mapa.html`, mais `chat.js`) + dados abaixo de 500 KB no total.
 - Acessibilidade: foco visível, `aria-pressed`/`aria-expanded` mantidos, `prefers-reduced-motion` respeitado.
 - Visual (definido no redesign de 2026-09): fonte Geist; um acento só (`--accent`, azul-petróleo);
   cinzas frios; sombras tingidas com a tinta, nunca preto puro; raios fixos — contêineres 12px,
@@ -191,12 +199,16 @@ depois; define o que pode ser construído.
 
 ## Como verificar o trabalho
 
-- Depois de mudar `index.html`: sobe `python -m http.server`, abre no navegador, testa
+- Depois de mudar `mapa.html`: sobe `python -m http.server`, abre no navegador, testa
   os três botões de doença, busca com e sem acento, clique em distrito, redimensiona
   para mobile. Se tiver Playwright disponível, tira screenshot desktop (1440×900) e
-  mobile (390×844). Teste também: apresentação (limpe o `localStorage`), "Sobre" e as abas,
-  lista dos distritos (ordenar, filtrar, CSV), um link `#dengue/pinheiros` em aba nova,
-  arrastar a alça do painel no celular e o estado de erro (sirva uma cópia sem `data/infodengue.json`).
+  mobile (390×844). Teste também: "Sobre" e as abas, lista dos distritos (ordenar,
+  filtrar, CSV), um link `mapa.html#dengue/pinheiros` em aba nova, arrastar a alça do
+  painel no celular e o estado de erro (sirva uma cópia sem `data/infodengue.json`).
+- Depois de mudar `index.html`: a prévia desenha os 96 distritos e muda com a doença; a
+  busca (distrito, bairro, subprefeitura), "Meu distrito", o top 5, "Ver os 96 distritos"
+  e o "Ver no mapa" do Epi abrem `mapa.html` no lugar certo; nada estoura na horizontal
+  de 320px ao desktop; sem dados, os avisos aparecem e o texto da página continua.
 - Depois de mudar scripts: roda `python scripts/fetch_infodengue.py` e valida o JSON com
   `python -m json.tool`.
 - Depois de mudar `fetch_covisa.py`: roda `python scripts/fetch_covisa.py --pdf <boletim.pdf> --dry-run`
