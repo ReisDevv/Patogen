@@ -1,0 +1,1073 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // Endereços do mapa na raiz (#doença/distrito, usados antes de existir esta página) continuam abrindo o mapa.
+  if (/^#(dengue|chikungunya|zika)(\/|$)/.test(location.hash)) location.replace("mapa.html" + location.hash);
+</script>
+<title>Epimapa SP: a dengue está alta no meu bairro?</title>
+<meta name="description" content="Dengue, chikungunya e zika nos 96 distritos de São Paulo, com dados oficiais do InfoDengue e do boletim da vigilância municipal (COVISA), atualizados toda semana.">
+<meta name="theme-color" content="#1d5c7a">
+<link rel="canonical" href="https://reisdevv.github.io/Patogen/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://reisdevv.github.io/Patogen/">
+<meta property="og:site_name" content="Epimapa SP">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Epimapa SP: a dengue está alta no meu bairro?">
+<meta property="og:description" content="Mapa de dengue, chikungunya e zika por distrito de São Paulo, com dados públicos de vigilância.">
+<meta property="og:image" content="https://reisdevv.github.io/Patogen/img/compartilhar.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Mapa dos 96 distritos de São Paulo com a pergunta: a dengue está alta no meu bairro?">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/icone-180.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231d5c7a'/%3E%3Ccircle cx='13' cy='13' r='6' fill='%23fff'/%3E%3Ccircle cx='21' cy='21' r='4' fill='%23e8802f'/%3E%3C/svg%3E">
+<!-- os mesmos dados do mapa: a prévia usa agora e o mapa abre do cache depois -->
+<link rel="preload" href="data/distritos.geojson" as="fetch" crossorigin>
+<link rel="preload" href="data/casos_distrito.json" as="fetch" crossorigin>
+<link rel="preload" href="data/infodengue.json" as="fetch" crossorigin>
+<link rel="prefetch" href="mapa.html">
+<link rel="prefetch" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js">
+<link rel="prefetch" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Página inicial do Epimapa SP. Tokens e componentes copiados do mapa.html (mesmo desenho);
+     se mudarem lá, mude aqui. Só o layout das seções é desta página. */
+  :root {
+    --bg: #e9edf1;
+    --surface: #ffffff;
+    --surface-2: #f3f5f8;
+    --ink: #16202b;
+    --muted: #5b6877;
+    --line: #dde3e9;
+    --accent: #1d5c7a;
+    --accent-ink: #0f3a4f;
+    --accent-soft: #e3eef3;
+    --n1: #3d9a6a; --n2: #e8c04a; --n3: #e8802f; --n4: #c8322b;
+    --sem-dado: #c9d1d9;
+    --r-box: 12px; --r-ctl: 8px; --r-pilula: 999px;
+    --sombra: 0 1px 2px rgba(22,32,43,.05), 0 10px 30px -8px rgba(22,32,43,.18);
+    --sombra-leve: 0 1px 2px rgba(22,32,43,.06);
+    --topo: 64px;
+    --painel-w: 352px;
+    --alca: 64px;
+    --dur: 180ms;
+    --z-mapa: 0; --z-painel: 700; --z-topo: 900; --z-lista: 950; --z-chat: 980; --z-aviso: 990;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--topo) + 12px); }
+  body {
+    margin: 0;
+    font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.5;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .skip {
+    position: fixed; left: 12px; top: -48px; z-index: 1000;
+    background: var(--ink); color: #fff; padding: 8px 12px; border-radius: var(--r-ctl);
+    transition: top var(--dur);
+  }
+  .skip:focus { top: 12px; }
+
+  /* ---------- componentes do mapa.html ---------- */
+  .marca { display: flex; align-items: center; gap: 10px; }
+  .marca__logo {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--accent); position: relative; flex: none;
+  }
+  .marca__logo::before, .marca__logo::after { content: ""; position: absolute; border-radius: 50%; }
+  .marca__logo::before { width: 11px; height: 11px; background: #fff; left: 6px; top: 6px; }
+  .marca__logo::after { width: 7px; height: 7px; background: var(--n3); right: 6px; bottom: 6px; }
+  .seg {
+    display: inline-flex; justify-self: center; gap: 2px; padding: 3px;
+    background: var(--surface-2); border-radius: var(--r-ctl);
+  }
+  .seg button {
+    border: 0; background: transparent; padding: 7px 14px; border-radius: 6px;
+    font-weight: 500; color: var(--muted);
+    transition: background var(--dur), color var(--dur), transform var(--dur);
+  }
+  .seg button:hover { color: var(--ink); background: rgba(22,32,43,.05); }
+  .seg button:active { transform: scale(.98); }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent-ink); box-shadow: var(--sombra-leve); }
+
+  .busca { position: relative; width: 300px; }
+  .busca input {
+    width: 100%; padding: 9px 12px 9px 36px;
+    border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface);
+    transition: border-color var(--dur), box-shadow var(--dur);
+  }
+  .busca input::placeholder { color: #7a8794; }
+  .busca input:hover { border-color: #c6ced6; }
+  .busca input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .busca svg { position: absolute; left: 11px; top: 10px; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+  .busca__lista {
+    position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: var(--z-lista);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-box); box-shadow: var(--sombra);
+    list-style: none; margin: 0; padding: 6px; max-height: 300px; overflow-y: auto; display: none;
+  }
+  .busca__lista[data-open="true"] { display: block; }
+  .busca__lista li { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
+  .busca__lista li small { color: var(--muted); }
+  .busca__lista li:hover, .busca__lista li[aria-selected="true"] { background: var(--accent-soft); }
+  .busca__lista .vazio { color: var(--muted); cursor: default; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500;
+    padding: 3px 9px 3px 7px; border-radius: 999px; color: #fff; white-space: nowrap; flex: none;
+  }
+  .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.85); }
+  .badge[data-nivel="1"] { background: var(--n1); }
+  .badge[data-nivel="2"] { background: var(--n2); color: #4a3b00; }
+  .badge[data-nivel="2"]::before { background: rgba(74,59,0,.7); }
+  .badge[data-nivel="3"] { background: var(--n3); }
+  .badge[data-nivel="4"] { background: var(--n4); }
+  .destaque { display: flex; align-items: baseline; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .destaque--compacto { margin-top: 6px; }
+  .destaque .v { font-size: 34px; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+  .destaque .k { color: var(--muted); }
+  .delta { font-weight: 500; }
+  .delta.up { color: var(--n4); }
+  .delta.down { color: var(--n1); }
+  .delta.flat { color: var(--muted); }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; margin-top: 14px; }
+  .stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+  .stat .k { font-size: 12.5px; color: var(--muted); margin-top: 3px; text-wrap: pretty; }
+
+  .spark { margin-top: 14px; width: 100%; height: 56px; display: block; }
+  .spark path.linha { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+  .spark path.area { fill: var(--accent-soft); }
+  .spark .ponto { fill: var(--accent); }
+  .spark__legenda { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+  .dica { color: var(--muted); margin: 8px 0 0; text-wrap: pretty; }
+  /* legenda: escala contínua */
+  .escala { margin-top: 12px; }
+  .escala__barra {
+    height: 10px; border-radius: 999px;
+    background: linear-gradient(90deg, var(--n1) 0 6.7%, var(--n2) 20%, var(--n3) 50%, var(--n4) 100%);
+  }
+  .escala__ticks { position: relative; height: 16px; font-size: 11.5px; color: var(--muted); }
+  .escala__ticks span { position: absolute; top: 3px; transform: translateX(-50%); }
+  .escala__ticks span:first-child { transform: none; }
+  .escala__ticks span:last-child { transform: translateX(-100%); }
+  .nota { font-size: 12.5px; color: var(--muted); margin: 10px 0 0; text-wrap: pretty; }
+  .fonte { font-size: 12px; color: var(--muted); margin: 14px 0 0; text-wrap: pretty; }
+  .fonte a { color: var(--accent); }
+  /* esqueleto de carregamento e erro */
+  .esq { display: none; }
+  body.carregando .esq { display: block; }
+  body.carregando .dados { display: none; }
+  .esq i {
+    display: block; height: 12px; border-radius: 6px; margin-top: 10px;
+    background: linear-gradient(90deg, var(--surface-2) 25%, #e9edf1 50%, var(--surface-2) 75%);
+    background-size: 200% 100%; animation: brilho 1.4s linear infinite;
+  }
+  .esq i.grande { height: 34px; width: 55%; }
+  .esq i.media { width: 75%; }
+  .esq i.curta { width: 40%; }
+  @keyframes brilho { to { background-position: -200% 0; } }
+  .erro { margin: 18px 0 0; padding: 12px 14px; border-radius: var(--r-ctl); background: #fdecec; color: #7a1f1a; border: 1px solid #f3c2bf; }
+  .tip {
+    background: var(--ink); color: #fff; border: 0; border-radius: 6px; padding: 6px 9px;
+    font-size: 13px; box-shadow: none; white-space: nowrap;
+  }
+  .tip::before { display: none; }
+  .tip b { font-weight: 600; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid transparent; border-radius: var(--r-ctl); padding: 9px 14px;
+    font-weight: 500; white-space: nowrap; text-decoration: none;
+    transition: background var(--dur), border-color var(--dur), color var(--dur), transform var(--dur);
+  }
+  .btn svg { width: 16px; height: 16px; flex: none; }
+  .btn:active { transform: scale(.98); }
+  .btn--primario { background: var(--accent); color: #fff; }
+  .btn--primario:hover { background: var(--accent-ink); }
+  .btn--secundario { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .btn--secundario:hover { border-color: #c6ced6; background: var(--surface-2); }
+  .link {
+    border: 0; background: none; padding: 0; color: var(--accent); font-weight: 500; text-align: left;
+    text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px;
+  }
+  .link:hover { color: var(--accent-ink); }
+  .aviso {
+    position: fixed; left: 50%; top: calc(var(--topo) + 16px); z-index: var(--z-aviso);
+    transform: translateX(-50%); width: max-content; max-width: min(440px, calc(100% - 32px));
+    background: var(--ink); color: #fff; border-radius: var(--r-ctl); padding: 10px 14px;
+    box-shadow: var(--sombra); text-wrap: pretty; animation: aviso-entrar var(--dur) ease-out;
+  }
+  @keyframes aviso-entrar { from { opacity: 0; transform: translate(-50%, -6px); } }
+  .niveis { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+  .niveis li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; }
+  .niveis .badge { justify-self: start; }
+  .fontes { list-style: none; padding: 0; margin: 12px 0 0; }
+  .fontes li { padding: 14px 0; border-top: 1px solid var(--line); max-width: none; }
+  .fontes li:first-child { border-top: 0; padding-top: 4px; }
+  .fontes strong { font-weight: 600; }
+  .fontes .meta { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .faq { margin-top: 10px; }
+  .faq details { border-top: 1px solid var(--line); }
+  .faq details:last-child { border-bottom: 1px solid var(--line); }
+  .faq summary {
+    cursor: pointer; list-style: none; padding: 12px 4px; font-weight: 500;
+    display: flex; justify-content: space-between; gap: 12px; border-radius: var(--r-ctl);
+    transition: background var(--dur);
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; color: var(--muted); font-weight: 400; font-size: 18px; line-height: 1; }
+  .faq details[open] summary::after { content: "\2212"; }
+  .faq summary:hover { background: var(--surface-2); }
+  .faq details p { margin: 0 4px 14px; color: var(--muted); }
+  .lista-texto { margin: 8px 0 0; padding-left: 20px; }
+  .lista-texto li + li { margin-top: 6px; }
+  .alerta { margin: 14px 0 0; padding: 12px 14px; border-radius: var(--r-ctl); background: var(--accent-soft); color: var(--accent-ink); }
+  .alerta strong { font-weight: 600; }
+  .contatos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .contatos > div { padding: 12px 14px; border-radius: var(--r-ctl); border: 1px solid var(--line); }
+  .contatos .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+  .contatos .k { color: var(--muted); font-size: 12.5px; }
+  /* ---------- assistente (Epi) ---------- */
+  .chat-abrir {
+    position: fixed; right: 16px; bottom: 32px; z-index: var(--z-chat);
+    display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px;
+    border: 0; border-radius: var(--r-pilula); background: var(--accent); color: #fff; font-weight: 500;
+    box-shadow: var(--sombra);
+    transition: background var(--dur), transform var(--dur), opacity var(--dur);
+  }
+  .chat-abrir:hover { background: var(--accent-ink); }
+  .chat-abrir:active { transform: scale(.97); }
+  .chat-abrir:focus-visible { outline-offset: 3px; }
+  .robo { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; background: rgba(255,255,255,.16); }
+  .robo svg { width: 22px; height: 22px; }
+  body.chat-aberto .chat-abrir { opacity: 0; pointer-events: none; }
+
+  .chat {
+    position: fixed; right: 16px; bottom: 16px; z-index: var(--z-chat);
+    width: 384px; height: min(620px, calc(100vh - var(--topo) - 32px));
+    display: flex; flex-direction: column;
+    background: var(--surface); border-radius: var(--r-box); box-shadow: var(--sombra); overflow: hidden;
+  }
+  .chat__cab {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
+    padding: 12px 10px 12px 14px; border-bottom: 1px solid var(--line);
+  }
+  .chat__cab .robo { background: var(--accent); color: #fff; }
+  .chat__cab h2 { font-size: 14.5px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .chat__cab .sub { color: var(--muted); font-size: 12px; }
+  .chat__msgs { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
+  .msg { max-width: 90%; padding: 10px 12px; border-radius: var(--r-box); text-wrap: pretty; overflow-wrap: anywhere; }
+  .msg--bot { align-self: flex-start; background: var(--surface-2); }
+  .msg--eu { align-self: flex-end; background: var(--accent); color: #fff; }
+  .msg p { margin: 0; }
+  .msg p + p, .msg p + ul, .msg ul + p { margin-top: 6px; }
+  .msg ul { margin: 6px 0 0; padding-left: 18px; }
+  .msg li + li { margin-top: 2px; }
+  .msg b { font-weight: 600; }
+  .msg__fonte { font-size: 11.5px; color: var(--muted); margin-top: 8px !important; }
+  .msg__acoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--surface); color: var(--accent-ink);
+    padding: 6px 11px; border-radius: var(--r-pilula); font-size: 13px; font-weight: 500; white-space: nowrap;
+    transition: background var(--dur), border-color var(--dur), transform var(--dur);
+  }
+  .chip:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+  .chip:active { transform: scale(.97); }
+  .chip--acao { background: var(--accent-soft); border-color: transparent; }
+  .chip--acao:hover { background: var(--surface); border-color: var(--accent); }
+  .digitando { display: inline-flex; gap: 4px; padding: 4px 2px; }
+  .digitando i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: pulo 1s infinite ease-in-out; }
+  .digitando i:nth-child(2) { animation-delay: .15s; }
+  .digitando i:nth-child(3) { animation-delay: .3s; }
+  @keyframes pulo { 0%, 60%, 100% { opacity: .35; transform: none; } 30% { opacity: 1; transform: translateY(-3px); } }
+  .chat__sugestoes { display: flex; gap: 6px; overflow-x: auto; padding: 10px 14px 2px; scrollbar-width: none; flex: none; }
+  .chat__sugestoes::-webkit-scrollbar { display: none; }
+  .chat__form { display: flex; gap: 8px; padding: 8px 12px 6px; flex: none; }
+  .chat__form input {
+    flex: 1; min-width: 0; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface);
+    transition: border-color var(--dur), box-shadow var(--dur);
+  }
+  .chat__form input:hover { border-color: #c6ced6; }
+  .chat__form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .chat__form button {
+    width: 40px; flex: none; border: 0; border-radius: var(--r-ctl); background: var(--accent); color: #fff;
+    display: grid; place-items: center; transition: background var(--dur), transform var(--dur);
+  }
+  .chat__form button:hover { background: var(--accent-ink); }
+  .chat__form button:active { transform: scale(.96); }
+  .chat__form button svg { width: 18px; height: 18px; }
+  .chat__aviso { font-size: 11.5px; color: var(--muted); text-align: center; margin: 0; padding: 2px 12px 10px; flex: none; }
+  /* lista top 5 do painel, aqui com links para o mapa */
+  .top5 { list-style: none; margin: 12px 0 0; padding: 0; counter-reset: pos; }
+  .top5 li + li { margin-top: 2px; }
+  .top5 a {
+    display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: var(--r-ctl); color: inherit; text-decoration: none;
+    transition: background var(--dur), transform var(--dur);
+  }
+  .top5 a::before { counter-increment: pos; content: counter(pos); color: var(--muted); font-size: 12px; }
+  .top5 a:hover { background: var(--surface-2); }
+  .top5 a:active { transform: scale(.99); }
+  .top5 .num { color: var(--muted); font-size: 12.5px; }
+
+  /* ---------- layout da página ---------- */
+  .wrap { width: 100%; max-width: 1160px; margin-inline: auto; padding-inline: 20px; }
+  .cartao { background: var(--surface); border-radius: var(--r-box); box-shadow: var(--sombra); }
+  .cartao h3 { font-size: 15px; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+  .sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; text-wrap: pretty; }
+
+  .site-topo {
+    position: sticky; top: 0; z-index: var(--z-topo); height: var(--topo);
+    background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .site-topo .wrap { height: 100%; display: flex; align-items: center; gap: 12px; }
+  a.marca { color: inherit; text-decoration: none; border-radius: var(--r-ctl); }
+  .marca strong { display: block; font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.1; }
+  .marca small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .site-nav { display: flex; gap: 2px; margin-left: auto; }
+  .site-nav a {
+    color: var(--muted); text-decoration: none; font-weight: 500; padding: 8px 12px; border-radius: var(--r-ctl);
+    transition: background var(--dur), color var(--dur);
+  }
+  .site-nav a:hover { color: var(--ink); background: rgba(22,32,43,.05); }
+  .site-topo .btn { margin-left: 8px; }
+
+  .heroi { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 56px; align-items: center; padding-block: 56px 64px; }
+  .heroi h1 { font-size: clamp(34px, 4.4vw, 52px); line-height: 1.06; letter-spacing: -.035em; font-weight: 600; margin: 0; max-width: 13ch; text-wrap: balance; }
+  .heroi__lead { font-size: 18px; color: var(--muted); margin: 18px 0 0; max-width: 44ch; text-wrap: pretty; }
+  .heroi .busca { width: 100%; max-width: 460px; margin-top: 28px; }
+  .heroi .busca input { padding: 13px 14px 13px 42px; font-size: 16px; box-shadow: var(--sombra-leve); }
+  .heroi .busca input:focus { box-shadow: 0 0 0 3px var(--accent-soft); }
+  .heroi .busca input:disabled { background: var(--surface-2); cursor: not-allowed; }
+  .heroi .busca svg { left: 14px; top: 17px; }
+  .heroi__acoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .btn[aria-busy="true"] svg { animation: girar 1s linear infinite; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+
+  .mini { margin: 0; padding: 16px 18px 18px; }
+  .mini .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-self: stretch; }
+  body.carregando .mini .seg { pointer-events: none; opacity: .6; }
+  .mini__area { position: relative; height: 440px; margin-top: 14px; }
+  .mini__area svg { width: 100%; height: 100%; display: block; }
+  .mini__area .esq { position: absolute; inset: 0; margin: 0; }
+  .mini__area .esq i { height: 100%; margin: 0; border-radius: var(--r-box); }
+  .mini__area .erro { margin: 0; position: absolute; inset: auto 0 0; }
+  .mini-d { fill-opacity: .72; stroke: #fff; stroke-width: .8; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill-opacity var(--dur); }
+  .mini-d:hover { fill-opacity: .9; stroke: var(--ink); stroke-width: 2; }
+  .mini__mapa.cinza .mini-d { fill-opacity: .35; cursor: default; }
+  #tip { position: fixed; z-index: var(--z-lista); transform: translate(-50%, calc(-100% - 12px)); pointer-events: none; }
+
+  /* sem os dados: o texto da página continua; números e prévia dão lugar ao aviso */
+  .so-sem-dados { display: none; }
+  body.sem-dados .so-sem-dados { display: block; }
+  body.sem-dados .so-com-dados, body.sem-dados .dados, body.sem-dados .mini .seg { display: none; }
+  body.sem-dados .mini__area { height: auto; margin: 0; }
+  body.sem-dados .mini__area .erro { position: static; }
+  .mini .escala { margin-top: 14px; }
+  .mini figcaption { font-size: 12px; color: var(--muted); margin-top: 8px; text-wrap: pretty; }
+
+  .secao { padding-block: 64px; }
+  .secao h2 { font-size: clamp(24px, 2.6vw, 30px); line-height: 1.15; letter-spacing: -.025em; font-weight: 600; margin: 0; text-wrap: balance; }
+  .secao__lead { color: var(--muted); font-size: 16px; margin: 10px 0 0; max-width: 62ch; text-wrap: pretty; }
+  .secao--branca { background: var(--surface); }
+  .faixa { background: var(--accent-soft); }
+
+  .bento { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; margin-top: 28px; }
+  .bento > .cartao { padding: 22px 24px; }
+  .bloco__cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .agora .erro { margin-top: 28px; }
+
+  .duas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: 48px; align-items: start; margin-top: 28px; }
+  .duas--iguais { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: 0; }
+  .passos { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; counter-reset: passo; }
+  .passos li { display: grid; grid-template-columns: 32px 1fr; gap: 14px; align-items: start; }
+  .passos li::before {
+    counter-increment: passo; content: counter(passo);
+    width: 32px; height: 32px; border-radius: var(--r-pilula); display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; font-size: 14px;
+  }
+  .passos strong { display: block; font-weight: 600; font-size: 16px; }
+  .passos span { color: var(--muted); }
+  .passos .link { margin-top: 6px; display: inline-block; }
+  .cores { padding: 22px 24px; }
+  .cores p { color: var(--muted); margin: 10px 0 0; text-wrap: pretty; }
+  .cores h3 + .escala { margin-top: 14px; }
+  .cores h4 { font-size: 13px; font-weight: 600; margin: 20px 0 0; }
+
+  .checklist { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 12px; }
+  .checklist li { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; max-width: 54ch; }
+  .checklist li::before {
+    content: ""; width: 24px; height: 24px; border-radius: var(--r-pilula); background-color: var(--surface);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d5c7a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12.5 4 4 8-9'/%3E%3C/svg%3E");
+    background-size: 14px; background-position: center; background-repeat: no-repeat;
+  }
+  .faixa p { max-width: 60ch; }
+  .sintomas { padding: 22px 24px; }
+  .sintomas p { margin: 10px 0 0; text-wrap: pretty; }
+  .sintomas .contatos { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .sintomas .contatos > div { display: flex; align-items: baseline; gap: 14px; padding: 10px 14px; }
+  .sintomas .contatos .v { flex: none; min-width: 44px; }
+  .secao--sem-topo { padding-top: 0; }
+
+  .faq summary { font-size: 15px; }
+  .faq-grade {
+    display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 0 56px; align-items: start;
+    grid-template-areas: "titulo lista" "epi lista"; grid-template-rows: auto 1fr;
+  }
+  .faq-grade h2 { grid-area: titulo; }
+  .faq-grade .faq { grid-area: lista; margin-top: 0; }
+  .faq__epi { grid-area: epi; color: var(--muted); margin: 14px 0 0; }
+
+  .chamada { padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }
+  .chamada h2 { font-size: 24px; }
+  .chamada p { color: var(--muted); margin: 6px 0 0; }
+
+  .rodape { background: var(--surface); border-top: 1px solid var(--line); padding-block: 32px 40px; }
+  .rodape__linha { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px 32px; flex-wrap: wrap; }
+  .rodape nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .rodape nav a { color: var(--muted); text-decoration: none; font-weight: 500; transition: color var(--dur); }
+  .rodape nav a:hover { color: var(--ink); }
+  .rodape__nota { color: var(--muted); font-size: 13px; margin: 20px 0 0; max-width: 90ch; text-wrap: pretty; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; animation: none !important; }
+  }
+
+  @media (max-width: 960px) {
+    .site-nav { display: none; }
+    .site-topo .btn { margin-left: auto; }
+    .heroi { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-block: 36px 48px; }
+    .heroi h1 { max-width: 15ch; }
+    .mini { width: 100%; max-width: 520px; justify-self: center; }
+    .bento, .duas, .duas--iguais { grid-template-columns: minmax(0, 1fr); }
+    .duas--iguais { gap: 40px; }
+    .faq-grade { grid-template-columns: minmax(0, 1fr); grid-template-areas: "titulo" "lista" "epi"; grid-template-rows: none; }
+    .faq-grade .faq { margin-top: 20px; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding-inline: 16px; }
+    .marca small { display: none; }
+    .secao { padding-block: 44px; }
+    .heroi h1 { font-size: 32px; }
+    .heroi__lead { font-size: 16px; }
+    .heroi__acoes .btn { flex: 1; }
+    .mini { padding: 14px; }
+    .mini__area { height: 380px; }
+    .bento > .cartao, .cores, .sintomas { padding: 18px; }
+    .contatos { grid-template-columns: 1fr; }
+    .chamada { padding: 22px; }
+    .rodape { padding-bottom: 96px; }
+  }
+  /* o Epi em tela cheia segue a mesma consulta do chat.js */
+  @media (max-width: 900px) and (min-height: 500px), (max-width: 560px) {
+    .chat-abrir { right: 12px; bottom: calc(16px + env(safe-area-inset-bottom)); padding: 6px; }
+    .chat-abrir .rotulo { display: none; }
+    .chat-abrir .robo { width: 44px; height: 44px; }
+    .chat { inset: 0; width: auto; height: 100%; border-radius: 0; padding-bottom: env(safe-area-inset-bottom); }
+    .chat__form input { font-size: 16px; }
+    .msg { max-width: 94%; }
+  }
+</style>
+</head>
+<body class="carregando">
+
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="site-topo">
+  <div class="wrap">
+    <a class="marca" href="#conteudo" aria-label="Epimapa SP, início da página">
+      <span class="marca__logo" aria-hidden="true"></span>
+      <div><strong>Epimapa SP</strong><small>arboviroses por distrito</small></div>
+    </a>
+    <nav class="site-nav" aria-label="Seções da página">
+      <a href="#agora">Situação</a>
+      <a href="#como-usar">Como usar</a>
+      <a href="#prevencao">Prevenção</a>
+      <a href="#perguntas">Perguntas</a>
+    </nav>
+    <a class="btn btn--primario" href="mapa.html" data-mapa>Abrir o mapa</a>
+  </div>
+</header>
+
+<main id="conteudo">
+  <section class="wrap heroi" aria-labelledby="titulo">
+    <div>
+      <h1 id="titulo">A dengue está alta no meu bairro?</h1>
+      <p class="heroi__lead">Dengue, chikungunya e zika nos 96 distritos de São Paulo, com dados oficiais atualizados toda semana.</p>
+      <div class="busca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="busca" type="search" placeholder="Digite seu distrito ou bairro" autocomplete="off" aria-label="Buscar distrito, bairro ou subprefeitura" aria-controls="busca-lista" aria-expanded="false" enterkeyhint="go">
+        <ul id="busca-lista" class="busca__lista" role="listbox"></ul>
+      </div>
+      <div class="heroi__acoes">
+        <a class="btn btn--primario" href="mapa.html" data-mapa>Abrir o mapa</a>
+        <button type="button" class="btn btn--secundario" id="localizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>Meu distrito</span></button>
+      </div>
+    </div>
+
+    <figure class="cartao mini">
+      <div class="seg" role="group" aria-label="Doença">
+        <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
+        <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
+        <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
+      </div>
+      <div class="mini__area">
+        <div class="esq" aria-hidden="true"><i></i></div>
+        <svg class="mini__mapa dados" id="mini-mapa" role="img" aria-labelledby="mini-legenda" preserveAspectRatio="xMidYMid meet"></svg>
+        <p class="erro so-sem-dados">Não foi possível carregar o mapa agora. <button type="button" class="link" data-tentar>Tentar de novo</button></p>
+      </div>
+      <div class="escala dados" aria-hidden="true">
+        <div class="escala__barra" id="escala-barra"></div>
+        <div class="escala__ticks" id="escala-ticks"></div>
+      </div>
+      <figcaption class="dados"><span id="mini-legenda">Incidência acumulada no ano, por distrito.</span> <span id="mini-dica">Escolha um distrito para abri-lo no mapa.</span></figcaption>
+    </figure>
+  </section>
+
+  <section class="secao secao--branca agora" id="agora" aria-labelledby="agora-titulo">
+    <div class="wrap">
+      <h2 id="agora-titulo">Como está São Paulo agora</h2>
+      <p class="secao__lead">Os números mais recentes das duas fontes oficiais, cada um com a semana do boletim de onde saiu.</p>
+      <p class="erro so-sem-dados">Os números não carregaram agora. <button type="button" class="link" data-tentar>Tentar de novo</button></p>
+      <div class="bento so-com-dados">
+        <article class="cartao" aria-labelledby="cid-titulo">
+          <div class="esq" aria-hidden="true"><i class="media"></i><i class="curta"></i><i class="grande"></i><i></i></div>
+          <div class="dados">
+            <div class="bloco__cab">
+              <div><h3 id="cid-titulo">Cidade de São Paulo</h3><div class="sub" id="cid-semana">—</div></div>
+              <span id="cid-badge" class="badge" data-nivel="1" title="Nível de alerta semanal (InfoDengue)">—</span>
+            </div>
+            <div id="cid-numeros">
+              <div class="destaque">
+                <span class="v" id="cid-casos">—</span>
+                <span class="k">casos notificados na semana</span>
+              </div>
+              <div class="destaque destaque--compacto">
+                <span class="delta" id="cid-delta">—</span>
+                <span class="k">vs. semana anterior</span>
+              </div>
+              <svg id="spark" class="spark" viewBox="0 0 600 56" preserveAspectRatio="none" aria-hidden="true"></svg>
+              <div class="spark__legenda"><span id="spark-ini">—</span><span>últimas 26 semanas</span><span id="spark-fim">—</span></div>
+              <p class="nota">Notificações ainda entram por algumas semanas; as últimas semanas tendem a subir na próxima atualização.</p>
+            </div>
+            <p class="dica" id="cid-sem-dados" hidden></p>
+            <p class="fonte" id="cid-fonte">—</p>
+          </div>
+        </article>
+        <article class="cartao" aria-labelledby="top5-titulo">
+          <div class="esq" aria-hidden="true"><i class="media"></i><i class="curta"></i><i></i><i></i><i></i></div>
+          <div class="dados">
+            <h3 id="top5-titulo">Maior incidência acumulada no ano</h3>
+            <div class="sub" id="top5-sub">—</div>
+            <ol class="top5" id="top5"></ol>
+            <p class="dica" id="top5-sem-dados" hidden>O boletim da COVISA não traz esta doença por distrito. Preferimos mostrar "sem dados" a mostrar um número inventado.</p>
+            <p class="fonte" id="ver-lista-p"><a class="link" id="ver-lista" href="mapa.html#dengue/lista">Ver os 96 distritos</a></p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" id="como-usar" aria-labelledby="usar-titulo">
+    <div class="wrap">
+      <h2 id="usar-titulo">Como usar o mapa</h2>
+      <div class="duas">
+        <ol class="passos">
+          <li><div><strong>Escolha a doença</strong><span>Dengue, chikungunya ou zika, nos botões no alto do mapa.</span></div></li>
+          <li><div><strong>Encontre seu distrito</strong><span>Pela busca, tocando no mapa ou com "Meu distrito", que usa a localização do aparelho.</span></div></li>
+          <li><div><strong>Leia os números</strong><span>Casos confirmados no ano, incidência por 100 mil habitantes e a posição entre os 96 distritos.</span></div></li>
+          <li><div><strong>Compare e compartilhe</strong><span>Veja a lista dos 96 distritos, baixe em CSV ou envie o link do seu distrito.</span></div></li>
+          <li><div><strong>Tire dúvidas com o Epi</strong><span>O assistente responde sobre os números do mapa e sobre sintomas, prevenção e atendimento.</span>
+            <button type="button" class="link" data-epi>Pergunte ao Epi</button></div></li>
+        </ol>
+        <aside class="cartao cores" aria-labelledby="cores-titulo">
+          <h3 id="cores-titulo">Como ler as cores</h3>
+          <div class="escala" aria-hidden="true"><div class="escala__barra"></div>
+            <div class="escala__ticks"><span style="left:0">0</span><span style="left:6.7%">20</span><span style="left:20%">60</span><span style="left:50%">150</span><span style="left:100%">300+</span></div></div>
+          <p>A cor de cada distrito é a incidência acumulada desde janeiro: casos confirmados por 100 mil habitantes. Um distrito pode estar vermelho com poucos casos novos se teve muitos no começo do ano.</p>
+          <p>Essa cor não é nível de alerta: a Prefeitura não publica alerta por distrito.</p>
+          <h4>Nível de alerta da cidade (InfoDengue)</h4>
+          <ul class="niveis">
+            <li><span class="badge" data-nivel="1">Verde</span><span>Clima desfavorável ao mosquito e transmissão baixa.</span></li>
+            <li><span class="badge" data-nivel="2">Amarelo</span><span>Clima favorável à transmissão.</span></li>
+            <li><span class="badge" data-nivel="3">Laranja</span><span>Transmissão sustentada na cidade.</span></li>
+            <li><span class="badge" data-nivel="4">Vermelho</span><span>Incidência acima do esperado, situação de epidemia.</span></li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao faixa" id="prevencao" aria-labelledby="prev-titulo">
+    <div class="wrap duas">
+      <div>
+        <h2 id="prev-titulo">Dez minutos por semana contra o mosquito</h2>
+        <p class="secao__lead">O <i>Aedes aegypti</i> transmite as três doenças e se cria em água parada perto de casa. Uma volta pela casa por semana resolve a maior parte dos criadouros:</p>
+        <ul class="checklist">
+          <li>Pratos de vasos de plantas: retire a água ou encha com areia.</li>
+          <li>Caixa d'água, tonéis e baldes: mantenha bem tampados.</li>
+          <li>Calhas, ralos e lajes: deixe sem água acumulada.</li>
+          <li>Garrafas, pneus e entulho: guarde virados ou cobertos, ou descarte.</li>
+          <li>Terreno ou imóvel abandonado com água parada perto de você: peça vistoria pelo 156.</li>
+        </ul>
+      </div>
+      <aside class="cartao sintomas" aria-labelledby="sint-titulo">
+        <h3 id="sint-titulo">Teve febre com dor no corpo?</h3>
+        <p>Procure uma UBS e beba bastante líquido. Não tome remédio por conta própria: anti-inflamatórios e AAS podem piorar a dengue.</p>
+        <div class="alerta"><strong>Sinais de alarme:</strong> dor forte na barriga, vômitos que não param, sangramento, tontura ou sonolência. Nesses casos, vá a um pronto-socorro.</div>
+        <div class="contatos">
+          <div><div class="v">156</div><div class="k">Prefeitura de São Paulo: vistoria de foco do mosquito</div></div>
+          <div><div class="v">136</div><div class="k">Disque Saúde, Ministério da Saúde</div></div>
+          <div><div class="v">192</div><div class="k">SAMU, em emergência</div></div>
+        </div>
+        <p class="fonte">Orientações resumidas do <a href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue" target="_blank" rel="noopener">Ministério da Saúde</a>. Este site não substitui avaliação médica.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="secao secao--branca" id="fontes" aria-label="Fontes e privacidade">
+    <div class="wrap duas duas--iguais">
+      <div>
+        <h2>De onde vêm os números</h2>
+        <p class="secao__lead">Nada é simulado ou estimado. Quando a fonte não tem o número, o site mostra "sem dados".</p>
+        <ul class="fontes">
+          <li><strong><a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue</a></strong>, Fiocruz e FGV
+            <span class="meta">Cidade inteira, semanal, a partir do SINAN/Ministério da Saúde. Usado no resumo da cidade e no nível de alerta.</span></li>
+          <li><strong><a href="https://www.prefeitura.sp.gov.br/web/saude/w/vigilancia_em_saude/boletim_covisa/arboviroses" target="_blank" rel="noopener">Boletim de arboviroses da COVISA</a></strong>, Secretaria Municipal da Saúde
+            <span class="meta">Por distrito, semanal, em PDF. O PDF é lido automaticamente e só é aceito se a soma dos distritos bater com o total do boletim.</span></li>
+          <li><strong>GeoSampa</strong>, Prefeitura de São Paulo
+            <span class="meta">Contorno dos 96 distritos e das 32 subprefeituras.</span></li>
+          <li><strong>Mapa-base</strong>: Esri, HERE, Garmin e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores do OpenStreetMap</a>
+            <span class="meta">Ruas e nomes de lugares embaixo das cores, com a biblioteca Leaflet.</span></li>
+        </ul>
+        <p class="fonte" id="dados-no-ar"></p>
+      </div>
+      <div>
+        <h2>Sua privacidade</h2>
+        <p class="secao__lead">Dado de saúde é dado pessoal sensível pela LGPD. Por isso o site foi feito para não coletar nada sobre quem o usa.</p>
+        <ul class="lista-texto">
+          <li>Sem cadastro, sem cookies e sem ferramentas de análise ou anúncio.</li>
+          <li>O site não grava nada no seu aparelho.</li>
+          <li>As buscas e os distritos que você abre não são enviados a lugar nenhum.</li>
+          <li>"Meu distrito" usa a localização só no seu aparelho, para achar o distrito. Ela não é enviada nem guardada.</li>
+          <li>O que você escreve para o Epi não sai do seu navegador e some quando você fecha a página.</li>
+          <li>O mapa-base (Esri), a fonte tipográfica (Google Fonts) e a biblioteca do mapa (Cloudflare) vêm de servidores de terceiros. Eles recebem o endereço IP do aparelho, como em qualquer site, e o servidor do mapa-base também recebe quais pedaços do mapa estão na tela.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" id="perguntas" aria-labelledby="faq-titulo">
+    <div class="wrap faq-grade">
+      <h2 id="faq-titulo">Perguntas frequentes</h2>
+      <div class="faq">
+        <details><summary>O site é oficial?</summary>
+          <p>Não. É um projeto independente que organiza dados públicos oficiais. Os números vêm da Prefeitura de São Paulo (COVISA) e do InfoDengue, da Fiocruz e da FGV.</p></details>
+        <details><summary>Por que o número do distrito é maior que o da cidade na semana?</summary>
+          <p>Porque são medidas diferentes. O distrito mostra o total desde janeiro; a cidade mostra só os casos da última semana.</p></details>
+        <details><summary>O que significa "revisado para baixo"?</summary>
+          <p>A vigilância revisa casos de semanas anteriores: alguns são descartados depois de exame. Quando o acumulado de um boletim fica menor que o do anterior, o site mostra a diferença negativa como ela é.</p></details>
+        <details><summary>Por que as últimas semanas da cidade sobem depois?</summary>
+          <p>Notificações chegam com atraso. A semana mais recente costuma ganhar casos nas atualizações seguintes, então uma queda nas últimas semanas pode não ser real.</p></details>
+        <details><summary>Por que a zika aparece sem dados por distrito?</summary>
+          <p>O boletim da Prefeitura não traz a zika por distrito desde 2018. Preferimos mostrar "sem dados" a mostrar um número inventado.</p></details>
+        <details><summary>Por que a chikungunya não tem incidência?</summary>
+          <p>Para a chikungunya, o boletim publica só a contagem de casos autóctones (contraídos na própria cidade). Nesse caso a cor do mapa segue o número de casos.</p></details>
+        <details><summary>Meu bairro não aparece na busca. E agora?</summary>
+          <p>Os dados oficiais são por distrito, e muitos bairros ficam dentro de um distrito com outro nome. Use "Meu distrito" para achar o seu pela localização, ou toque no mapa.</p></details>
+        <details><summary>Com que frequência o site atualiza?</summary>
+          <p>Os dados são buscados toda madrugada. Na prática, o mapa por distrito muda uma vez por semana, quando a Prefeitura publica um boletim novo.</p></details>
+      </div>
+      <p class="faq__epi">Não achou a sua pergunta? <button type="button" class="link" data-epi>Pergunte ao Epi</button>, o assistente do site.</p>
+    </div>
+  </section>
+
+  <section class="secao secao--sem-topo" aria-labelledby="chamada-titulo">
+    <div class="wrap">
+      <div class="cartao chamada">
+        <div>
+          <h2 id="chamada-titulo">Veja como está o seu distrito</h2>
+          <p>Busca, mapa dos 96 distritos e resumo da cidade, na mesma tela.</p>
+        </div>
+        <a class="btn btn--primario" href="mapa.html" data-mapa>Abrir o mapa</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="wrap">
+    <div class="rodape__linha">
+      <a class="marca" href="#conteudo" aria-label="Epimapa SP, voltar ao início da página">
+        <span class="marca__logo" aria-hidden="true"></span>
+        <div><strong>Epimapa SP</strong><small>Dados públicos de vigilância, por distrito</small></div>
+      </a>
+      <nav aria-label="Rodapé">
+        <a href="mapa.html" data-mapa>Mapa</a>
+        <a href="#agora">Situação</a>
+        <a href="#prevencao">Prevenção</a>
+        <a href="#fontes">Fontes e privacidade</a>
+        <a href="https://github.com/ReisDevv/Patogen" target="_blank" rel="noopener">Código no GitHub</a>
+      </nav>
+    </div>
+    <p class="rodape__nota">Projeto independente, sem vínculo com a Prefeitura, o Ministério da Saúde ou a Fiocruz. Não substitui atendimento médico. <span id="rodape-dados"></span></p>
+  </div>
+</footer>
+
+<div class="tip" id="tip" hidden></div>
+<div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
+
+<button type="button" class="chat-abrir" id="chat-abrir" aria-expanded="false" aria-controls="chat">
+  <span class="robo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V6"/><circle cx="12" cy="2.6" r="1.1" fill="currentColor" stroke="none"/><rect x="4" y="6" width="16" height="12" rx="4"/><circle cx="9" cy="11.6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="11.6" r="1.4" fill="currentColor" stroke="none"/><path d="M9.5 15h5M2 10.5v3M22 10.5v3"/></svg></span>
+  <span class="rotulo">Tire dúvidas com o Epi</span>
+</button>
+
+<section class="chat" id="chat" role="dialog" aria-labelledby="chat-titulo" hidden>
+  <header class="chat__cab">
+    <span class="robo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V6"/><circle cx="12" cy="2.6" r="1.1" fill="currentColor" stroke="none"/><rect x="4" y="6" width="16" height="12" rx="4"/><circle cx="9" cy="11.6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="11.6" r="1.4" fill="currentColor" stroke="none"/><path d="M9.5 15h5M2 10.5v3M22 10.5v3"/></svg></span>
+    <div><h2 id="chat-titulo">Epi, assistente do mapa</h2><div class="sub">Responde com os números do último boletim</div></div>
+    <button type="button" class="fechar" id="chat-fechar" aria-label="Fechar assistente">✕</button>
+  </header>
+  <div class="chat__msgs" id="chat-msgs" role="log" aria-live="polite"></div>
+  <div class="chat__sugestoes" id="chat-sugestoes"></div>
+  <form class="chat__form" id="chat-form" autocomplete="off">
+    <input id="chat-input" type="text" maxlength="300" enterkeyhint="send" placeholder="Digite sua pergunta" aria-label="Sua pergunta">
+    <button type="submit" aria-label="Enviar pergunta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </form>
+  <p class="chat__aviso">Não substitui atendimento médico. Suas perguntas não saem do seu navegador.</p>
+</section>
+
+<script src="chat.js"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const fmt = new Intl.NumberFormat("pt-BR");
+  // Mesmas regras do mapa.html (níveis, cores contínuas, ranking). Se mudarem lá, mude aqui.
+  const NIVEL_NOME = { 1: "Verde", 2: "Amarelo", 3: "Laranja", 4: "Vermelho" };
+  const NIVEL_COR = { 1: "#3d9a6a", 2: "#e8c04a", 3: "#e8802f", 4: "#c8322b" };
+  const LIMIARES = [0, 20, 60, 150, 300];
+  const NOME_DOENCA = { dengue: "Dengue", chikungunya: "Chikungunya", zika: "Zika" };
+  const norm = (s) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  let doenca = "dengue";
+
+  // ---------- aviso curto ----------
+  let avisoTimer;
+  function aviso(msg) {
+    const el = $("aviso");
+    el.textContent = msg; el.hidden = false;
+    clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(() => { el.hidden = true; }, 5000);
+  }
+
+  // ---------- links para o mapa levam a doença escolhida aqui ----------
+  const linkMapa = (id) => "mapa.html" + (id ? `#${doenca}/${id}` : doenca === "dengue" ? "" : `#${doenca}`);
+  const irPara = (id) => { location.href = linkMapa(id); };
+  function atualizarLinks() {
+    document.querySelectorAll("[data-mapa]").forEach(a => { a.href = linkMapa(); });
+    $("ver-lista").href = `mapa.html#${doenca}/lista`;
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-epi]")) { const b = $("chat-abrir"); if (b) b.click(); }
+    if (e.target.closest("[data-tentar]")) location.reload();
+  });
+
+  // ---------- carregar os mesmos dados do mapa ----------
+  let geo, dd, cd;
+  try {
+    [geo, dd, cd] = await Promise.all([
+      fetch("data/distritos.geojson").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch("data/casos_distrito.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch("data/infodengue.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+    ]);
+  } catch (e) {
+    // O texto da página continua útil; só os números e a busca ficam indisponíveis.
+    document.body.classList.remove("carregando");
+    document.body.classList.add("sem-dados");
+    $("busca").disabled = true; $("busca").placeholder = "Busca indisponível agora";
+    $("localizar").hidden = true;
+    if (window.EpiChat) EpiChat.iniciar(null);
+    return;
+  }
+  document.body.classList.remove("carregando");
+
+  const props = {};
+  geo.features.forEach(f => { props[f.properties.id] = f.properties; });
+  const dados = () => dd.doencas[doenca] || {};
+  const dadoDe = (id) => dados()[id] || { casos_ano: null, inc100k_ano: null, novos_desde_boletim: null };
+  const semDadosDistrito = () => (dd.sem_dados_por_distrito || []).includes(doenca);
+  const temIncidencia = () => Object.values(dados()).some(d => typeof d.inc100k_ano === "number");
+  const medida = (d) => typeof d.inc100k_ano === "number" ? d.inc100k_ano : (d.casos_ano || 0);
+  const maxCasos = () => Math.max(1, ...Object.values(dados()).map(d => d.casos_ano || 0));
+  const ranking = () => Object.entries(dados()).sort((a, b) => medida(b[1]) - medida(a[1])).map(e => e[0]);
+  const refBoletim = () => `Boletim COVISA SE ${dd.se}/${dd.ano} · acumulado desde janeiro`;
+  const dataBR = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "data desconhecida";
+
+  function mix(a, b, t) {
+    const pa = a.match(/\w\w/g).map(h => parseInt(h, 16));
+    const pb = b.match(/\w\w/g).map(h => parseInt(h, 16));
+    return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
+  }
+  function corPorInc(inc) {
+    const cores = [NIVEL_COR[1], NIVEL_COR[1], NIVEL_COR[2], NIVEL_COR[3], NIVEL_COR[4]];
+    for (let i = 1; i < LIMIARES.length; i++) {
+      if (inc < LIMIARES[i]) {
+        const t = (inc - LIMIARES[i - 1]) / (LIMIARES[i] - LIMIARES[i - 1]);
+        return mix(cores[i - 1], cores[i], Math.max(0, Math.min(1, t)));
+      }
+    }
+    return NIVEL_COR[4];
+  }
+  function corDe(d) {
+    if (semDadosDistrito() || d.casos_ano == null) return "#c9d1d9";
+    if (typeof d.inc100k_ano === "number") return corPorInc(d.inc100k_ano);
+    return corPorInc(LIMIARES[LIMIARES.length - 1] * d.casos_ano / maxCasos());
+  }
+
+  // ---------- prévia do mapa: os 96 distritos em SVG, com as cores do mapa ----------
+  const svg = $("mini-mapa");
+  const aneisDe = (g) => g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
+  (function desenhar() {
+    let lon0 = Infinity, lon1 = -Infinity, lat0 = Infinity, lat1 = -Infinity;
+    geo.features.forEach(f => aneisDe(f.geometry).forEach(anel => anel.forEach(([x, y]) => {
+      if (x < lon0) lon0 = x; if (x > lon1) lon1 = x; if (y < lat0) lat0 = y; if (y > lat1) lat1 = y;
+    })));
+    const kx = Math.cos((lat0 + lat1) / 2 * Math.PI / 180);
+    const ALT = 560, esc = ALT / (lat1 - lat0), LARG = (lon1 - lon0) * kx * esc;
+    svg.setAttribute("viewBox", `0 0 ${LARG.toFixed(1)} ${ALT}`);
+    // Pontos a menos de ~1px um do outro não mudam o desenho nesse tamanho: ficam de fora.
+    const caminho = (aneis) => aneis.map(anel => {
+      const pts = []; let ux = -9, uy = -9;
+      for (const [lon, lat] of anel) {
+        const x = (lon - lon0) * kx * esc, y = (lat1 - lat) * esc;
+        if (Math.abs(x - ux) + Math.abs(y - uy) < 0.9) continue;
+        pts.push(x.toFixed(1) + "," + y.toFixed(1)); ux = x; uy = y;
+      }
+      return "M" + pts.join("L") + "Z";
+    }).join("");
+    svg.innerHTML = geo.features.map(f => `<path class="mini-d" data-id="${f.properties.id}" d="${caminho(aneisDe(f.geometry))}"/>`).join("");
+  })();
+  function pintarMini() {
+    svg.classList.toggle("cinza", semDadosDistrito());
+    svg.querySelectorAll("path").forEach(p => { p.style.fill = corDe(dadoDe(p.dataset.id)); });
+    $("mini-dica").hidden = semDadosDistrito();
+  }
+  const tip = $("tip");
+  svg.addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return;
+    const p = e.target.closest("path");
+    if (!p) { tip.hidden = true; return; }
+    const d = dadoDe(p.dataset.id), nome = props[p.dataset.id].nome;
+    tip.innerHTML = semDadosDistrito() || d.casos_ano == null ? `<b>${nome}</b> · sem dados por distrito` : `<b>${nome}</b> · ${fmt.format(d.casos_ano)} casos no ano`;
+    tip.style.left = e.clientX + "px"; tip.style.top = e.clientY + "px"; tip.hidden = false;
+    if (p !== svg.lastElementChild) svg.appendChild(p);   // o contorno realçado fica por cima dos vizinhos
+  });
+  svg.addEventListener("pointerleave", () => { tip.hidden = true; });
+  svg.addEventListener("click", (e) => {
+    const p = e.target.closest("path");
+    if (p && !semDadosDistrito()) irPara(p.dataset.id);
+  });
+
+  function renderLegenda() {
+    const barra = $("escala-barra"), ticks = $("escala-ticks"), legenda = $("mini-legenda");
+    if (semDadosDistrito()) {
+      barra.style.background = "var(--sem-dado)"; ticks.innerHTML = "";
+      legenda.textContent = `O boletim da COVISA não traz ${NOME_DOENCA[doenca].toLowerCase()} por distrito: o mapa fica cinza. ${refBoletim()}.`;
+      return;
+    }
+    barra.style.background = "";
+    if (temIncidencia()) {
+      ticks.innerHTML = LIMIARES.map((v, i) => `<span style="left:${(v / 300 * 100).toFixed(1)}%">${i === LIMIARES.length - 1 ? v + "+" : v}</span>`).join("");
+      legenda.textContent = `Casos por 100 mil habitantes desde janeiro, por distrito. ${refBoletim()}.`;
+    } else {
+      const max = maxCasos();
+      ticks.innerHTML = `<span style="left:0">0</span><span style="left:50%">${fmt.format(Math.round(max / 2))}</span><span style="left:100%">${fmt.format(max)}</span>`;
+      legenda.textContent = `Casos autóctones confirmados desde janeiro, por distrito. ${refBoletim()}.`;
+    }
+  }
+
+  // ---------- cidade, semana a semana (casos notificados, não a estimativa) ----------
+  function delta(atual, anterior, el) {
+    const rotulo = el.nextElementSibling;
+    el.classList.remove("up", "down", "flat");
+    if (anterior == null || atual == null) { el.textContent = "—"; rotulo.textContent = "vs. semana anterior"; el.classList.add("flat"); return; }
+    const diff = atual - anterior;
+    const sinal = diff > 0 ? "+" : diff < 0 ? "−" : "";
+    if (diff === 0) { el.textContent = "0%"; el.classList.add("flat"); }
+    else if (anterior === 0) { el.textContent = `${sinal}${fmt.format(Math.abs(diff))}`; el.classList.add("up"); }
+    else { el.textContent = `${sinal}${Math.abs(Math.round(diff / anterior * 100))}%`; el.classList.add(diff > 0 ? "up" : "down"); }
+    rotulo.textContent = diff === 0 ? "igual à semana anterior" : `${sinal}${fmt.format(Math.abs(diff))} casos vs. semana anterior`;
+  }
+  function renderCidade() {
+    const serie = cd.doencas[doenca], atual = serie && serie.atual;
+    $("cid-badge").hidden = !atual;
+    $("cid-fonte").innerHTML = `Fonte: <a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue (Fiocruz/FGV)</a>, casos notificados, atualizado em ${dataBR(cd.atualizado_em)}.`;
+    // Sem série, nada de traços e gráfico vazio: uma frase diz o que falta.
+    $("cid-numeros").hidden = !atual;
+    $("cid-sem-dados").hidden = !!atual;
+    if (!atual) {
+      $("cid-semana").textContent = `${NOME_DOENCA[doenca]} · InfoDengue`;
+      $("cid-sem-dados").textContent = `O InfoDengue não tem série de ${NOME_DOENCA[doenca].toLowerCase()} para São Paulo neste momento.`;
+      return;
+    }
+    $("cid-semana").textContent = `${NOME_DOENCA[doenca]}, semana ${atual.se}/${atual.ano} · InfoDengue`;
+    $("cid-badge").textContent = NIVEL_NOME[atual.nivel] || "—";
+    $("cid-badge").dataset.nivel = atual.nivel || 1;
+    $("cid-casos").textContent = fmt.format(atual.casos);
+    const sem = serie.semanas.slice(-26);
+    delta(atual.casos, sem.length > 1 ? sem[sem.length - 2].casos : null, $("cid-delta"));
+    const W = 600, H = 56, pad = 4;
+    const max = Math.max(...sem.map(s => s.casos), 1);
+    const px = (i) => pad + i * (W - 2 * pad) / Math.max(sem.length - 1, 1);
+    const py = (v) => H - pad - v / max * (H - 2 * pad);
+    const linha = "M" + sem.map((s, i) => `${px(i).toFixed(1)},${py(s.casos).toFixed(1)}`).join(" L");
+    const area = linha + ` L${px(sem.length - 1).toFixed(1)},${H} L${px(0)},${H} Z`;
+    const ult = sem[sem.length - 1];
+    $("spark").innerHTML = `<path class="area" d="${area}"/><path class="linha" d="${linha}"/><circle class="ponto" cx="${px(sem.length - 1).toFixed(1)}" cy="${py(ult.casos).toFixed(1)}" r="3"/>`;
+    $("spark-ini").textContent = `SE ${sem[0].se}/${sem[0].ano}`;
+    $("spark-fim").textContent = `SE ${ult.se}/${ult.ano}`;
+  }
+
+  // ---------- distritos com maior incidência (acumulado do ano, COVISA) ----------
+  function renderRanking() {
+    const vazio = semDadosDistrito();
+    $("top5-sem-dados").hidden = !vazio;
+    $("top5").hidden = $("ver-lista-p").hidden = vazio;
+    $("top5-titulo").textContent = vazio ? `${NOME_DOENCA[doenca]} por distrito` : temIncidencia() ? "Maior incidência acumulada no ano" : "Mais casos autóctones no ano";
+    $("top5-sub").textContent = refBoletim();
+    $("top5").innerHTML = vazio ? "" : ranking().slice(0, 5).map(id => {
+      const d = dadoDe(id);
+      return `<li><a href="${linkMapa(id)}"><span>${props[id].nome}</span><span class="num">${
+        typeof d.inc100k_ano === "number" ? `${fmt.format(d.inc100k_ano)} /100 mil` : `${fmt.format(d.casos_ano)} casos`
+      }</span></a></li>`;
+    }).join("");
+  }
+
+  // ---------- doença ----------
+  const botoesDoenca = [...document.querySelectorAll(".mini .seg button")];
+  function trocarDoenca(d) {
+    if (!NOME_DOENCA[d]) return;
+    doenca = d;
+    botoesDoenca.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.doenca === d)));
+    pintarMini(); renderLegenda(); renderCidade(); renderRanking(); atualizarLinks();
+  }
+  botoesDoenca.forEach(b => b.addEventListener("click", () => trocarDoenca(b.dataset.doenca)));
+
+  // ---------- busca: distrito, subprefeitura ou bairro conhecido abre o mapa nele ----------
+  const indice = geo.features.map(f => ({ id: f.properties.id, nome: f.properties.nome, sub: f.properties.subprefeitura, tipo: "distrito" }));
+  const subs = [...new Set(indice.map(r => r.sub))].map(s => ({ id: s, nome: s, sub: "subprefeitura", tipo: "sub" }));
+  // Bairros que não são distritos: a mesma lista curta do Epi (só os casos sem dúvida).
+  const bairros = Object.values((window.EpiChat && EpiChat.APELIDOS) || {}).filter(a => a.bairro && props[a.id])
+    .map(a => ({ id: a.id, nome: a.bairro, sub: `bairro em ${props[a.id].nome}`, tipo: "distrito" }));
+  const input = $("busca"), lista = $("busca-lista");
+  let resultados = [], ativo = -1;
+  function abrirResultados(itens) {
+    resultados = itens; ativo = -1;
+    lista.innerHTML = itens.length
+      ? itens.map((r, i) => `<li role="option" data-i="${i}">${r.nome}<small>${r.tipo === "sub" ? "subprefeitura" : r.sub}</small></li>`).join("")
+      : `<li class="vazio">Nenhum distrito ou subprefeitura com esse nome. Muitos bairros ficam dentro de um distrito com outro nome: <button type="button" class="link" data-acao="localizar">use sua localização</button>.</li>`;
+    lista.dataset.open = "true"; input.setAttribute("aria-expanded", "true");
+  }
+  function fecharResultados() { lista.dataset.open = "false"; input.setAttribute("aria-expanded", "false"); }
+  function escolher(r) {
+    fecharResultados();
+    if (r.tipo === "distrito") { irPara(r.id); return; }
+    // subprefeitura: abre o distrito dela com a maior incidência, como a busca do mapa faz
+    const ids = indice.filter(x => x.sub === r.id).map(x => x.id);
+    irPara(ids.sort((a, b) => medida(dadoDe(b)) - medida(dadoDe(a)))[0]);
+  }
+  input.addEventListener("input", () => {
+    const q = norm(input.value.trim());
+    if (!q) { fecharResultados(); return; }
+    abrirResultados([...indice, ...subs, ...bairros].filter(r => norm(r.nome).includes(q) || (r.tipo === "distrito" && norm(r.sub).includes(q)))
+      .sort((a, b) => (norm(a.nome).startsWith(q) ? 0 : 1) - (norm(b.nome).startsWith(q) ? 0 : 1)).slice(0, 8));
+  });
+  input.addEventListener("keydown", (e) => {
+    if (lista.dataset.open !== "true") return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!resultados.length) return;
+      ativo = (ativo + (e.key === "ArrowDown" ? 1 : -1) + resultados.length) % resultados.length;
+      [...lista.children].forEach((li, i) => li.setAttribute("aria-selected", i === ativo));
+    } else if (e.key === "Enter") {
+      e.preventDefault(); if (resultados.length) escolher(resultados[Math.max(ativo, 0)]);
+    } else if (e.key === "Escape") { fecharResultados(); }
+  });
+  lista.addEventListener("click", (e) => {
+    if (e.target.closest("[data-acao=localizar]")) { fecharResultados(); localizar(); return; }
+    const li = e.target.closest("li[data-i]"); if (li) escolher(resultados[+li.dataset.i]);
+  });
+  document.addEventListener("click", (e) => { if (!e.target.closest(".busca")) fecharResultados(); });
+
+  // ---------- meu distrito: a localização vira só o nome do distrito, aqui no aparelho ----------
+  function dentroDoAnel(x, y, anel) {
+    let dentro = false;
+    for (let i = 0, j = anel.length - 1; i < anel.length; j = i++) {
+      const xi = anel[i][0], yi = anel[i][1], xj = anel[j][0], yj = anel[j][1];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) dentro = !dentro;
+    }
+    return dentro;
+  }
+  function distritoEm(lat, lng) {
+    const f = geo.features.find(f => {
+      const g = f.geometry;
+      const poligonos = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+      return poligonos.some(p => dentroDoAnel(lng, lat, p[0]) && !p.slice(1).some(b => dentroDoAnel(lng, lat, b)));
+    });
+    return f ? f.properties.id : null;
+  }
+  const botaoLocal = $("localizar"), rotuloLocal = botaoLocal.querySelector("span");
+  function localizar() {
+    if (!("geolocation" in navigator)) { aviso("Este navegador não informa a localização. Busque seu distrito pelo nome."); return; }
+    const pronto = () => { botaoLocal.disabled = false; botaoLocal.removeAttribute("aria-busy"); rotuloLocal.textContent = "Meu distrito"; };
+    botaoLocal.disabled = true; botaoLocal.setAttribute("aria-busy", "true"); rotuloLocal.textContent = "Localizando…";
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const id = distritoEm(pos.coords.latitude, pos.coords.longitude);
+      if (!id) { pronto(); aviso("Sua localização fica fora da cidade de São Paulo. Busque um distrito pelo nome."); return; }
+      irPara(id);   // só o distrito vai no endereço; as coordenadas ficam aqui
+    }, (err) => {
+      pronto();
+      aviso(err.code === 1
+        ? "Sem permissão para usar a localização. Busque seu distrito pelo nome."
+        : "Não deu para obter sua localização agora. Busque seu distrito pelo nome.");
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+  }
+  botaoLocal.addEventListener("click", localizar);
+  // Ao voltar do mapa pelo "voltar" do navegador, a página pode vir da memória com o botão ainda ocupado.
+  addEventListener("pageshow", () => { botaoLocal.disabled = false; botaoLocal.removeAttribute("aria-busy"); rotuloLocal.textContent = "Meu distrito"; });
+
+  // ---------- rodapé ----------
+  const noAr = `Dados no ar: InfoDengue atualizado em ${dataBR(cd.atualizado_em)} e boletim COVISA da semana ${dd.se}/${dd.ano}.`;
+  $("rodape-dados").textContent = noAr;
+  $("dados-no-ar").textContent = noAr;
+
+  trocarDoenca("dengue");
+
+  // ---------- Epi: o mesmo assistente do mapa; "ver no mapa" abre o mapa no distrito ----------
+  if (window.EpiChat) EpiChat.iniciar({
+    distritos: indice.map(r => ({ id: r.id, nome: r.nome, sub: r.sub })),
+    distritoDados: dd, cidadeDados: cd,
+    doenca: () => doenca,
+    selecionado: () => null,
+    trocarDoenca,
+    selecionar: (id) => irPara(id),
+  });
+})();
+</script>
+</body>
+</html>
