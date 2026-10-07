@@ -171,7 +171,8 @@
     },
   };
 
-  window.EpiChat = { iniciar };
+  // APELIDOS também serve à busca do topo (index.html), para as duas entenderem os mesmos bairros.
+  window.EpiChat = { iniciar, APELIDOS };
 
   function iniciar(ctx) {
     const $ = (id) => document.getElementById(id);
@@ -700,14 +701,26 @@
       }
       atualizarSugestoes();
       rolar();
+      vigiarVoltar(true);
       // No celular, focar o campo abriria o teclado por cima da mensagem de boas-vindas.
       if (mobile()) $("chat-fechar").focus(); else campo.focus();
     }
     function fechar() {
+      vigiarVoltar(false);
       janela.hidden = true;
       document.body.classList.remove("chat-aberto");
       botao.setAttribute("aria-expanded", "false");
       botao.focus({ preventScroll: true });
+    }
+    // No celular o assistente cobre a tela: o "voltar" do Android fecha o Epi em vez de sair do site.
+    let vigia = null;
+    function vigiarVoltar(ativo) {
+      if (!("CloseWatcher" in window) || !matchMedia("(pointer: coarse)").matches) return;
+      if (ativo && !vigia) {
+        try { vigia = new CloseWatcher(); vigia.onclose = () => { vigia = null; fechar(); }; } catch { vigia = null; }
+      } else if (!ativo && vigia) {
+        const v = vigia; vigia = null; v.destroy();
+      }
     }
 
     botao.addEventListener("click", abrir);

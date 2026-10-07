@@ -8,6 +8,22 @@
 <meta property="og:title" content="Epimapa SP — arboviroses por distrito">
 <meta property="og:description" content="A dengue está alta no meu bairro? Mapa por distrito de São Paulo com dados públicos de vigilância.">
 <meta name="theme-color" content="#1d5c7a">
+<link rel="canonical" href="https://reisdevv.github.io/Patogen/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://reisdevv.github.io/Patogen/">
+<meta property="og:site_name" content="Epimapa SP">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:image" content="https://reisdevv.github.io/Patogen/img/compartilhar.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Mapa dos 96 distritos de São Paulo com a pergunta: a dengue está alta no meu bairro?">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/icone-180.png">
+<!-- os dados começam a baixar junto com o Leaflet, não depois dele -->
+<link rel="preload" href="data/distritos.geojson" as="fetch" crossorigin>
+<link rel="preload" href="data/casos_distrito.json" as="fetch" crossorigin>
+<link rel="preload" href="data/infodengue.json" as="fetch" crossorigin>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231d5c7a'/%3E%3Ccircle cx='13' cy='13' r='6' fill='%23fff'/%3E%3Ccircle cx='21' cy='21' r='4' fill='%23e8802f'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +51,7 @@
     --painel-w: 352px;
     --alca: 64px;
     --dur: 180ms;
-    --z-mapa: 0; --z-painel: 700; --z-topo: 900; --z-lista: 950; --z-chat: 980;
+    --z-mapa: 0; --z-painel: 700; --z-topo: 900; --z-lista: 950; --z-chat: 980; --z-aviso: 990;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
@@ -319,6 +335,174 @@
   .chat__form button svg { width: 18px; height: 18px; }
   .chat__aviso { font-size: 11.5px; color: var(--muted); text-align: center; margin: 0; padding: 2px 12px 10px; flex: none; }
 
+  /* ---------- navegação e conteúdo: "Sobre", aviso, diálogos, lista de distritos ----------
+     Peças novas com os mesmos tokens. Nada aqui muda o mapa ou o painel. */
+  .topo { grid-template-columns: auto 1fr auto auto; }
+  .topo__acoes { display: flex; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid transparent; border-radius: var(--r-ctl); padding: 9px 14px;
+    font-weight: 500; white-space: nowrap; text-decoration: none;
+    transition: background var(--dur), border-color var(--dur), color var(--dur), transform var(--dur);
+  }
+  .btn svg { width: 16px; height: 16px; flex: none; }
+  .btn:active { transform: scale(.98); }
+  .btn--primario { background: var(--accent); color: #fff; }
+  .btn--primario:hover { background: var(--accent-ink); }
+  .btn--secundario { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .btn--secundario:hover { border-color: #c6ced6; background: var(--surface-2); }
+  .link {
+    border: 0; background: none; padding: 0; color: var(--accent); font-weight: 500; text-align: left;
+    text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px;
+  }
+  .link:hover { color: var(--accent-ink); }
+  .links { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #dist-conteudo { position: relative; }
+  .compartilhar { position: absolute; top: 0; right: -8px; margin: 0; }
+
+  .leaflet-bar a.localizar { display: grid; place-items: center; }
+  .leaflet-bar a.localizar svg { width: 16px; height: 16px; }
+  .leaflet-bar a.localizar[aria-busy="true"] { color: var(--accent); }
+  .leaflet-bar a.localizar[aria-busy="true"] svg { animation: girar 1s linear infinite; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+
+  .aviso {
+    position: fixed; left: 50%; top: calc(var(--topo) + 16px); z-index: var(--z-aviso);
+    transform: translateX(-50%); width: max-content; max-width: min(440px, calc(100% - 32px));
+    background: var(--ink); color: #fff; border-radius: var(--r-ctl); padding: 10px 14px;
+    box-shadow: var(--sombra); text-wrap: pretty; animation: aviso-entrar var(--dur) ease-out;
+  }
+  @keyframes aviso-entrar { from { opacity: 0; transform: translate(-50%, -6px); } }
+
+  /* diálogos: <dialog> nativo (em navegador sem suporte, o atributo open só mostra a caixa) */
+  dialog:not([open]) { display: none; }
+  dialog.modal {
+    position: fixed; inset: 0; margin: auto; z-index: 1000;
+    border: 0; padding: 0; color: var(--ink); background: var(--surface);
+    border-radius: var(--r-box); box-shadow: var(--sombra);
+    width: min(540px, calc(100% - 32px)); height: fit-content;
+    max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px);
+    overflow: hidden; flex-direction: column;
+  }
+  dialog.modal[open] { display: flex; animation: entrar 220ms cubic-bezier(.16,1,.3,1); }
+  dialog.modal::backdrop { background: rgba(22,32,43,.42); }
+  dialog.modal--largo { width: min(720px, calc(100% - 32px)); height: min(680px, calc(100vh - 48px)); height: min(680px, calc(100dvh - 48px)); }
+  @keyframes entrar { from { opacity: 0; transform: translateY(8px); } }
+  .modal__cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 24px 0; flex: none; }
+  .modal__corpo { overflow-y: auto; padding: 4px 24px 24px; flex: 1; min-height: 0; overscroll-behavior: contain; }
+  .modal h2 { font-size: 20px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; margin: 0; text-wrap: balance; }
+  .modal h3 { font-size: 15px; font-weight: 600; letter-spacing: -.01em; margin: 22px 0 0; }
+  .modal p, .modal li { text-wrap: pretty; max-width: 65ch; }
+  .modal p { margin: 8px 0 0; }
+  .modal .sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+  .modal a { color: var(--accent); }
+
+  /* apresentação (primeira visita) */
+  .intro__marca { display: flex; align-items: center; gap: 10px; color: var(--muted); font-weight: 500; }
+  .intro h2 { font-size: 24px; margin-top: 18px; }
+  .intro__lead { color: var(--muted); font-size: 15px; }
+  .passos { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 14px; counter-reset: passo; }
+  .passos li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
+  .passos li::before {
+    counter-increment: passo; content: counter(passo);
+    width: 28px; height: 28px; border-radius: var(--r-pilula); display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; font-size: 13px;
+  }
+  .passos strong { display: block; font-weight: 600; }
+  .passos span { color: var(--muted); }
+  .passos .escala { margin-top: 8px; max-width: 260px; }
+  .agora {
+    margin: 20px 0 0; padding: 12px 14px; border-radius: var(--r-ctl); background: var(--surface-2);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .agora .k { color: var(--muted); font-size: 12.5px; }
+  .agora strong { font-weight: 600; }
+  .intro__acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; align-items: center; }
+  .intro__acoes .link { margin-left: auto; }
+
+  /* "Sobre": abas com o mesmo desenho do seletor de doença */
+  .abas {
+    display: flex; gap: 2px; padding: 3px; margin: 16px 24px 0; flex: none;
+    background: var(--surface-2); border-radius: var(--r-ctl); overflow-x: auto; scrollbar-width: none;
+  }
+  .abas::-webkit-scrollbar { display: none; }
+  .abas button {
+    border: 0; background: transparent; padding: 7px 14px; border-radius: 6px; white-space: nowrap;
+    font-weight: 500; color: var(--muted);
+    transition: background var(--dur), color var(--dur), transform var(--dur);
+  }
+  .abas button:hover { color: var(--ink); background: rgba(22,32,43,.05); }
+  .abas button:active { transform: scale(.98); }
+  .abas button[aria-selected="true"] { background: var(--surface); color: var(--accent-ink); box-shadow: var(--sombra-leve); }
+  .aba > :first-child { margin-top: 16px; }
+  .principios { list-style: none; padding: 0; margin: 14px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .principios li { padding: 14px; border-radius: var(--r-ctl); background: var(--surface-2); max-width: none; }
+  .principios strong { display: block; font-weight: 600; margin-bottom: 2px; }
+  .principios span { color: var(--muted); font-size: 13px; }
+  .niveis { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+  .niveis li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; }
+  .niveis .badge { justify-self: start; }
+  .fontes { list-style: none; padding: 0; margin: 12px 0 0; }
+  .fontes li { padding: 14px 0; border-top: 1px solid var(--line); max-width: none; }
+  .fontes li:first-child { border-top: 0; padding-top: 4px; }
+  .fontes strong { font-weight: 600; }
+  .fontes .meta { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .faq { margin-top: 10px; }
+  .faq details { border-top: 1px solid var(--line); }
+  .faq details:last-child { border-bottom: 1px solid var(--line); }
+  .faq summary {
+    cursor: pointer; list-style: none; padding: 12px 4px; font-weight: 500;
+    display: flex; justify-content: space-between; gap: 12px; border-radius: var(--r-ctl);
+    transition: background var(--dur);
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; color: var(--muted); font-weight: 400; font-size: 18px; line-height: 1; }
+  .faq details[open] summary::after { content: "\2212"; }
+  .faq summary:hover { background: var(--surface-2); }
+  .faq details p { margin: 0 4px 14px; color: var(--muted); }
+  .lista-texto { margin: 8px 0 0; padding-left: 20px; }
+  .lista-texto li + li { margin-top: 6px; }
+  .alerta { margin: 14px 0 0; padding: 12px 14px; border-radius: var(--r-ctl); background: var(--accent-soft); color: var(--accent-ink); }
+  .alerta strong { font-weight: 600; }
+  .contatos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .contatos > div { padding: 12px 14px; border-radius: var(--r-ctl); border: 1px solid var(--line); }
+  .contatos .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+  .contatos .k { color: var(--muted); font-size: 12.5px; }
+  .rodape-modal { color: var(--muted); font-size: 12.5px; margin-top: 24px !important; padding-top: 14px; border-top: 1px solid var(--line); }
+
+  /* lista dos 96 distritos */
+  .lista__ferramentas { display: flex; gap: 8px; align-items: center; padding: 14px 24px 0; flex: none; }
+  .lista__ferramentas .busca { flex: 1; width: auto; min-width: 0; }
+  .tabela { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .tabela th {
+    position: sticky; top: 0; z-index: 1; padding: 0; background: var(--surface);
+    border-bottom: 1px solid var(--line); text-align: left; font-weight: 500; font-size: 12.5px; color: var(--muted);
+  }
+  .tabela th button {
+    width: 100%; display: flex; align-items: center; gap: 4px; padding: 10px 8px;
+    border: 0; background: none; color: inherit; font: inherit; border-radius: 6px; transition: color var(--dur);
+  }
+  .tabela th button:hover { color: var(--ink); }
+  .tabela th.num button { justify-content: flex-end; }
+  .tabela th[aria-sort="ascending"], .tabela th[aria-sort="descending"] { color: var(--accent-ink); }
+  .tabela th[aria-sort="ascending"] button::after { content: "\2191"; }
+  .tabela th[aria-sort="descending"] button::after { content: "\2193"; }
+  .tabela td { padding: 0 8px; border-bottom: 1px solid var(--line); height: 50px; }
+  .tabela .num { text-align: right; white-space: nowrap; }
+  .tabela tbody tr { cursor: pointer; transition: background var(--dur); }
+  .tabela tbody tr:hover { background: var(--surface-2); }
+  .tabela .lista__nome { display: block; width: 100%; border: 0; background: none; padding: 6px 0; text-align: left; font-weight: 500; }
+  .tabela .lista__nome small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+  .tabela.sem-inc .col-inc { display: none; }
+
+  /* Barra superior sem estourar: acima de ~940px cabe tudo com a busca de 300px. Abaixo disso
+     o "Sobre" vira só ícone, e no celular deitado (layout de desktop com pouca altura) a busca encolhe. */
+  @media (max-width: 940px) { .topo__acoes .btn { padding: 9px 11px; } .topo__acoes .btn__rotulo { display: none; } }
+  @media (max-width: 900px) { .topo { gap: 16px; } .busca { width: 220px; } }
+  @media (max-width: 800px) { .topo { gap: 12px; padding: 0 12px; } .marca span { display: none; } .busca { width: 170px; } }
+  @media (max-width: 680px) { .busca { width: 150px; } }
+
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
   }
@@ -372,6 +556,33 @@
     .chat__form input { font-size: 16px; }
     .msg { max-width: 94%; }
   }
+
+  /* ---------- mobile: botão "Sobre" na linha da busca; alça arrastável; diálogos viram folha de baixo ---------- */
+  @media (max-width: 900px) and (min-height: 500px), (max-width: 560px) {
+    .topo { grid-template-columns: auto minmax(0, 1fr) auto; }
+    .topo__acoes { grid-row: 1; grid-column: 3; }
+    .topo__acoes .btn { padding: 9px 10px; }
+    /* o gesto de arrastar a alça é do painel, não da página */
+    .painel__alca { touch-action: none; }
+  }
+  @media (max-width: 560px) {
+    dialog.modal, dialog.modal--largo {
+      width: 100%; max-width: 100%; margin: auto 0 0; border-radius: 16px 16px 0 0;
+      max-height: 92vh; max-height: 92dvh; padding-bottom: env(safe-area-inset-bottom);
+    }
+    dialog.modal--largo { height: 92vh; height: 92dvh; }
+    dialog.modal[open] { animation-name: subir; }
+    @keyframes subir { from { transform: translateY(32px); opacity: 0; } }
+    .modal__cab { padding: 18px 18px 0; }
+    .modal__corpo { padding: 4px 18px 20px; }
+    .abas { margin: 14px 18px 0; }
+    .lista__ferramentas { padding: 12px 18px 0; }
+    .principios, .contatos { grid-template-columns: 1fr; }
+    .intro h2 { font-size: 22px; }
+    .intro__acoes .btn { flex: 1; }
+    .intro__acoes .link { margin: 4px auto 0; }
+    .tabela td, .tabela th button { padding-left: 6px; padding-right: 6px; }
+  }
 </style>
 </head>
 <body class="carregando">
@@ -395,7 +606,13 @@
     <input id="busca" type="search" placeholder="Buscar distrito ou subprefeitura" autocomplete="off" aria-label="Buscar distrito ou subprefeitura" aria-controls="busca-lista" aria-expanded="false">
     <ul id="busca-lista" class="busca__lista" role="listbox"></ul>
   </div>
+
+  <div class="topo__acoes">
+    <button type="button" class="btn btn--secundario" id="abrir-sobre" aria-haspopup="dialog" aria-label="Sobre o projeto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span class="btn__rotulo">Sobre</span></button>
+  </div>
 </header>
+
+<noscript><p class="erro" style="position:fixed;top:calc(var(--topo) + 16px);left:16px;right:16px;z-index:1000">O Epimapa SP precisa de JavaScript ligado para desenhar o mapa.</p></noscript>
 
 <div id="map" role="application" aria-label="Mapa dos distritos de São Paulo"></div>
 
@@ -432,9 +649,10 @@
       <div class="dados">
         <div id="dist-vazio">
           <div class="bloco__cab"><div><h2>Distrito</h2><div class="sub" id="dist-ref">—</div></div></div>
-          <p class="dica">Clique em um distrito no mapa ou use a busca.</p>
+          <p class="dica">Clique em um distrito no mapa, use a busca ou <button type="button" class="link" id="dica-localizar">mostre o distrito onde você está</button>.</p>
           <h3 id="top5-titulo" hidden>Maior incidência acumulada no ano</h3>
           <ol class="top5" id="top5" hidden></ol>
+          <p class="dica" id="ver-todos-p" hidden><button type="button" class="link" data-lista>Ver os 96 distritos</button></p>
           <p class="dica" id="dist-vazio-sem-dados" hidden>O boletim da COVISA não traz esta doença por distrito. Veja o resumo municipal acima.</p>
         </div>
         <div id="dist-conteudo" hidden>
@@ -442,6 +660,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
             Ver a cidade toda
           </button>
+          <button type="button" class="voltar compartilhar" id="dist-compartilhar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Compartilhar</button>
           <div class="bloco__cab">
             <div><h2 id="dist-nome">—</h2><div class="sub" id="dist-sub">—</div></div>
             <span class="etiqueta" id="dist-doenca">—</span>
@@ -465,6 +684,7 @@
       </div>
       <p class="nota" id="escala-nota">Casos por 100 mil habitantes desde janeiro. Não é nível de alerta: o nível 1–4 existe só para o município.</p>
       <p class="fonte" id="fonte">—</p>
+      <p class="fonte links"><button type="button" class="link" data-sobre="ler">Como ler este mapa</button><button type="button" class="link" data-lista>Todos os distritos</button><button type="button" class="link" data-sobre="projeto">Sobre o projeto</button></p>
     </section>
 
     <div class="erro" id="erro" hidden></div>
@@ -491,6 +711,187 @@
   <p class="chat__aviso">Não substitui atendimento médico. Suas perguntas não saem do seu navegador.</p>
 </section>
 
+<div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
+
+<dialog class="modal intro" id="intro" aria-labelledby="intro-titulo">
+  <div class="modal__corpo" style="padding-top:24px">
+    <div class="intro__marca"><span class="marca__logo" aria-hidden="true"></span>Epimapa SP</div>
+    <h2 id="intro-titulo">A dengue está alta no meu bairro?</h2>
+    <p class="intro__lead">Casos de dengue, chikungunya e zika nos 96 distritos de São Paulo, a partir dos boletins oficiais da vigilância.</p>
+
+    <ol class="passos">
+      <li><div><strong>Escolha a doença</strong><span>Dengue, chikungunya ou zika, no alto da página.</span></div></li>
+      <li><div><strong>Encontre seu distrito</strong><span>Busque pelo nome, toque no mapa ou use sua localização.</span></div></li>
+      <li><div><strong>Leia a cor</strong><span>Do verde ao vermelho: casos por 100 mil habitantes desde janeiro.</span>
+        <div class="escala" aria-hidden="true"><div class="escala__barra"></div></div></div></li>
+    </ol>
+
+    <div class="agora" id="intro-agora" hidden>
+      <div><div class="k" id="intro-agora-ref">Cidade de São Paulo</div><strong id="intro-agora-v">—</strong></div>
+      <span class="badge" id="intro-agora-badge" data-nivel="1">—</span>
+    </div>
+
+    <div class="intro__acoes">
+      <button type="button" class="btn btn--primario" id="intro-ver" autofocus>Ver o mapa</button>
+      <button type="button" class="btn btn--secundario" id="intro-localizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Meu distrito</button>
+      <button type="button" class="link" data-sobre="projeto">Como funciona</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="modal modal--largo" id="sobre" aria-labelledby="sobre-titulo">
+  <div class="modal__cab">
+    <div><h2 id="sobre-titulo">Sobre o Epimapa SP</h2><div class="sub">Dados públicos de vigilância epidemiológica, por distrito.</div></div>
+    <button type="button" class="fechar" data-fechar aria-label="Fechar">✕</button>
+  </div>
+
+  <div class="abas" role="tablist" aria-label="Seções">
+    <button type="button" role="tab" id="tab-projeto" aria-controls="aba-projeto" aria-selected="true">O projeto</button>
+    <button type="button" role="tab" id="tab-ler" aria-controls="aba-ler" aria-selected="false" tabindex="-1">Como ler</button>
+    <button type="button" role="tab" id="tab-fontes" aria-controls="aba-fontes" aria-selected="false" tabindex="-1">Fontes</button>
+    <button type="button" role="tab" id="tab-cuidados" aria-controls="aba-cuidados" aria-selected="false" tabindex="-1">Prevenção</button>
+    <button type="button" role="tab" id="tab-privacidade" aria-controls="aba-privacidade" aria-selected="false" tabindex="-1">Privacidade</button>
+  </div>
+
+  <div class="modal__corpo" id="sobre-corpo">
+    <section class="aba" id="aba-projeto" role="tabpanel" aria-labelledby="tab-projeto" tabindex="0">
+      <p>O Epimapa SP mostra onde a dengue, a chikungunya e a zika estão concentradas na cidade de São Paulo, distrito por distrito. É feito para quem mora aqui e quer uma resposta rápida, sem precisar abrir um boletim em PDF.</p>
+      <p>Os números vêm de duas fontes oficiais: o InfoDengue, para a cidade inteira semana a semana, e o boletim de arboviroses da Prefeitura (COVISA), a única fonte pública com dados por distrito.</p>
+
+      <h3>O que guia o projeto</h3>
+      <ul class="principios">
+        <li><strong>Só dado oficial</strong><span>Nada é simulado ou estimado. Quando a fonte não tem o número, o site mostra "sem dados".</span></li>
+        <li><strong>Fonte sempre à vista</strong><span>Todo número aparece junto da fonte e da semana do boletim de onde saiu.</span></li>
+        <li><strong>Atualização automática</strong><span>Os dados são buscados toda madrugada. O mapa muda quando sai boletim novo.</span></li>
+        <li><strong>Sem cadastro</strong><span>Não há login, cookies ou rastreamento. Dado de saúde é sensível e tratamos como tal.</span></li>
+      </ul>
+
+      <h3>O que dá para fazer</h3>
+      <ul class="lista-texto">
+        <li><strong>Meu distrito:</strong> com a sua permissão, o aparelho mostra em qual distrito você está.</li>
+        <li><strong>Lista dos 96 distritos:</strong> ordene por casos, incidência ou casos novos, filtre e baixe em CSV.</li>
+        <li><strong>Epi, o assistente:</strong> pergunte do seu jeito, por exemplo "dengue em Itaquera" ou "sintomas de chikungunya".</li>
+        <li><strong>Link do distrito:</strong> o endereço da página guarda a doença e o distrito abertos, pronto para compartilhar.</li>
+      </ul>
+
+      <h3>O que o site não faz</h3>
+      <p>Não mostra casos por rua nem por dia: a menor unidade publicada é o distrito, e a cadência é semanal. Também não diagnostica nem substitui atendimento médico.</p>
+
+      <p class="rodape-modal">Projeto independente, sem vínculo com a Prefeitura, o Ministério da Saúde ou a Fiocruz. O código é público e erros podem ser avisados em <a href="https://github.com/ReisDevv/Patogen" target="_blank" rel="noopener">github.com/ReisDevv/Patogen</a>. <button type="button" class="link" id="rever-intro">Rever a apresentação</button></p>
+    </section>
+
+    <section class="aba" id="aba-ler" role="tabpanel" aria-labelledby="tab-ler" tabindex="0" hidden>
+      <p>O site junta duas medidas diferentes. Vale entender a diferença antes de comparar números.</p>
+
+      <h3>A cidade, semana a semana</h3>
+      <p>Sem distrito selecionado, o painel mostra os casos notificados na cidade na semana mais recente e as últimas 26 semanas. A etiqueta colorida é o nível de alerta do InfoDengue:</p>
+      <ul class="niveis">
+        <li><span class="badge" data-nivel="1">Verde</span><span>Clima desfavorável ao mosquito e transmissão baixa.</span></li>
+        <li><span class="badge" data-nivel="2">Amarelo</span><span>Clima favorável à transmissão.</span></li>
+        <li><span class="badge" data-nivel="3">Laranja</span><span>Transmissão sustentada na cidade.</span></li>
+        <li><span class="badge" data-nivel="4">Vermelho</span><span>Incidência acima do esperado, situação de epidemia.</span></li>
+      </ul>
+
+      <h3>Cada distrito, acumulado no ano</h3>
+      <p>A cor de cada distrito é a incidência acumulada desde janeiro: casos confirmados por 100 mil habitantes. Por isso um distrito pode estar vermelho mesmo com poucos casos novos, se teve muitos no começo do ano. Essa cor não é nível de alerta; a Prefeitura não publica alerta por distrito.</p>
+      <div class="escala" aria-hidden="true" style="max-width:360px"><div class="escala__barra"></div>
+        <div class="escala__ticks"><span style="left:0">0</span><span style="left:6.7%">20</span><span style="left:20%">60</span><span style="left:50%">150</span><span style="left:100%">300+</span></div></div>
+
+      <h3>Perguntas frequentes</h3>
+      <div class="faq">
+        <details><summary>Por que o número do distrito é maior que o da cidade na semana?</summary>
+          <p>Porque são medidas diferentes. O distrito mostra o total desde janeiro; a cidade mostra só os casos da última semana.</p></details>
+        <details><summary>O que significa "revisado para baixo"?</summary>
+          <p>A vigilância revisa casos de semanas anteriores: alguns são descartados depois de exame. Quando o acumulado de um boletim fica menor que o do anterior, mostramos a diferença negativa como ela é.</p></details>
+        <details><summary>Por que as últimas semanas da cidade sobem depois?</summary>
+          <p>Notificações chegam com atraso. A semana mais recente costuma ganhar casos nas atualizações seguintes, então uma queda nas últimas semanas pode não ser real.</p></details>
+        <details><summary>Por que a zika aparece sem dados por distrito?</summary>
+          <p>O boletim da Prefeitura não traz a zika por distrito desde 2018. O resumo da cidade continua disponível no painel.</p></details>
+        <details><summary>Por que a chikungunya não tem incidência?</summary>
+          <p>Para a chikungunya, o boletim publica só a contagem de casos autóctones (contraídos na própria cidade). Nesse caso a cor do mapa segue o número de casos.</p></details>
+        <details><summary>Meu bairro não aparece na busca. E agora?</summary>
+          <p>Os dados oficiais são por distrito, e muitos bairros ficam dentro de um distrito com outro nome. Use "Meu distrito" para achar o seu pela localização, ou toque no mapa.</p></details>
+        <details><summary>Com que frequência o site atualiza?</summary>
+          <p>Os dados são buscados toda madrugada. Na prática, o mapa por distrito muda uma vez por semana, quando a Prefeitura publica um boletim novo.</p></details>
+      </div>
+    </section>
+
+    <section class="aba" id="aba-fontes" role="tabpanel" aria-labelledby="tab-fontes" tabindex="0" hidden>
+      <p id="sobre-atualizacao">Carregando as datas da última atualização.</p>
+      <ul class="fontes">
+        <li><strong><a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue</a></strong>, Fiocruz e FGV
+          <span class="meta">Cidade inteira, semanal, a partir do SINAN/Ministério da Saúde. Usado no resumo da cidade e no nível de alerta.</span></li>
+        <li><strong><a href="https://www.prefeitura.sp.gov.br/web/saude/w/vigilancia_em_saude/boletim_covisa/arboviroses" target="_blank" rel="noopener">Boletim de arboviroses da COVISA</a></strong>, Secretaria Municipal da Saúde
+          <span class="meta">Por distrito, semanal, em PDF. Usado no mapa, no detalhe e na lista de distritos. O PDF é lido automaticamente e só é aceito se a soma dos distritos bater com o total do boletim.</span></li>
+        <li><strong>GeoSampa</strong>, Prefeitura de São Paulo
+          <span class="meta">Contorno dos 96 distritos e das 32 subprefeituras.</span></li>
+        <li><strong>Mapa-base</strong>: Esri, HERE, Garmin e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores do OpenStreetMap</a>
+          <span class="meta">Ruas e nomes de lugares embaixo das cores, com a biblioteca Leaflet.</span></li>
+      </ul>
+    </section>
+
+    <section class="aba" id="aba-cuidados" role="tabpanel" aria-labelledby="tab-cuidados" tabindex="0" hidden>
+      <p>O mosquito <i>Aedes aegypti</i> transmite as três doenças e se cria em água parada perto de casa. Dez minutos por semana bastam para checar os criadouros mais comuns:</p>
+      <ul class="lista-texto">
+        <li>Pratos de vasos de plantas: retire a água ou encha com areia.</li>
+        <li>Caixa d'água, tonéis e baldes: mantenha bem tampados.</li>
+        <li>Calhas, ralos e lajes: deixe sem água acumulada.</li>
+        <li>Garrafas, pneus e entulho: guarde virados ou cobertos, ou descarte.</li>
+      </ul>
+
+      <div class="alerta"><strong>Teve febre com dor no corpo, atrás dos olhos ou nas articulações?</strong> Procure uma UBS e beba bastante líquido. Não tome remédio por conta própria; anti-inflamatórios e AAS podem piorar a dengue. Dor forte na barriga, vômitos que não param, sangramento, tontura ou sonolência são sinais de alarme: vá a um pronto-socorro.</div>
+
+      <div class="contatos">
+        <div><div class="v">156</div><div class="k">Prefeitura de São Paulo: vistoria de foco do mosquito</div></div>
+        <div><div class="v">136</div><div class="k">Disque Saúde, Ministério da Saúde</div></div>
+        <div><div class="v">192</div><div class="k">SAMU, em emergência</div></div>
+      </div>
+      <p class="rodape-modal">Orientações resumidas do <a href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue" target="_blank" rel="noopener">Ministério da Saúde</a>. Este site não substitui avaliação médica.</p>
+    </section>
+
+    <section class="aba" id="aba-privacidade" role="tabpanel" aria-labelledby="tab-privacidade" tabindex="0" hidden>
+      <p>Dado de saúde é dado pessoal sensível pela LGPD. Por isso o Epimapa SP foi feito para não coletar nada sobre quem o usa.</p>
+      <ul class="lista-texto">
+        <li>Sem cadastro, sem cookies e sem ferramentas de análise ou anúncio.</li>
+        <li>As buscas e os distritos que você abre ficam no seu navegador e não são enviados a lugar nenhum.</li>
+        <li>O que você escreve para o Epi não é enviado nem guardado: a conversa some quando você fecha a página.</li>
+        <li>Se você usar "Meu distrito", a localização é usada só no seu aparelho para achar o distrito. Ela não é enviada nem guardada.</li>
+        <li>O navegador guarda apenas um aviso de que você já viu a apresentação inicial, para não repeti-la.</li>
+      </ul>
+      <p>O mapa-base (Esri), a fonte tipográfica (Google Fonts) e a biblioteca do mapa (Cloudflare) vêm de servidores de terceiros. Eles recebem o endereço IP do seu aparelho, como em qualquer site, e o servidor do mapa-base também recebe quais pedaços do mapa estão na tela, como em qualquer mapa on-line.</p>
+    </section>
+  </div>
+</dialog>
+
+<dialog class="modal modal--largo" id="lista" aria-labelledby="lista-titulo">
+  <div class="modal__cab">
+    <div><h2 id="lista-titulo">Os 96 distritos</h2><div class="sub" id="lista-sub">—</div></div>
+    <button type="button" class="fechar" data-fechar aria-label="Fechar">✕</button>
+  </div>
+  <div class="lista__ferramentas" id="lista-ferramentas">
+    <div class="busca">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="lista-filtro" type="search" placeholder="Filtrar por nome" autocomplete="off" aria-label="Filtrar por nome do distrito ou da subprefeitura" aria-controls="lista-tabela">
+    </div>
+    <button type="button" class="btn btn--secundario" id="lista-csv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>Baixar CSV</button>
+  </div>
+  <div class="modal__corpo">
+    <p class="dica" id="lista-sem-dados" hidden>O boletim da COVISA não traz esta doença por distrito. Escolha dengue ou chikungunya no alto da página.</p>
+    <table class="tabela" id="lista-tabela">
+      <caption class="sr">Distritos de São Paulo, ordenáveis pelos cabeçalhos das colunas</caption>
+      <thead><tr>
+        <th scope="col" data-campo="nome" aria-sort="none"><button type="button">Distrito</button></th>
+        <th scope="col" class="num" data-campo="casos" aria-sort="none"><button type="button" id="lista-casos-th">Casos</button></th>
+        <th scope="col" class="num col-inc" data-campo="medida" aria-sort="descending"><button type="button">Por 100 mil</button></th>
+        <th scope="col" class="num" data-campo="novos" aria-sort="none"><button type="button">Novos</button></th>
+      </tr></thead>
+      <tbody id="lista-corpo"></tbody>
+    </table>
+    <p class="dica" id="lista-vazia" hidden>Nenhum distrito ou subprefeitura com esse nome.</p>
+    <p class="fonte" id="lista-nota">Toque em um distrito para vê-lo no mapa. "Novos" é a diferença do acumulado em relação ao boletim anterior; fica negativo quando a COVISA revisa casos.</p>
+  </div>
+</dialog>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="chat.js"></script>
 <script>
@@ -505,6 +906,99 @@
   const temHover = matchMedia("(hover: hover)").matches;
   const NOME_DOENCA = { dengue: "Dengue", chikungunya: "Chikungunya", zika: "Zika" };
 
+  // ---------- aviso curto (toast) ----------
+  let avisoTimer;
+  function aviso(msg) {
+    const el = $("aviso");
+    el.textContent = msg; el.hidden = false;
+    clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(() => { el.hidden = true; }, 5000);
+  }
+
+  // ---------- diálogos: apresentação, "Sobre" e lista de distritos ----------
+  // <dialog> nativo; em navegador antigo sem suporte (iOS < 15.4), só alterna o atributo open.
+  const suportaDialogo = typeof HTMLDialogElement === "function" && "showModal" in HTMLDialogElement.prototype;
+  const estaAberto = (d) => d.hasAttribute("open");
+  function abrirDialogo(d) {
+    if (estaAberto(d)) return;
+    if (suportaDialogo) d.showModal(); else d.setAttribute("open", "");
+  }
+  function fecharDialogo(d) {
+    if (!d || !estaAberto(d)) return;
+    if (suportaDialogo) d.close();
+    else { d.removeAttribute("open"); d.dispatchEvent(new Event("close")); }
+  }
+  // Guarda só "já viu a apresentação". Nada sobre a pessoa, nada que saia do navegador.
+  const CHAVE_INTRO = "epimapa:intro-vista";
+  const lerLocal = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const gravarLocal = (k, v) => { try { localStorage.setItem(k, v); } catch { /* modo privado */ } };
+  const intro = $("intro"), sobre = $("sobre"), listaDlg = $("lista");
+  // O que depende do mapa (localização, lista) espera ele ficar pronto.
+  let quandoMapaPronto;
+  const mapaPronto = new Promise(r => { quandoMapaPronto = r; });
+
+  intro.addEventListener("close", () => gravarLocal(CHAVE_INTRO, "1"));
+  $("intro-ver").addEventListener("click", () => fecharDialogo(intro));
+  $("intro-localizar").addEventListener("click", () => { fecharDialogo(intro); mapaPronto.then(m => m.localizar()); });
+
+  const abas = [...sobre.querySelectorAll('[role="tab"]')];
+  function mostrarAba(nome, focar = false) {
+    abas.forEach(t => {
+      const ativa = t.id === "tab-" + nome;
+      t.setAttribute("aria-selected", String(ativa));
+      t.tabIndex = ativa ? 0 : -1;
+      $(t.getAttribute("aria-controls")).hidden = !ativa;
+      if (ativa && focar) t.focus();
+    });
+    $("sobre-corpo").scrollTop = 0;
+  }
+  abas.forEach((t, i) => {
+    t.addEventListener("click", () => mostrarAba(t.id.slice(4)));
+    t.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const prox = abas[(i + (e.key === "ArrowRight" ? 1 : -1) + abas.length) % abas.length];
+      mostrarAba(prox.id.slice(4), true);
+    });
+  });
+  function abrirSobre(aba = "projeto") {
+    fecharDialogo(intro); fecharDialogo(listaDlg);
+    mostrarAba(aba);
+    abrirDialogo(sobre);
+  }
+  $("abrir-sobre").addEventListener("click", () => abrirSobre());
+  $("rever-intro").addEventListener("click", () => { fecharDialogo(sobre); abrirDialogo(intro); });
+  document.addEventListener("click", (e) => {
+    const s = e.target.closest("[data-sobre]");
+    if (s) { abrirSobre(s.dataset.sobre); return; }
+    if (e.target.closest("[data-lista]")) { mapaPronto.then(m => m.abrirLista()); return; }
+    const f = e.target.closest("[data-fechar]");
+    if (f) fecharDialogo(f.closest("dialog"));
+  });
+  // Toque no fundo escurecido fecha.
+  [intro, sobre, listaDlg].forEach(d => d.addEventListener("click", (e) => {
+    if (e.target !== d) return;
+    const r = d.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) fecharDialogo(d);
+  }));
+
+  // Link compartilhado (#doença/distrito) vai direto aos dados, sem apresentação.
+  if (!location.hash && !lerLocal(CHAVE_INTRO)) abrirDialogo(intro);
+
+  // Botão "voltar" do Android fecha o painel aberto em vez de sair do site.
+  let vigiaPainel = null;
+  function vigiarVoltar(aberto) {
+    if (!("CloseWatcher" in window) || !matchMedia("(pointer: coarse)").matches) return;
+    if (aberto && !vigiaPainel) {
+      try {
+        vigiaPainel = new CloseWatcher();
+        vigiaPainel.onclose = () => { vigiaPainel = null; abrirPainel(false); };
+      } catch { vigiaPainel = null; }
+    } else if (!aberto && vigiaPainel) {
+      const v = vigiaPainel; vigiaPainel = null; v.destroy();
+    }
+  }
+
   // ---------- carregar dados ----------
   let geo, distritoDados, cidadeDados;
   try {
@@ -513,13 +1007,32 @@
       fetch("data/casos_distrito.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
       fetch("data/infodengue.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
     ]);
+    if (!window.L) throw new Error("Leaflet não carregou");
   } catch (e) {
     document.body.classList.remove("carregando");
     document.querySelectorAll(".dados").forEach(el => el.hidden = true);
+    $("cidade").hidden = $("distrito").hidden = true;   // sem os dados, os blocos ficariam vazios
+    $("busca").disabled = true; $("busca").placeholder = "Busca indisponível";
     const erro = $("erro");
     erro.hidden = false;
-    erro.textContent = "Não foi possível carregar os dados. Se abriu o arquivo direto, sirva a pasta com um servidor local (python -m http.server) e recarregue.";
+    // Aberto direto do disco é coisa de quem desenvolve; para o público, o aviso e "tentar de novo".
+    if (location.protocol === "file:") erro.textContent = "Não foi possível carregar os dados. Se abriu o arquivo direto, sirva a pasta com um servidor local (python -m http.server) e recarregue.";
+    else {
+      erro.innerHTML = `Não foi possível carregar o mapa${navigator.onLine === false ? ": o aparelho está sem internet" : ""}. <button type="button" class="link" id="tentar">Tentar de novo</button>`;
+      $("tentar").addEventListener("click", () => location.reload());
+    }
     $("alca-titulo").textContent = "Erro ao carregar";
+    $("alca-sub").textContent = "o mapa não carregou";
+    // No celular o aviso mora no painel: já abre com ele à vista, e a alça continua alternando
+    // (recolher mostra o Epi, que responde mesmo sem os números).
+    const alternarPainel = (aberto) => {
+      $("painel").classList.toggle("aberto", aberto);
+      document.body.classList.toggle("painel-aberto", aberto);
+      $("alca").setAttribute("aria-expanded", String(aberto));
+    };
+    alternarPainel(true);
+    $("alca").addEventListener("click", () => alternarPainel(!$("painel").classList.contains("aberto")));
+    $("intro-localizar").hidden = true;
     // O assistente ainda responde sobre as doenças, só sem números.
     if (window.EpiChat) EpiChat.iniciar(null);
     return;
@@ -621,6 +1134,7 @@
     document.body.classList.toggle("painel-aberto", aberto);
     alca.setAttribute("aria-expanded", String(aberto));
     renderAlca();
+    vigiarVoltar(aberto);
   }
   alca.addEventListener("click", () => abrirPainel(!painel.classList.contains("aberto")));
 
@@ -639,11 +1153,13 @@
         reduzMovimento ? map.fitBounds(l.getBounds(), opts) : map.flyToBounds(l.getBounds(), { ...opts, duration: 0.8 });
       }
     }
+    aoMudarSelecao();
   }
   function limparSelecao() {
     selecionado = null;
     camada.setStyle(estilo);
     renderDistrito();
+    aoMudarSelecao();
   }
   // O botão volta também o mapa para a cidade inteira, junto com o resumo municipal.
   $("dist-voltar").addEventListener("click", () => {
@@ -683,6 +1199,7 @@
     const vazio = semDadosDistrito();
     semDados.hidden = !vazio;
     lista.hidden = titulo.hidden = vazio;
+    $("ver-todos-p").hidden = vazio;
     if (vazio) { lista.innerHTML = ""; return; }
     titulo.textContent = temIncidencia() ? "Maior incidência acumulada no ano" : "Mais casos autóctones no ano";
     const top = ranking().slice(0, 5);
@@ -818,6 +1335,7 @@
     document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.doenca === nova));
     camada.setStyle(estilo);
     renderCidade(); renderDistrito(); renderLegenda();
+    aoMudarSelecao();
   }
   document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => trocarDoenca(b.dataset.doenca)));
 
@@ -825,6 +1343,9 @@
   const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const indice = geo.features.map(f => ({ id: f.properties.id, nome: f.properties.nome, sub: f.properties.subprefeitura, tipo: "distrito" }));
   const subs = [...new Set(geo.features.map(f => f.properties.subprefeitura))].map(s => ({ id: s, nome: s, sub: "subprefeitura", tipo: "sub" }));
+  // Bairros que não são distritos: a mesma lista curta do Epi (só os casos sem dúvida).
+  const bairros = Object.values((window.EpiChat && EpiChat.APELIDOS) || {}).filter(a => a.bairro && porId[a.id])
+    .map(a => ({ id: a.id, nome: a.bairro, sub: `bairro em ${props(a.id).nome}`, tipo: "distrito", rotulo: props(a.id).nome }));
   const input = $("busca"), lista = $("busca-lista");
   let resultados = [], ativo = -1;
 
@@ -832,12 +1353,12 @@
     resultados = itens; ativo = -1;
     lista.innerHTML = itens.length
       ? itens.map((r, i) => `<li role="option" data-i="${i}">${r.nome}<small>${r.tipo === "sub" ? "subprefeitura" : r.sub}</small></li>`).join("")
-      : `<li class="vazio">Nenhum distrito ou subprefeitura com esse nome.</li>`;
+      : `<li class="vazio">Nenhum distrito ou subprefeitura com esse nome. Muitos bairros ficam dentro de um distrito com outro nome: <button type="button" class="link" data-acao="localizar">use sua localização</button> ou toque no mapa.</li>`;
     lista.dataset.open = "true"; input.setAttribute("aria-expanded", "true");
   }
   function fechar() { lista.dataset.open = "false"; input.setAttribute("aria-expanded", "false"); }
   function escolher(r) {
-    fechar(); input.value = r.nome;
+    fechar(); input.value = r.rotulo || r.nome;
     if (r.tipo === "distrito") { selecionar(r.id); return; }
     // subprefeitura: enquadra todos os distritos dela e seleciona o de maior medida
     const ids = geo.features.filter(f => f.properties.subprefeitura === r.id).map(f => f.properties.id);
@@ -851,7 +1372,7 @@
   input.addEventListener("input", () => {
     const q = norm(input.value.trim());
     if (!q) { fechar(); return; }
-    const hits = [...indice, ...subs].filter(r => norm(r.nome).includes(q) || (r.tipo === "distrito" && norm(r.sub).includes(q)))
+    const hits = [...indice, ...subs, ...bairros].filter(r => norm(r.nome).includes(q) || (r.tipo === "distrito" && norm(r.sub).includes(q)))
       .sort((a, b) => (norm(a.nome).startsWith(q) ? 0 : 1) - (norm(b.nome).startsWith(q) ? 0 : 1)).slice(0, 8);
     abrir(hits);
   });
@@ -866,16 +1387,258 @@
     } else if (e.key === "Escape") { fechar(); }
   });
   lista.addEventListener("click", (e) => {
+    if (e.target.closest("[data-acao=localizar]")) { fechar(); localizar(); return; }
     const li = e.target.closest("li[data-i]"); if (li) escolher(resultados[+li.dataset.i]);
   });
   document.addEventListener("click", (e) => { if (!e.target.closest(".busca")) fechar(); });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && selecionado && document.activeElement !== input && !document.body.classList.contains("chat-aberto")) limparSelecao();
+    if (e.key === "Escape" && selecionado && document.activeElement !== input && !document.body.classList.contains("chat-aberto") && !document.querySelector("dialog[open]")) limparSelecao();
   });
-  const ajustarPlaceholder = () => { input.placeholder = mobile() ? "Buscar distrito" : "Buscar distrito ou subprefeitura"; };
+  // O texto longo só onde a busca tem os 300px inteiros (celular deitado e telas de 320px têm campo menor).
+  const ajustarPlaceholder = () => {
+    input.placeholder = innerWidth <= 340 || (!mobile() && innerWidth <= 680) ? "Buscar"
+      : mobile() || innerWidth <= 900 ? "Buscar distrito" : "Buscar distrito ou subprefeitura";
+  };
   addEventListener("resize", ajustarPlaceholder); ajustarPlaceholder();
 
-  renderCidade(); renderDistrito(); renderLegenda(); renderFonte();
+
+  // ---------- endereço e título acompanham a seleção: #doença ou #doença/distrito ----------
+  const TITULO = document.title;
+  function aoMudarSelecao() {
+    const h = `#${doenca}${selecionado ? "/" + selecionado : ""}`;
+    if (location.hash !== h) history.replaceState(null, "", h);
+    document.title = selecionado ? `${props(selecionado).nome}: ${NOME_DOENCA[doenca].toLowerCase()} | Epimapa SP` : TITULO;
+  }
+  function lerHash() {
+    let partes;
+    try { partes = decodeURIComponent(location.hash.slice(1)).split("/"); } catch { return; }
+    const d = partes[0], id = partes[1];
+    if (NOME_DOENCA[d] && d !== doenca) trocarDoenca(d);
+    if (id && porId[id]) { if (id !== selecionado) selecionar(id); }
+    else if (selecionado && NOME_DOENCA[d]) limparSelecao();
+  }
+  addEventListener("hashchange", lerHash);
+
+  $("dist-compartilhar").addEventListener("click", async () => {
+    aoMudarSelecao();
+    const url = location.href;
+    try {
+      // No toque, a folha de compartilhar do sistema (WhatsApp etc.); no desktop, copia o link.
+      if (navigator.share && !temHover) { await navigator.share({ title: document.title, url }); return; }
+      await navigator.clipboard.writeText(url);
+      aviso("Link copiado. Quem abrir verá este distrito com esta doença.");
+    } catch (e) {
+      if (!e || e.name !== "AbortError") aviso("Não deu para copiar. O link deste distrito está na barra de endereços.");
+    }
+  });
+
+  // ---------- meu distrito (geolocalização, calculada só no aparelho) ----------
+  function dentroDoAnel(x, y, anel) {
+    let dentro = false;
+    for (let i = 0, j = anel.length - 1; i < anel.length; j = i++) {
+      const xi = anel[i][0], yi = anel[i][1], xj = anel[j][0], yj = anel[j][1];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) dentro = !dentro;
+    }
+    return dentro;
+  }
+  function distritoEm(lat, lng) {
+    const f = geo.features.find(f => {
+      const g = f.geometry;
+      const poligonos = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+      return poligonos.some(p => dentroDoAnel(lng, lat, p[0]) && !p.slice(1).some(b => dentroDoAnel(lng, lat, b)));
+    });
+    return f ? f.properties.id : null;
+  }
+  let botaoLocal = null, marcaLocal = null;
+  function localizar() {
+    if (!("geolocation" in navigator)) { aviso("Este navegador não informa a localização. Busque seu distrito pelo nome."); return; }
+    if (botaoLocal) botaoLocal.setAttribute("aria-busy", "true");
+    const pronto = () => { if (botaoLocal) botaoLocal.removeAttribute("aria-busy"); };
+    navigator.geolocation.getCurrentPosition((pos) => {
+      pronto();
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      const id = distritoEm(lat, lng);
+      if (!id) { aviso("Sua localização fica fora da cidade de São Paulo. Busque um distrito pelo nome."); return; }
+      if (marcaLocal) marcaLocal.remove();
+      marcaLocal = L.circleMarker([lat, lng], {
+        pane: "markerPane", radius: 6, color: "#ffffff", weight: 2, fillColor: "#1d5c7a", fillOpacity: 1, interactive: false,
+      }).addTo(map);
+      selecionar(id);
+      aviso(`Você está em ${props(id).nome}.`);
+    }, (err) => {
+      pronto();
+      aviso(err.code === 1
+        ? "Sem permissão para usar a localização. Busque seu distrito pelo nome."
+        : "Não deu para obter sua localização agora. Busque seu distrito pelo nome.");
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+  }
+  const ControleLocal = L.Control.extend({
+    options: { position: "topright" },
+    onAdd() {
+      const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      const a = botaoLocal = L.DomUtil.create("a", "localizar", div);
+      a.href = "#"; a.setAttribute("role", "button");
+      a.title = "Mostrar meu distrito"; a.setAttribute("aria-label", "Mostrar meu distrito");
+      a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.on(a, "click", (e) => { L.DomEvent.preventDefault(e); localizar(); });
+      return div;
+    },
+  });
+  new ControleLocal().addTo(map);
+  $("dica-localizar").addEventListener("click", localizar);
+
+  // ---------- alça do painel no celular: arrastar abre e recolhe; o toque continua alternando ----------
+  let arrasto = null, engolirClique = false;
+  alca.addEventListener("pointerdown", (e) => {
+    if (!mobile() || (e.pointerType === "mouse" && e.button !== 0)) return;
+    const cs = getComputedStyle(painel);
+    arrasto = {
+      id: e.pointerId, y0: e.clientY, y: e.clientY, t: performance.now(), v: 0, ativo: false,
+      base: new DOMMatrixReadOnly(cs.transform).m42,
+      fechadoY: painel.offsetHeight - alca.offsetHeight - (parseFloat(cs.paddingBottom) || 0),
+    };
+  });
+  alca.addEventListener("pointermove", (e) => {
+    const a = arrasto;
+    if (!a || e.pointerId !== a.id) return;
+    if (!a.ativo) {
+      if (Math.abs(e.clientY - a.y0) < 8) return;
+      a.ativo = true;
+      try { alca.setPointerCapture(e.pointerId); } catch { /* ponteiro já solto */ }
+      painel.style.transition = "none";
+    }
+    const agora = performance.now();
+    a.v = (e.clientY - a.y) / Math.max(1, agora - a.t);
+    a.t = agora; a.y = e.clientY;
+    painel.style.transform = `translateY(${Math.min(a.fechadoY, Math.max(0, a.base + a.y - a.y0))}px)`;
+  });
+  function soltarAlca(e) {
+    const a = arrasto;
+    if (!a || e.pointerId !== a.id) return;
+    arrasto = null;
+    if (!a.ativo) return;
+    engolirClique = true; setTimeout(() => { engolirClique = false; }, 400);
+    const y = Math.min(a.fechadoY, Math.max(0, a.base + a.y - a.y0));
+    // Um "peteleco" decide pela direção; um arrasto lento, pela metade do caminho.
+    const deveAbrir = Math.abs(a.v) > 0.4 ? a.v < 0 : y < a.fechadoY / 2;
+    painel.style.transition = ""; painel.style.transform = "";
+    abrirPainel(deveAbrir);
+  }
+  alca.addEventListener("pointerup", soltarAlca);
+  alca.addEventListener("pointercancel", soltarAlca);
+  // O clique que o navegador dispara ao fim do arrasto não pode alternar o painel de novo.
+  painel.addEventListener("click", (e) => {
+    if (engolirClique && e.target.closest("#alca")) { e.stopPropagation(); e.preventDefault(); engolirClique = false; }
+  }, true);
+
+  // ---------- lista dos 96 distritos: ordenar, filtrar, baixar CSV ----------
+  const corpoLista = $("lista-corpo"), filtroLista = $("lista-filtro"), tabelaLista = $("lista-tabela");
+  let ordemLista = { campo: "medida", desc: true };
+  function chaveOrdem(id, campo) {
+    const d = dadoDe(id);
+    if (campo === "nome") return norm(props(id).nome);
+    if (campo === "casos") return typeof d.casos_ano === "number" ? d.casos_ano : null;
+    if (campo === "novos") return typeof d.novos_desde_boletim === "number" ? d.novos_desde_boletim : null;
+    return d.casos_ano == null ? null : medida(d);
+  }
+  function idsDaLista(filtrar = true) {
+    const q = filtrar ? norm(filtroLista.value.trim()) : "";
+    const { campo, desc } = ordemLista;
+    return Object.keys(porId)
+      .filter(id => !q || norm(props(id).nome).includes(q) || norm(props(id).subprefeitura).includes(q))
+      .sort((a, b) => {
+        const va = chaveOrdem(a, campo), vb = chaveOrdem(b, campo);
+        if (va === vb) return norm(props(a).nome) < norm(props(b).nome) ? -1 : 1;
+        if (va === null) return 1;      // sem número fica sempre no fim
+        if (vb === null) return -1;
+        return (va < vb ? -1 : 1) * (desc ? -1 : 1);
+      });
+  }
+  const sinalNovos = (n) => n == null ? "—" : `${n > 0 ? "+" : n < 0 ? "−" : ""}${fmt.format(Math.abs(n))}`;
+  function renderLista() {
+    const semDados = semDadosDistrito();
+    $("lista-sub").textContent = `${NOME_DOENCA[doenca]} · ${refBoletim()}`;
+    $("lista-sem-dados").hidden = !semDados;
+    tabelaLista.hidden = $("lista-ferramentas").hidden = $("lista-nota").hidden = semDados;
+    if (semDados) { corpoLista.innerHTML = ""; $("lista-vazia").hidden = true; return; }
+    tabelaLista.classList.toggle("sem-inc", !temIncidencia());
+    $("lista-casos-th").textContent = doenca === "chikungunya" ? "Casos autóctones" : "Casos";
+    tabelaLista.querySelectorAll("th[data-campo]").forEach(th => th.setAttribute("aria-sort",
+      th.dataset.campo === ordemLista.campo ? (ordemLista.desc ? "descending" : "ascending") : "none"));
+    const ids = idsDaLista();
+    corpoLista.innerHTML = ids.map(id => {
+      const d = dadoDe(id), f = props(id), n = d.novos_desde_boletim;
+      return `<tr data-id="${id}"><td><button type="button" class="lista__nome">${f.nome}<small>${f.subprefeitura}</small></button></td>` +
+        `<td class="num">${d.casos_ano == null ? "—" : fmt.format(d.casos_ano)}</td>` +
+        `<td class="num col-inc">${typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "—"}</td>` +
+        `<td class="num delta ${n > 0 ? "up" : n < 0 ? "down" : "flat"}">${sinalNovos(n)}</td></tr>`;
+    }).join("");
+    $("lista-vazia").hidden = ids.length > 0;
+  }
+  function abrirLista() {
+    fecharDialogo(intro); fecharDialogo(sobre);
+    if (ordemLista.campo === "medida" && !temIncidencia()) ordemLista = { campo: "casos", desc: true };
+    renderLista();
+    abrirDialogo(listaDlg);
+  }
+  tabelaLista.tHead.addEventListener("click", (e) => {
+    const th = e.target.closest("th[data-campo]");
+    if (!th) return;
+    const campo = th.dataset.campo;
+    ordemLista = { campo, desc: ordemLista.campo === campo ? !ordemLista.desc : campo !== "nome" };
+    renderLista();
+  });
+  corpoLista.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-id]");
+    if (!tr) return;
+    fecharDialogo(listaDlg);
+    selecionar(tr.dataset.id);
+  });
+  filtroLista.addEventListener("input", renderLista);
+  $("lista-csv").addEventListener("click", () => {
+    const txt = (s) => `"${String(s).replace(/"/g, '""')}"`;
+    const num = (v) => typeof v === "number" ? String(v).replace(".", ",") : "";   // vírgula decimal: abre certo no Excel em português
+    const linhas = [["distrito", "subprefeitura", doenca === "chikungunya" ? "casos_autoctones_no_ano" : "casos_no_ano",
+      "casos_por_100_mil_no_ano", "novos_desde_boletim_anterior", "fonte"].join(";")];
+    for (const id of idsDaLista(false)) {
+      const d = dadoDe(id), f = props(id);
+      linhas.push([txt(f.nome), txt(f.subprefeitura), num(d.casos_ano), num(d.inc100k_ano), num(d.novos_desde_boletim), txt(distritoDados.fonte)].join(";"));
+    }
+    // BOM no início: o Excel reconhece UTF-8 e mostra os acentos certos.
+    const blob = new Blob(["\ufeff" + linhas.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `epimapa-sp_${doenca}_SE${String(distritoDados.se).padStart(2, "0")}-${distritoDados.ano}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    aviso(`CSV com os ${linhas.length - 1} distritos baixado.`);
+  });
+
+  // ---------- atalho: "/" leva à busca (desktop) ----------
+  input.setAttribute("aria-keyshortcuts", "/");
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest("input, textarea, [contenteditable]") || document.querySelector("dialog[open]") || document.body.classList.contains("chat-aberto")) return;
+    e.preventDefault(); input.focus(); input.select();
+  });
+
+  // ---------- textos que dependem dos dados (apresentação e "Sobre") ----------
+  function renderTextosDialogos() {
+    const dt = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "data desconhecida";
+    $("sobre-atualizacao").textContent =
+      `Dados no site agora: boletim da COVISA da semana ${distritoDados.se}/${distritoDados.ano} para os distritos ` +
+      `e série do InfoDengue atualizada em ${dt(cidadeDados.atualizado_em)}.`;
+    const ag = cidadeDados.doencas.dengue && cidadeDados.doencas.dengue.atual;
+    if (!ag) return;
+    $("intro-agora-ref").textContent = `Dengue na cidade, semana ${ag.se}/${ag.ano} (InfoDengue)`;
+    $("intro-agora-v").textContent = `${fmt.format(ag.casos)} casos notificados`;
+    $("intro-agora-badge").textContent = NIVEL_NOME[ag.nivel] || "—";
+    $("intro-agora-badge").dataset.nivel = ag.nivel || 1;
+    $("intro-agora").hidden = false;
+  }
+
+  renderCidade(); renderDistrito(); renderLegenda(); renderFonte(); renderTextosDialogos();
 
   // ---------- assistente ----------
   // O Epi lê os mesmos dados já carregados e só age na página por estas funções.
@@ -887,6 +1650,10 @@
     trocarDoenca,
     selecionar: (id) => selecionar(id),
   });
+
+  quandoMapaPronto({ localizar, abrirLista });
+  // Link compartilhado: abre a doença e o distrito do endereço.
+  if (location.hash) lerHash();
 })();
 </script>
 </body>
