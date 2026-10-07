@@ -1,0 +1,17 @@
+{
+  "name": "Epimapa SP",
+  "short_name": "Epimapa SP",
+  "description": "Dengue, chikungunya e zika por distrito da cidade de São Paulo, com dados oficiais de vigilância.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e9edf1",
+  "theme_color": "#1d5c7a",
+  "icons": [
+    { "src": "img/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
