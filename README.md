@@ -5,6 +5,16 @@ Esta é a **etapa 1** do projeto: um site estático que já mostra o produto
 funcionando de ponta a ponta — malha dos 96 distritos, busca por distrito ou
 subprefeitura, resumo municipal com série de 26 semanas e detalhe por distrito.
 
+O que dá para fazer no site:
+
+- ver dengue, chikungunya e zika por distrito, com a fonte e a semana do boletim ao lado de cada número;
+- achar o distrito pela busca (inclusive alguns bairros conhecidos), pelo mapa ou por **Meu distrito**,
+  que usa a localização do aparelho sem enviá-la a lugar nenhum;
+- abrir a **lista dos 96 distritos**, ordenar, filtrar e baixar em CSV;
+- compartilhar o link de um distrito (`…/Patogen/#dengue/pinheiros` abre direto nele);
+- perguntar ao **Epi**, o assistente do canto da tela;
+- ler o **Sobre**: como ler o mapa, fontes, prevenção e privacidade.
+
 Não há backend nem banco ainda. Tudo é HTML + JSON, o que permite publicar
 de graça no GitHub Pages e validar a ideia antes de gastar com servidor.
 

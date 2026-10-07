@@ -27,8 +27,11 @@ Cada fase entra quando a anterior estiver validada.
 Site estático, sem backend. Publica no GitHub Pages.
 
 ```
-index.html                         # página única: mapa + painel (Leaflet, CSS e JS inline)
+index.html                         # página única: mapa + painel + apresentação, "Sobre" e lista dos 96 distritos (Leaflet, CSS e JS inline)
 chat.js                            # Epi, assistente do canto inferior direito (regras + dados já carregados, sem API)
+404.html                           # página de endereço inexistente (o GitHub Pages serve sozinho)
+manifest.webmanifest               # nome e ícones para "Adicionar à tela inicial"
+img/                               # ícones (192, 512, maskable, 180) e compartilhar.jpg, a prévia de link 1200×630
 data/distritos.geojson             # 96 distritos, simplificado (~230 KB), NÃO regenerar sem motivo
 data/infodengue.json               # série semanal municipal (InfoDengue)
 data/casos_distrito.json           # casos por distrito, por doença — derivado dos 2 últimos snapshots da COVISA
@@ -156,7 +159,16 @@ depois; define o que pode ser construído.
   carregou (`CONSULTAS`: distrito, subprefeitura, comparação, ranking, cidade, tendência) ou
   com textos fixos de orientação do Ministério da Saúde. Roda só no navegador: não envia nem
   guarda o que a pessoa digita. Na fase 5 o LLM chama as mesmas `CONSULTAS` como ferramentas.
-  Teste no console: `EpiChat.responder("dengue em Itaquera")`.
+  Teste no console: `EpiChat.responder("dengue em Itaquera")`. `EpiChat.APELIDOS` (bairros que
+  não são distritos) também alimenta a busca do topo: mantenha uma lista só.
+- Navegação do site (2026-10, pré-banca): apresentação na primeira visita, "Sobre" (projeto, como
+  ler, fontes, prevenção, privacidade), lista dos 96 distritos com CSV e "Meu distrito"
+  (geolocalização calculada no aparelho, nunca enviada). Tudo em `<dialog>` nativo por cima do
+  mapa: mapa e painel não mudam. O endereço guarda a seleção como `#doença/distrito`, com
+  `history.replaceState` (não polui o histórico). Único dado guardado no navegador:
+  `localStorage["epimapa:intro-vista"] = "1"`. Não guarde mais nada sem perguntar.
+- `img/compartilhar.jpg` mostra só o contorno dos distritos, sem cor de incidência nem número:
+  a prévia fica meses no cache do WhatsApp e não pode parecer dado. Se regenerar, mesma regra.
 - Scripts Python só com biblioteca padrão enquanto der. Se precisar de dependência, crie
   `requirements.txt` e justifique no commit. Única exceção aceita até agora: `pdfplumber`
   em `fetch_covisa.py` (tabela em PDF sem grade; não dá com stdlib).
@@ -182,7 +194,9 @@ depois; define o que pode ser construído.
 - Depois de mudar `index.html`: sobe `python -m http.server`, abre no navegador, testa
   os três botões de doença, busca com e sem acento, clique em distrito, redimensiona
   para mobile. Se tiver Playwright disponível, tira screenshot desktop (1440×900) e
-  mobile (390×844).
+  mobile (390×844). Teste também: apresentação (limpe o `localStorage`), "Sobre" e as abas,
+  lista dos distritos (ordenar, filtrar, CSV), um link `#dengue/pinheiros` em aba nova,
+  arrastar a alça do painel no celular e o estado de erro (sirva uma cópia sem `data/infodengue.json`).
 - Depois de mudar scripts: roda `python scripts/fetch_infodengue.py` e valida o JSON com
   `python -m json.tool`.
 - Depois de mudar `fetch_covisa.py`: roda `python scripts/fetch_covisa.py --pdf <boletim.pdf> --dry-run`
