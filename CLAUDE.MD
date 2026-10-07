@@ -28,6 +28,7 @@ Site estático, sem backend. Publica no GitHub Pages.
 
 ```
 index.html                         # página única: mapa + painel (Leaflet, CSS e JS inline)
+chat.js                            # Epi, assistente do canto inferior direito (regras + dados já carregados, sem API)
 data/distritos.geojson             # 96 distritos, simplificado (~230 KB), NÃO regenerar sem motivo
 data/infodengue.json               # série semanal municipal (InfoDengue)
 data/casos_distrito.json           # casos por distrito, por doença — derivado dos 2 últimos snapshots da COVISA
@@ -150,6 +151,12 @@ depois; define o que pode ser construído.
   Enquanto não houver banco, a rotina 1 roda no GitHub Actions e commita JSON.
 - Chatbot (fase 5): LLM com tool use sobre 4–6 funções pré-definidas de consulta aos
   agregados. Nada de text-to-SQL livre.
+- Assistente da pré-banca (2026-10, pedido do time): `chat.js` antecipa a interface da fase 5
+  sem LLM. Reconhece a pergunta por palavras-chave e responde com os JSONs que o mapa já
+  carregou (`CONSULTAS`: distrito, subprefeitura, comparação, ranking, cidade, tendência) ou
+  com textos fixos de orientação do Ministério da Saúde. Roda só no navegador: não envia nem
+  guarda o que a pessoa digita. Na fase 5 o LLM chama as mesmas `CONSULTAS` como ferramentas.
+  Teste no console: `EpiChat.responder("dengue em Itaquera")`.
 - Scripts Python só com biblioteca padrão enquanto der. Se precisar de dependência, crie
   `requirements.txt` e justifique no commit. Única exceção aceita até agora: `pdfplumber`
   em `fetch_covisa.py` (tabela em PDF sem grade; não dá com stdlib).
