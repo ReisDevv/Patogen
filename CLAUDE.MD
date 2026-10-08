@@ -33,6 +33,7 @@ chat.js                            # Epi, assistente do canto inferior direito (
 404.html                           # página de endereço inexistente (o GitHub Pages serve sozinho)
 manifest.webmanifest               # nome e ícones para "Adicionar à tela inicial"
 img/                               # ícones (192, 512, maskable, 180) e compartilhar.jpg, a prévia de link 1200×630
+img/marca/                         # marca da Pathogen: símbolo e ícone em SVG, assinaturas em PNG, folha da marca
 data/distritos.geojson             # 96 distritos, simplificado (~230 KB), NÃO regenerar sem motivo
 data/infodengue.json               # série semanal municipal (InfoDengue)
 data/casos_distrito.json           # casos por distrito, por doença — derivado dos 2 últimos snapshots da COVISA
@@ -170,7 +171,15 @@ depois; define o que pode ser construído.
   A página inicial copia de `mapa.html` os tokens, os componentes (seletor, busca, badges,
   gráfico, escala, Epi) e as regras de cor: se mudar o desenho ou as cores lá, replique aqui.
   O caminho inverso não vale: o visual do mapa (cores, modelo, formato) fica igual ao vídeo da
-  banca, decisão do dono (2026-10). Não mude o mapa para acompanhar a página inicial.
+  banca, decisão do dono (2026-10). Não mude o mapa para acompanhar a página inicial. A única
+  exceção aprovada foi o símbolo da marca no topo e o ícone da aba.
+- Marca (2026-10): a empresa é a **Pathogen**; o **Epimapa SP** é o produto ("Epimapa SP, da
+  Pathogen"). O símbolo é a "Lente": um P cuja barriga é uma lente com o caso no centro e a haste
+  em ponta de alfinete. Construção, cores e regras em `img/marca/pathogen-marca.png`; os SVGs em
+  `img/marca/` são a fonte (o `.marca__logo` das páginas e o ícone da aba usam o mesmo desenho
+  embutido). Cores só tinta `#16202b`, azul-petróleo `#1d5c7a`, petróleo claro `#7fb6cf` (ponto
+  sobre fundo escuro) e branco: a marca nunca usa as cores de nível do mapa. No topo das páginas
+  vai o símbolo com "Epimapa SP"; "da Pathogen" aparece no rodapé e na prévia de link.
   Visual da página inicial (2026-10, pedido do dono): sóbrio, com os mesmos tokens do mapa
   (branco, cinzas frios, tinta `#16202b` e azul-petróleo só nas ações) e só a fonte Geist. A
   estrutura segue sites de produto bem organizados (referência: páginas do iPhone na Apple):
