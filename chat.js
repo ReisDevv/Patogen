@@ -173,7 +173,7 @@
   };
 
   // APELIDOS também serve às buscas do mapa e da página inicial: todas entendem os mesmos bairros.
-  window.EpiChat = { iniciar, APELIDOS };
+  window.EpiChat = { iniciar, APELIDOS, TEXTOS };   // TEXTOS: a página inicial mostra os mesmos textos de saúde
 
   function iniciar(ctx) {
     const $ = (id) => document.getElementById(id);

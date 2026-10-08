@@ -27,7 +27,7 @@ Cada fase entra quando a anterior estiver validada.
 Site estático, sem backend. Publica no GitHub Pages.
 
 ```
-index.html                         # página inicial: o que é, situação agora (dados ao vivo), como usar, prevenção, fontes, privacidade, perguntas
+index.html                         # página inicial: busca com a ficha do distrito, a cidade agora, as três doenças, prevenção, privacidade, perguntas, notas
 mapa.html                          # o mapa: mapa + painel + "Sobre" + lista dos 96 distritos (Leaflet, CSS e JS inline)
 chat.js                            # Epi, assistente do canto inferior direito (regras + dados já carregados, sem API)
 404.html                           # página de endereço inexistente (o GitHub Pages serve sozinho)
@@ -169,6 +169,20 @@ depois; define o que pode ser construído.
   leva ao mapa. O mapa (`mapa.html`) abre direto, sem janela por cima, igual ao vídeo da banca.
   A página inicial copia de `mapa.html` os tokens, os componentes (seletor, busca, badges,
   gráfico, escala, Epi) e as regras de cor: se mudar o desenho ou as cores lá, replique aqui.
+  O caminho inverso não vale: o visual do mapa (cores, modelo, formato) fica igual ao vídeo da
+  banca, decisão do dono (2026-10). Não mude o mapa para acompanhar a página inicial.
+  Visual da página inicial (2026-10, pedido do dono): sóbrio, com os mesmos tokens do mapa
+  (branco, cinzas frios, tinta `#16202b` e azul-petróleo só nas ações) e só a fonte Geist. A
+  estrutura segue sites de produto bem organizados (referência: páginas do iPhone na Apple):
+  título grande à esquerda, fileira de atalhos com ícone, painéis cinza-claros, botão "+" que abre
+  detalhes num `<dialog>`, notas numeradas no fim com a fonte de cada número. Não copie layout
+  nem recursos de outros sites (o dono recusou uma versão parecida com a de um concorrente).
+  A busca, o toque na prévia e "Meu distrito" abrem a ficha do distrito na própria página
+  (números do boletim, posição entre os 96, faixa dos 96, distritos da mesma subprefeitura);
+  "Ver no mapa" leva ao mapa no distrito. A seleção não vai para o endereço, porque `#doença/...`
+  na raiz é levado ao mapa. Os textos de saúde dos detalhes são os `EpiChat.TEXTOS` do
+  `chat.js`: mantenha um texto só. A checagem da prevenção não grava nada; o lembrete semanal é
+  um arquivo `.ics` gerado no aparelho.
 - Navegação no mapa: "Sobre" (projeto, como ler, fontes, prevenção, privacidade), lista dos 96
   distritos com CSV e "Meu distrito" (geolocalização calculada no aparelho, nunca enviada), em
   `<dialog>` nativo por cima do mapa. O endereço guarda a seleção como `#doença/distrito`
@@ -206,9 +220,11 @@ depois; define o que pode ser construído.
   filtrar, CSV), um link `mapa.html#dengue/pinheiros` em aba nova, arrastar a alça do
   painel no celular e o estado de erro (sirva uma cópia sem `data/infodengue.json`).
 - Depois de mudar `index.html`: a prévia desenha os 96 distritos e muda com a doença; a
-  busca (distrito, bairro, subprefeitura), "Meu distrito", o top 5, "Ver os 96 distritos"
-  e o "Ver no mapa" do Epi abrem `mapa.html` no lugar certo; nada estoura na horizontal
-  de 320px ao desktop; sem dados, os avisos aparecem e o texto da página continua.
+  busca (distrito, bairro, subprefeitura), o toque na prévia, "Meu distrito" e o top 5 abrem a
+  ficha com os mesmos números do painel do mapa; "Ver no mapa", "Os 96 distritos" e o "Ver no
+  mapa" do Epi abrem `mapa.html` no lugar certo; os "+" abrem e fecham (Esc e toque fora); a
+  zika mostra "sem dados" na ficha; nada estoura na horizontal de 320px ao desktop; sem dados,
+  os avisos aparecem e o texto da página continua.
 - Depois de mudar scripts: roda `python scripts/fetch_infodengue.py` e valida o JSON com
   `python -m json.tool`.
 - Depois de mudar `fetch_covisa.py`: roda `python scripts/fetch_covisa.py --pdf <boletim.pdf> --dry-run`

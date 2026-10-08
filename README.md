@@ -6,7 +6,8 @@ funcionando de ponta a ponta — malha dos 96 distritos, busca por distrito ou
 subprefeitura, resumo municipal com série de 26 semanas e detalhe por distrito.
 
 O site tem duas páginas: a **página inicial** (`index.html`), que explica o projeto,
-mostra a situação da semana com os dados ao vivo e leva ao **mapa** (`mapa.html`).
+mostra a situação da semana com os dados ao vivo, abre a ficha de qualquer distrito ali mesmo
+e leva ao **mapa** (`mapa.html`).
 
 O que dá para fazer no site:
 
