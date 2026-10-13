@@ -1,0 +1,715 @@
+{
+ "fonte": "COVISA/SMS-SP, boletim SE 39/2026",
+ "url": "https://www.prefeitura.sp.gov.br/documents/d/saude/boletimarbo-se39_09out26-pdf",
+ "se": 39,
+ "ano": 2026,
+ "publicado_em": "2026-10-13",
+ "periodo": "27/09 a 03/10",
+ "dados_ate": "2026-10-09",
+ "extraido_em": "2026-10-13T14:06:02+00:00",
+ "doencas": {
+  "dengue": {
+   "total": 10340,
+   "em_investigacao": 29,
+   "anos_no_quadro": [
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ],
+   "distritos": {
+    "agua-rasa": {
+     "casos_ano": 31,
+     "inc100k_ano": 38.0
+    },
+    "alto-de-pinheiros": {
+     "casos_ano": 24,
+     "inc100k_ano": 59.7
+    },
+    "anhanguera": {
+     "casos_ano": 53,
+     "inc100k_ano": 59.8
+    },
+    "aricanduva": {
+     "casos_ano": 83,
+     "inc100k_ano": 97.1
+    },
+    "artur-alvim": {
+     "casos_ano": 66,
+     "inc100k_ano": 66.5
+    },
+    "barra-funda": {
+     "casos_ano": 23,
+     "inc100k_ano": 136.8
+    },
+    "bela-vista": {
+     "casos_ano": 22,
+     "inc100k_ano": 29.9
+    },
+    "belem": {
+     "casos_ano": 29,
+     "inc100k_ano": 58.1
+    },
+    "bom-retiro": {
+     "casos_ano": 15,
+     "inc100k_ano": 37.6
+    },
+    "bras": {
+     "casos_ano": 23,
+     "inc100k_ano": 68.1
+    },
+    "brasilandia": {
+     "casos_ano": 304,
+     "inc100k_ano": 105.9
+    },
+    "butanta": {
+     "casos_ano": 69,
+     "inc100k_ano": 129.2
+    },
+    "cachoeirinha": {
+     "casos_ano": 406,
+     "inc100k_ano": 274.7
+    },
+    "cambuci": {
+     "casos_ano": 14,
+     "inc100k_ano": 34.0
+    },
+    "campo-belo": {
+     "casos_ano": 25,
+     "inc100k_ano": 39.7
+    },
+    "campo-grande": {
+     "casos_ano": 35,
+     "inc100k_ano": 32.5
+    },
+    "campo-limpo": {
+     "casos_ano": 184,
+     "inc100k_ano": 79.0
+    },
+    "cangaiba": {
+     "casos_ano": 51,
+     "inc100k_ano": 36.8
+    },
+    "capao-redondo": {
+     "casos_ano": 134,
+     "inc100k_ano": 44.2
+    },
+    "carrao": {
+     "casos_ano": 37,
+     "inc100k_ano": 43.6
+    },
+    "casa-verde": {
+     "casos_ano": 99,
+     "inc100k_ano": 115.3
+    },
+    "cidade-ademar": {
+     "casos_ano": 182,
+     "inc100k_ano": 62.7
+    },
+    "cidade-dutra": {
+     "casos_ano": 81,
+     "inc100k_ano": 39.5
+    },
+    "cidade-lider": {
+     "casos_ano": 93,
+     "inc100k_ano": 67.7
+    },
+    "cidade-tiradentes": {
+     "casos_ano": 1012,
+     "inc100k_ano": 417.5
+    },
+    "consolacao": {
+     "casos_ano": 26,
+     "inc100k_ano": 45.6
+    },
+    "cursino": {
+     "casos_ano": 55,
+     "inc100k_ano": 48.1
+    },
+    "ermelino-matarazzo": {
+     "casos_ano": 57,
+     "inc100k_ano": 47.6
+    },
+    "freguesia-do-o": {
+     "casos_ano": 120,
+     "inc100k_ano": 85.9
+    },
+    "grajau": {
+     "casos_ano": 145,
+     "inc100k_ano": 36.4
+    },
+    "guaianases": {
+     "casos_ano": 341,
+     "inc100k_ano": 305.5
+    },
+    "iguatemi": {
+     "casos_ano": 165,
+     "inc100k_ano": 106.2
+    },
+    "ipiranga": {
+     "casos_ano": 62,
+     "inc100k_ano": 54.8
+    },
+    "itaim-bibi": {
+     "casos_ano": 40,
+     "inc100k_ano": 41.1
+    },
+    "itaim-paulista": {
+     "casos_ano": 219,
+     "inc100k_ano": 91.8
+    },
+    "itaquera": {
+     "casos_ano": 305,
+     "inc100k_ano": 142.8
+    },
+    "jabaquara": {
+     "casos_ano": 137,
+     "inc100k_ano": 59.5
+    },
+    "jacana": {
+     "casos_ano": 153,
+     "inc100k_ano": 158.7
+    },
+    "jaguara": {
+     "casos_ano": 23,
+     "inc100k_ano": 96.8
+    },
+    "jaguare": {
+     "casos_ano": 56,
+     "inc100k_ano": 99.5
+    },
+    "jaragua": {
+     "casos_ano": 259,
+     "inc100k_ano": 118.4
+    },
+    "jardim-angela": {
+     "casos_ano": 165,
+     "inc100k_ano": 47.2
+    },
+    "jardim-helena": {
+     "casos_ano": 152,
+     "inc100k_ano": 111.0
+    },
+    "jardim-paulista": {
+     "casos_ano": 31,
+     "inc100k_ano": 34.3
+    },
+    "jardim-sao-luis": {
+     "casos_ano": 156,
+     "inc100k_ano": 52.0
+    },
+    "jose-bonifacio": {
+     "casos_ano": 145,
+     "inc100k_ano": 104.2
+    },
+    "lajeado": {
+     "casos_ano": 188,
+     "inc100k_ano": 105.7
+    },
+    "lapa": {
+     "casos_ano": 80,
+     "inc100k_ano": 119.6
+    },
+    "liberdade": {
+     "casos_ano": 16,
+     "inc100k_ano": 21.9
+    },
+    "limao": {
+     "casos_ano": 78,
+     "inc100k_ano": 97.9
+    },
+    "mandaqui": {
+     "casos_ano": 102,
+     "inc100k_ano": 93.2
+    },
+    "marsilac": {
+     "casos_ano": 7,
+     "inc100k_ano": 82.0
+    },
+    "moema": {
+     "casos_ano": 22,
+     "inc100k_ano": 24.5
+    },
+    "mooca": {
+     "casos_ano": 34,
+     "inc100k_ano": 42.1
+    },
+    "morumbi": {
+     "casos_ano": 20,
+     "inc100k_ano": 37.0
+    },
+    "parelheiros": {
+     "casos_ano": 235,
+     "inc100k_ano": 147.6
+    },
+    "pari": {
+     "casos_ano": 14,
+     "inc100k_ano": 72.0
+    },
+    "parque-do-carmo": {
+     "casos_ano": 54,
+     "inc100k_ano": 74.4
+    },
+    "pedreira": {
+     "casos_ano": 79,
+     "inc100k_ano": 47.8
+    },
+    "penha": {
+     "casos_ano": 40,
+     "inc100k_ano": 31.0
+    },
+    "perdizes": {
+     "casos_ano": 74,
+     "inc100k_ano": 64.5
+    },
+    "perus": {
+     "casos_ano": 56,
+     "inc100k_ano": 61.1
+    },
+    "pinheiros": {
+     "casos_ano": 29,
+     "inc100k_ano": 44.3
+    },
+    "pirituba": {
+     "casos_ano": 106,
+     "inc100k_ano": 61.8
+    },
+    "ponte-rasa": {
+     "casos_ano": 71,
+     "inc100k_ano": 79.6
+    },
+    "raposo-tavares": {
+     "casos_ano": 273,
+     "inc100k_ano": 250.3
+    },
+    "republica": {
+     "casos_ano": 22,
+     "inc100k_ano": 35.4
+    },
+    "rio-pequeno": {
+     "casos_ano": 274,
+     "inc100k_ano": 219.8
+    },
+    "sacoma": {
+     "casos_ano": 188,
+     "inc100k_ano": 70.5
+    },
+    "santa-cecilia": {
+     "casos_ano": 30,
+     "inc100k_ano": 33.8
+    },
+    "santana": {
+     "casos_ano": 139,
+     "inc100k_ano": 124.7
+    },
+    "santo-amaro": {
+     "casos_ano": 18,
+     "inc100k_ano": 24.2
+    },
+    "sao-domingos": {
+     "casos_ano": 68,
+     "inc100k_ano": 78.4
+    },
+    "sao-lucas": {
+     "casos_ano": 53,
+     "inc100k_ano": 37.1
+    },
+    "sao-mateus": {
+     "casos_ano": 107,
+     "inc100k_ano": 68.4
+    },
+    "sao-miguel": {
+     "casos_ano": 186,
+     "inc100k_ano": 209.7
+    },
+    "sao-rafael": {
+     "casos_ano": 55,
+     "inc100k_ano": 33.6
+    },
+    "sapopemba": {
+     "casos_ano": 128,
+     "inc100k_ano": 43.9
+    },
+    "saude": {
+     "casos_ano": 42,
+     "inc100k_ano": 31.4
+    },
+    "se": {
+     "casos_ano": 15,
+     "inc100k_ano": 55.1
+    },
+    "socorro": {
+     "casos_ano": 11,
+     "inc100k_ano": 30.9
+    },
+    "tatuape": {
+     "casos_ano": 34,
+     "inc100k_ano": 35.3
+    },
+    "tremembe": {
+     "casos_ano": 158,
+     "inc100k_ano": 68.9
+    },
+    "tucuruvi": {
+     "casos_ano": 104,
+     "inc100k_ano": 108.9
+    },
+    "vila-andrade": {
+     "casos_ano": 58,
+     "inc100k_ano": 33.9
+    },
+    "vila-curuca": {
+     "casos_ano": 201,
+     "inc100k_ano": 129.3
+    },
+    "vila-formosa": {
+     "casos_ano": 37,
+     "inc100k_ano": 39.5
+    },
+    "vila-guilherme": {
+     "casos_ano": 63,
+     "inc100k_ano": 109.6
+    },
+    "vila-jacui": {
+     "casos_ano": 162,
+     "inc100k_ano": 110.1
+    },
+    "vila-leopoldina": {
+     "casos_ano": 43,
+     "inc100k_ano": 93.6
+    },
+    "vila-maria": {
+     "casos_ano": 219,
+     "inc100k_ano": 191.8
+    },
+    "vila-mariana": {
+     "casos_ano": 42,
+     "inc100k_ano": 31.9
+    },
+    "vila-matilde": {
+     "casos_ano": 59,
+     "inc100k_ano": 56.0
+    },
+    "vila-medeiros": {
+     "casos_ano": 136,
+     "inc100k_ano": 111.0
+    },
+    "vila-prudente": {
+     "casos_ano": 42,
+     "inc100k_ano": 40.2
+    },
+    "vila-sonia": {
+     "casos_ano": 132,
+     "inc100k_ano": 106.4
+    }
+   }
+  },
+  "chikungunya": {
+   "total": 29,
+   "em_investigacao": null,
+   "anos_no_quadro": [
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ],
+   "distritos": {
+    "agua-rasa": {
+     "casos_ano": 0
+    },
+    "alto-de-pinheiros": {
+     "casos_ano": 1
+    },
+    "anhanguera": {
+     "casos_ano": 0
+    },
+    "aricanduva": {
+     "casos_ano": 0
+    },
+    "artur-alvim": {
+     "casos_ano": 0
+    },
+    "barra-funda": {
+     "casos_ano": 0
+    },
+    "bela-vista": {
+     "casos_ano": 0
+    },
+    "belem": {
+     "casos_ano": 0
+    },
+    "bom-retiro": {
+     "casos_ano": 1
+    },
+    "bras": {
+     "casos_ano": 0
+    },
+    "brasilandia": {
+     "casos_ano": 0
+    },
+    "butanta": {
+     "casos_ano": 0
+    },
+    "cachoeirinha": {
+     "casos_ano": 0
+    },
+    "cambuci": {
+     "casos_ano": 0
+    },
+    "campo-belo": {
+     "casos_ano": 0
+    },
+    "campo-grande": {
+     "casos_ano": 0
+    },
+    "campo-limpo": {
+     "casos_ano": 0
+    },
+    "cangaiba": {
+     "casos_ano": 0
+    },
+    "capao-redondo": {
+     "casos_ano": 0
+    },
+    "carrao": {
+     "casos_ano": 0
+    },
+    "casa-verde": {
+     "casos_ano": 0
+    },
+    "cidade-ademar": {
+     "casos_ano": 0
+    },
+    "cidade-dutra": {
+     "casos_ano": 0
+    },
+    "cidade-lider": {
+     "casos_ano": 0
+    },
+    "cidade-tiradentes": {
+     "casos_ano": 0
+    },
+    "consolacao": {
+     "casos_ano": 0
+    },
+    "cursino": {
+     "casos_ano": 0
+    },
+    "ermelino-matarazzo": {
+     "casos_ano": 0
+    },
+    "freguesia-do-o": {
+     "casos_ano": 0
+    },
+    "grajau": {
+     "casos_ano": 0
+    },
+    "guaianases": {
+     "casos_ano": 1
+    },
+    "iguatemi": {
+     "casos_ano": 0
+    },
+    "ipiranga": {
+     "casos_ano": 0
+    },
+    "itaim-bibi": {
+     "casos_ano": 0
+    },
+    "itaim-paulista": {
+     "casos_ano": 0
+    },
+    "itaquera": {
+     "casos_ano": 0
+    },
+    "jabaquara": {
+     "casos_ano": 0
+    },
+    "jacana": {
+     "casos_ano": 0
+    },
+    "jaguara": {
+     "casos_ano": 0
+    },
+    "jaguare": {
+     "casos_ano": 0
+    },
+    "jaragua": {
+     "casos_ano": 0
+    },
+    "jardim-angela": {
+     "casos_ano": 0
+    },
+    "jardim-helena": {
+     "casos_ano": 0
+    },
+    "jardim-paulista": {
+     "casos_ano": 0
+    },
+    "jardim-sao-luis": {
+     "casos_ano": 0
+    },
+    "jose-bonifacio": {
+     "casos_ano": 0
+    },
+    "lajeado": {
+     "casos_ano": 0
+    },
+    "lapa": {
+     "casos_ano": 0
+    },
+    "liberdade": {
+     "casos_ano": 0
+    },
+    "limao": {
+     "casos_ano": 0
+    },
+    "mandaqui": {
+     "casos_ano": 0
+    },
+    "marsilac": {
+     "casos_ano": 0
+    },
+    "moema": {
+     "casos_ano": 0
+    },
+    "mooca": {
+     "casos_ano": 0
+    },
+    "morumbi": {
+     "casos_ano": 0
+    },
+    "parelheiros": {
+     "casos_ano": 0
+    },
+    "pari": {
+     "casos_ano": 0
+    },
+    "parque-do-carmo": {
+     "casos_ano": 0
+    },
+    "pedreira": {
+     "casos_ano": 0
+    },
+    "penha": {
+     "casos_ano": 14
+    },
+    "perdizes": {
+     "casos_ano": 0
+    },
+    "perus": {
+     "casos_ano": 0
+    },
+    "pinheiros": {
+     "casos_ano": 0
+    },
+    "pirituba": {
+     "casos_ano": 0
+    },
+    "ponte-rasa": {
+     "casos_ano": 0
+    },
+    "raposo-tavares": {
+     "casos_ano": 0
+    },
+    "republica": {
+     "casos_ano": 0
+    },
+    "rio-pequeno": {
+     "casos_ano": 0
+    },
+    "sacoma": {
+     "casos_ano": 0
+    },
+    "santa-cecilia": {
+     "casos_ano": 0
+    },
+    "santana": {
+     "casos_ano": 0
+    },
+    "santo-amaro": {
+     "casos_ano": 0
+    },
+    "sao-domingos": {
+     "casos_ano": 0
+    },
+    "sao-lucas": {
+     "casos_ano": 0
+    },
+    "sao-mateus": {
+     "casos_ano": 0
+    },
+    "sao-miguel": {
+     "casos_ano": 1
+    },
+    "sao-rafael": {
+     "casos_ano": 0
+    },
+    "sapopemba": {
+     "casos_ano": 0
+    },
+    "saude": {
+     "casos_ano": 1
+    },
+    "se": {
+     "casos_ano": 0
+    },
+    "socorro": {
+     "casos_ano": 0
+    },
+    "tatuape": {
+     "casos_ano": 0
+    },
+    "tremembe": {
+     "casos_ano": 1
+    },
+    "tucuruvi": {
+     "casos_ano": 0
+    },
+    "vila-andrade": {
+     "casos_ano": 0
+    },
+    "vila-curuca": {
+     "casos_ano": 1
+    },
+    "vila-formosa": {
+     "casos_ano": 0
+    },
+    "vila-guilherme": {
+     "casos_ano": 0
+    },
+    "vila-jacui": {
+     "casos_ano": 0
+    },
+    "vila-leopoldina": {
+     "casos_ano": 0
+    },
+    "vila-maria": {
+     "casos_ano": 7
+    },
+    "vila-mariana": {
+     "casos_ano": 1
+    },
+    "vila-matilde": {
+     "casos_ano": 0
+    },
+    "vila-medeiros": {
+     "casos_ano": 0
+    },
+    "vila-prudente": {
+     "casos_ano": 0
+    },
+    "vila-sonia": {
+     "casos_ano": 0
+    }
+   },
+   "observacao": "só casos confirmados autóctones (o boletim não traz importados nem incidência por distrito)"
+  },
+  "zika": {
+   "sem_dados_por_distrito": true,
+   "observacao": "o quadro por distrito de zika só cobre 2016–2017; sem caso autóctone desde 2018"
+  }
+ }
+}
