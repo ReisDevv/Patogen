@@ -29,9 +29,12 @@ Site estático, sem backend. Publica no GitHub Pages.
 ```
 index.html                         # página inicial: busca com a ficha do distrito, a cidade agora, as três doenças, prevenção, privacidade, perguntas, notas
 mapa.html                          # o mapa: mapa + painel + "Sobre" + lista dos 96 distritos (Leaflet, CSS e JS inline)
-organizacoes.html                  # Pathogen Organizações: apresentação + painel demonstrativo (unidades, comparação, plano, relatório)
-impacto.html                       # Pathogen Impacto: página institucional de patrocínio de campanhas (estática, sem script)
-institucional.css                  # estilo comum de organizacoes.html e impacto.html (mesmos tokens da página inicial)
+organizacoes.html                  # página para empresas: abertura com os 96 distritos, duas telas (gestor x colaborador), passos, painel demonstrativo, piloto, patrocínio (#impacto), contato
+impacto.html                       # só redireciona para organizacoes.html#impacto (links antigos)
+institucional.css                  # estilo de organizacoes.html (mesmos tokens da página inicial)
+nivel.js                           # faixas 1–4 por distrito, ajuste para distrito pequeno e escala de cor; usado por index, mapa e empresas
+tema.js                            # tema claro/escuro (no <head> de todas as páginas)
+empresas.js                        # mosaico dos 96 distritos e amostras da página para empresas
 tests/                             # testes (unittest, só stdlib) de fetch_covisa.py e fetch_infodengue.py
 chat.js                            # Epi, assistente do canto inferior direito (regras + dados já carregados, sem API)
 404.html                           # página de endereço inexistente (o GitHub Pages serve sozinho)
@@ -85,7 +88,12 @@ Regras derivadas disso:
   As cores no site são `#3d9a6a`, `#e8c04a`, `#e8802f`, `#c8322b`. Não troque.
 - **Por distrito, a COVISA só publica acumulado do ano** (casos confirmados desde janeiro,
   por ano de início de sintomas), não casos da semana. Não existe nível de alerta por
-  distrito — o nível 1–4 é só municipal (InfoDengue). Não invente um.
+  distrito pelo InfoDengue — o nível de alerta 1–4 dele é só municipal. Desde 2026-11-08 (pedido do
+  dono, Design System) cada distrito tem uma **faixa da Pathogen** 1–4 pela incidência (<20, 20–60,
+  60–300, ≥300; nível 3 exige 5 casos e o 4 exige 10), calculada sobre a taxa ajustada para distrito
+  pequeno (Bayes empírico, população = casos ÷ incidência) e com "dado instável" abaixo de 50 mil
+  habitantes ou 5 casos. Tudo em `nivel.js`. Sempre escrita como convenção da Pathogen, com o número
+  oficial ao lado; a cor do mapa usa a taxa ajustada. Não chame de nível de alerta nem de risco.
 - Chikungunya por distrito é só de casos **autóctones** confirmados e sem incidência.
   Zika não tem quadro por distrito desde 2018: o mapa fica vazio com "sem dados por distrito".
 - A COVISA revisa o acumulado de semanas anteriores. `novos_desde_boletim` continua no JSON
@@ -198,13 +206,14 @@ depois; define o que pode ser construído.
   destaque (`--accent`) teal `#0F766E`, arco `#0E7490`; no escuro, anel `#F8FAFC`, arco `#22D3EE`,
   nó `#14B8A6`. A marca nunca usa as cores de nível do mapa. O choropleth continua com as cores
   do vídeo da banca (`--n1`…`--n4`); só o destaque e a tinta mudaram.
-  Do Design System, ficaram de fora por ora: as fontes Space Grotesk/Inter/JetBrains Mono (o site
-  segue em Geist), o tema escuro, a taxa suavizada e os mínimos de casos por nível. O DS fala em
+  Do Design System entraram em 2026-11-08: fontes Space Grotesk (títulos), Inter (texto) e
+  JetBrains Mono (números); tema claro/escuro (`tema.js`, tokens em `:root[data-tema="escuro"]`,
+  mapa com Esri Dark Gray no escuro); faixas e ajuste para distrito pequeno (`nivel.js`). O DS fala em
   "inteligência preditiva do Epi": o produto não prevê nada, o Epi é por regras. Não escreva isso
   no site. No topo das páginas
   vai o símbolo com "Epimapa SP"; "da Pathogen" aparece no rodapé e na prévia de link.
   Visual da página inicial (2026-10, pedido do dono): sóbrio, com os mesmos tokens do mapa
-  (branco, cinzas frios, tinta `#0F172A` e teal só nas ações) e só a fonte Geist. A
+  (branco, cinzas frios, tinta `#0F172A` e teal só nas ações) e as fontes do Design System. A
   estrutura segue sites de produto bem organizados (referência: páginas do iPhone na Apple):
   título grande à esquerda, fileira de atalhos com ícone, painéis cinza-claros, botão "+" que abre
   detalhes num `<dialog>`, notas numeradas no fim com a fonte de cada número. Não copie layout
@@ -224,11 +233,15 @@ depois; define o que pode ser construído.
   exceção aprovada (pedido do time, 2026-11-01): o painel demonstrativo de `organizacoes.html`
   guarda unidades, plano e o último boletim visto em `localStorage["pathogen:organizacoes-demo"]`,
   com aviso na página e botão "Limpar dados locais". Só grava depois que a pessoa muda algo.
+  Segunda exceção (pedido do dono, 2026-11-08): `localStorage["pathogen:tema"]` guarda só "claro"
+  ou "escuro", e só depois que a pessoa usa o botão de tema; sem isso o site segue o sistema.
 - `img/compartilhar.jpg` mostra só o contorno dos distritos, sem cor de incidência nem número:
   a prévia fica meses no cache do WhatsApp e não pode parecer dado. Se regenerar, mesma regra.
 - Produtos (2026-11-01, pedido do time): a **Pathogen** é a empresa; **Epimapa SP** (cidadão,
   gratuito), **Pathogen Organizações** (painel por unidade para empresas, condomínios, escolas)
   e **Pathogen Impacto** (patrocínio de campanhas) são módulos da mesma solução, não três sites.
+  Desde 2026-11-08 Organizações e Impacto são uma página só, "Para empresas" (organizacoes.html),
+  com o patrocínio na seção #impacto; impacto.html só redireciona.
   O cidadão vem primeiro: a página inicial só ganhou uma linha sobre a Pathogen e o botão "Para
   organizações". Organizações e Impacto são protótipo e apresentação: sem login, sem banco, sem
   backend, sem e-mail/push. Unidades são só nome + distrito; o painel não pede endereço nem dado
@@ -258,7 +271,8 @@ depois; define o que pode ser construído.
 - Não formate o GeoJSON com indentação (tamanho importa). JSON de dados pode ter `indent=1`.
 - Tamanho de página: cada página (`index.html` ou `mapa.html`, mais `chat.js`) + dados abaixo de 500 KB no total.
 - Acessibilidade: foco visível, `aria-pressed`/`aria-expanded` mantidos, `prefers-reduced-motion` respeitado.
-- Visual (definido no redesign de 2026-09): fonte Geist; um acento só (`--accent`, teal desde 2026-11-08);
+- Visual (redesign de 2026-09, Design System em 2026-11-08): fontes por papel (`--f-titulo`, `--f-texto`,
+  `--f-num`); um acento só (`--accent`, teal); tema escuro redefine os mesmos tokens;
   cinzas frios; sombras tingidas com a tinta, nunca preto puro; raios fixos — contêineres 12px,
   controles 8px, badges pílula. Toda cor e medida vem dos tokens em `:root`; não crie valores soltos.
   Estados obrigatórios em tudo que é interativo: hover, ativo, foco; e o painel tem esqueleto de

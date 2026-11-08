@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script src="tema.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Página não encontrada | Epimapa SP</title>
 <meta name="robots" content="noindex">
@@ -9,19 +10,20 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10.56' fill='%230F172A'/%3E%3Cg transform='translate(7.68 7.68) scale(0.68)'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%23F8FAFC' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%2322D3EE' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%2314B8A6'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* Mesmos tokens do index.html. O GitHub Pages serve esta página para qualquer endereço inexistente. */
   :root {
+    --f-texto: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; --f-titulo: "Space Grotesk", Inter, system-ui, sans-serif; --f-num: "JetBrains Mono", ui-monospace, monospace; --on-accent: #FFFFFF; --vidro: rgba(255,255,255,.86); --hover: rgba(15,23,42,.05); --line-forte: #c6ced6;
     --bg: #e9edf1; --surface: #ffffff; --ink: #0F172A; --muted: #5b6877; --line: #dde3e9;
     --accent: #0F766E; --accent-ink: #115E59; --n3: #e8802f;
     --r-box: 12px; --r-ctl: 8px; --dur: 180ms;
-    --sombra: 0 1px 2px rgba(22,32,43,.05), 0 10px 30px -8px rgba(22,32,43,.18);
+    --sombra: 0 1px 2px rgba(15,23,42,.05), 0 10px 30px -8px rgba(22,32,43,.18);
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px;
-    font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.45;
+    font-family: var(--f-texto); font-size: 14px; line-height: 1.45;
     color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased;
   }
   main { width: min(440px, 100%); background: var(--surface); border-radius: var(--r-box); box-shadow: var(--sombra); padding: 28px; }
@@ -31,7 +33,7 @@
   p { color: var(--muted); margin: 8px 0 0; text-wrap: pretty; }
   a.btn {
     display: inline-flex; margin-top: 20px; padding: 10px 16px; border-radius: var(--r-ctl);
-    background: var(--accent); color: #fff; font-weight: 500; text-decoration: none;
+    background: var(--accent); color: var(--on-accent); font-weight: 500; text-decoration: none;
     transition: background var(--dur), transform var(--dur);
   }
   a.btn:hover { background: var(--accent-ink); }
@@ -41,6 +43,28 @@
   .acoes a.link:hover { color: var(--accent-ink); }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ---------- Design System Pathogen (2026-11-08): fontes, faixa do distrito e tema escuro ---------- */
+h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spacing: -.02em; }
+.v, dd, .kpi b { font-family: var(--f-num); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.faixa-dist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 14px 0 0; }
+.instavel { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px dashed var(--muted); color: var(--muted); }
+.faixa-dist__nota { flex-basis: 100%; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.tema-btn { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.tema-btn:hover { background: var(--hover); }
+.tema-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tema-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tema-btn .sol, :root[data-tema="escuro"] .tema-btn .lua { display: none; }
+:root[data-tema="escuro"] .tema-btn .sol { display: inline; }
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+  --bg: #0F172A; --surface: #1E293B; --surface-2: #172236; --ink: #F8FAFC; --muted: #94A3B8; --line: #334155;
+  --accent: #14B8A6; --accent-ink: #5EEAD4; --accent-soft: rgba(20,184,166,.14); --sem-dado: #475569;
+  --on-accent: #020617; --vidro: rgba(15,23,42,.86); --hover: rgba(248,250,252,.07); --line-forte: #64748B;
+}
+:root[data-tema="escuro"] .marca__logo, :root[data-tema="escuro"] .logo { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%23F8FAFC' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%2322D3EE' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%2314B8A6'/%3E%3C/svg%3E"); }
+:root[data-tema="escuro"] .leaflet-bar a { background: var(--surface); color: var(--ink); border-color: var(--line); }
+:root[data-tema="escuro"] .leaflet-bar a:hover { background: var(--surface-2); }
 </style>
 </head>
 <body>

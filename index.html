@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script src="tema.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
   // Endereços do mapa na raiz (#doença/distrito, usados antes de existir esta página) continuam abrindo o mapa.
@@ -34,11 +35,12 @@
 <link rel="prefetch" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* Página inicial do Epimapa SP. Tokens e componentes copiados do mapa.html (mesmo desenho);
      se mudarem lá, mude aqui. Só o layout das seções (painéis, ficha do distrito, notas) é desta página. */
   :root {
+    --f-texto: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; --f-titulo: "Space Grotesk", Inter, system-ui, sans-serif; --f-num: "JetBrains Mono", ui-monospace, monospace; --on-accent: #FFFFFF; --vidro: rgba(255,255,255,.86); --hover: rgba(15,23,42,.05); --line-forte: #c6ced6;
     --bg: #e9edf1;
     --surface: #ffffff;
     --surface-2: #f3f5f8;
@@ -51,7 +53,7 @@
     --n1: #3d9a6a; --n2: #e8c04a; --n3: #e8802f; --n4: #c8322b;
     --sem-dado: #c9d1d9;
     --r-box: 12px; --r-ctl: 8px; --r-pilula: 999px;
-    --sombra: 0 1px 2px rgba(22,32,43,.05), 0 10px 30px -8px rgba(22,32,43,.18);
+    --sombra: 0 1px 2px rgba(15,23,42,.05), 0 10px 30px -8px rgba(22,32,43,.18);
     --sombra-leve: 0 1px 2px rgba(22,32,43,.06);
     --topo: 64px;
     --painel-w: 352px;
@@ -73,7 +75,7 @@
   html { scroll-behavior: smooth; scroll-padding-top: calc(var(--topo) + 12px); }
   body {
     margin: 0;
-    font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: var(--f-texto);
     font-variant-numeric: tabular-nums;
     color: var(--ink);
     background: var(--surface);
@@ -87,7 +89,7 @@
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .skip {
     position: fixed; left: 12px; top: -48px; z-index: 1000;
-    background: var(--ink); color: #fff; padding: 8px 12px; border-radius: var(--r-ctl);
+    background: var(--ink); color: var(--surface); padding: 8px 12px; border-radius: var(--r-ctl);
     transition: top var(--dur);
   }
   .skip:focus { top: 12px; }
@@ -106,7 +108,7 @@
     font-weight: 500; color: var(--muted);
     transition: background var(--dur), color var(--dur), transform var(--dur);
   }
-  .seg button:hover { color: var(--ink); background: rgba(22,32,43,.05); }
+  .seg button:hover { color: var(--ink); background: var(--hover); }
   .seg button:active { transform: scale(.98); }
   .seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent-ink); box-shadow: var(--sombra-leve); }
 
@@ -117,7 +119,7 @@
     transition: border-color var(--dur), box-shadow var(--dur);
   }
   .busca input::placeholder { color: #7a8794; }
-  .busca input:hover { border-color: #c6ced6; }
+  .busca input:hover { border-color: var(--line-forte); }
   .busca input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .busca svg { position: absolute; left: 11px; top: 10px; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
   .busca__lista {
@@ -179,7 +181,7 @@
   body.carregando .dados { display: none; }
   .esq i {
     display: block; height: 12px; border-radius: 6px; margin-top: 10px;
-    background: linear-gradient(90deg, var(--surface-2) 25%, #e9edf1 50%, var(--surface-2) 75%);
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%);
     background-size: 200% 100%; animation: brilho 1.4s linear infinite;
   }
   .esq i.grande { height: 34px; width: 55%; }
@@ -188,7 +190,7 @@
   @keyframes brilho { to { background-position: -200% 0; } }
   .erro { margin: 18px 0 0; padding: 12px 14px; border-radius: var(--r-ctl); background: #fdecec; color: #7a1f1a; border: 1px solid #f3c2bf; }
   .tip {
-    background: var(--ink); color: #fff; border: 0; border-radius: 6px; padding: 6px 9px;
+    background: var(--ink); color: var(--surface); border: 0; border-radius: 6px; padding: 6px 9px;
     font-size: 13px; box-shadow: none; white-space: nowrap;
   }
   .tip::before { display: none; }
@@ -201,10 +203,10 @@
   }
   .btn svg { width: 16px; height: 16px; flex: none; }
   .btn:active { transform: scale(.98); }
-  .btn--primario { background: var(--accent); color: #fff; }
+  .btn--primario { background: var(--accent); color: var(--on-accent); }
   .btn--primario:hover { background: var(--accent-ink); }
   .btn--secundario { background: var(--surface); border-color: var(--line); color: var(--ink); }
-  .btn--secundario:hover { border-color: #c6ced6; background: var(--surface-2); }
+  .btn--secundario:hover { border-color: var(--line-forte); background: var(--surface-2); }
   .link {
     border: 0; background: none; padding: 0; color: var(--accent); font-weight: 500; text-align: left;
     text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px;
@@ -213,7 +215,7 @@
   .aviso {
     position: fixed; left: 50%; top: calc(var(--topo) + 16px); z-index: var(--z-aviso);
     transform: translateX(-50%); width: max-content; max-width: min(440px, calc(100% - 32px));
-    background: var(--ink); color: #fff; border-radius: var(--r-ctl); padding: 10px 14px;
+    background: var(--ink); color: var(--surface); border-radius: var(--r-ctl); padding: 10px 14px;
     box-shadow: var(--sombra); text-wrap: pretty; animation: aviso-entrar var(--dur) ease-out;
   }
   @keyframes aviso-entrar { from { opacity: 0; transform: translate(-50%, -6px); } }
@@ -250,7 +252,7 @@
   .chat-abrir {
     position: fixed; right: 16px; bottom: 32px; z-index: var(--z-chat);
     display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px;
-    border: 0; border-radius: var(--r-pilula); background: var(--accent); color: #fff; font-weight: 500;
+    border: 0; border-radius: var(--r-pilula); background: var(--accent); color: var(--on-accent); font-weight: 500;
     box-shadow: var(--sombra);
     transition: background var(--dur), transform var(--dur), opacity var(--dur);
   }
@@ -271,13 +273,13 @@
     display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
     padding: 12px 10px 12px 14px; border-bottom: 1px solid var(--line);
   }
-  .chat__cab .robo { background: var(--accent); color: #fff; }
+  .chat__cab .robo { background: var(--accent); color: var(--on-accent); }
   .chat__cab h2 { font-size: 14.5px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
   .chat__cab .sub { color: var(--muted); font-size: 12px; }
   .chat__msgs { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
   .msg { max-width: 90%; padding: 10px 12px; border-radius: var(--r-box); text-wrap: pretty; overflow-wrap: anywhere; }
   .msg--bot { align-self: flex-start; background: var(--surface-2); }
-  .msg--eu { align-self: flex-end; background: var(--accent); color: #fff; }
+  .msg--eu { align-self: flex-end; background: var(--accent); color: var(--on-accent); }
   .msg p { margin: 0; }
   .msg p + p, .msg p + ul, .msg ul + p { margin-top: 6px; }
   .msg ul { margin: 6px 0 0; padding-left: 18px; }
@@ -307,10 +309,10 @@
     border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface);
     transition: border-color var(--dur), box-shadow var(--dur);
   }
-  .chat__form input:hover { border-color: #c6ced6; }
+  .chat__form input:hover { border-color: var(--line-forte); }
   .chat__form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .chat__form button {
-    width: 40px; flex: none; border: 0; border-radius: var(--r-ctl); background: var(--accent); color: #fff;
+    width: 40px; flex: none; border: 0; border-radius: var(--r-ctl); background: var(--accent); color: var(--on-accent);
     display: grid; place-items: center; transition: background var(--dur), transform var(--dur);
   }
   .chat__form button:hover { background: var(--accent-ink); }
@@ -360,7 +362,7 @@
   /* botão "+" que abre os detalhes por cima da página */
   .mais {
     position: absolute; right: 20px; bottom: 20px; width: 36px; height: 36px; border-radius: 50%; border: 0;
-    display: grid; place-items: center; background: var(--ink); color: #fff;
+    display: grid; place-items: center; background: var(--ink); color: var(--surface);
     transition: background var(--dur), transform var(--dur);
   }
   .mais svg { width: 18px; height: 18px; }
@@ -374,7 +376,7 @@
   /* ---------- topo ---------- */
   .site-topo {
     position: sticky; top: 0; z-index: var(--z-topo); height: var(--topo);
-    background: rgba(255,255,255,.82); backdrop-filter: saturate(1.6) blur(16px);
+    background: var(--vidro); backdrop-filter: saturate(1.6) blur(16px);
     border-bottom: 1px solid transparent; transition: border-color var(--dur);
   }
   .site-topo.rolou { border-bottom-color: var(--line); }
@@ -387,7 +389,7 @@
     color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 12px; border-radius: var(--r-ctl);
     transition: color var(--dur), background var(--dur);
   }
-  .site-nav a:hover { color: var(--ink); background: rgba(22,32,43,.05); }
+  .site-nav a:hover { color: var(--ink); background: var(--hover); }
   .site-nav a[aria-current="true"] { color: var(--ink); }
   .site-topo .btn { margin-left: 8px; padding: 7px 14px; font-size: 14px; }
 
@@ -445,7 +447,7 @@
   .vizinhos { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
   .vizinhos button { font-variant-numeric: tabular-nums; }
   .vizinhos button small { color: var(--muted); font-weight: 400; margin-left: 4px; }
-  .vizinhos button[aria-current="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .vizinhos button[aria-current="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
   .vizinhos button[aria-current="true"] small { color: var(--sobre-tinta-2); }
   .ficha__acoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
   .ficha__voltar { margin-top: 14px; }
@@ -537,7 +539,7 @@
     padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface);
     transition: border-color var(--dur), box-shadow var(--dur);
   }
-  .lembrete select:hover, .lembrete input:hover { border-color: #c6ced6; }
+  .lembrete select:hover, .lembrete input:hover { border-color: var(--line-forte); }
   .lembrete select:focus-visible, .lembrete input:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
   .painel--tinta { background: var(--ink); color: var(--sobre-tinta); }
@@ -648,6 +650,28 @@
     .chat__form input { font-size: 16px; }
     .msg { max-width: 94%; }
   }
+
+/* ---------- Design System Pathogen (2026-11-08): fontes, faixa do distrito e tema escuro ---------- */
+h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spacing: -.02em; }
+.v, dd, .kpi b { font-family: var(--f-num); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.faixa-dist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 14px 0 0; }
+.instavel { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px dashed var(--muted); color: var(--muted); }
+.faixa-dist__nota { flex-basis: 100%; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.tema-btn { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.tema-btn:hover { background: var(--hover); }
+.tema-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tema-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tema-btn .sol, :root[data-tema="escuro"] .tema-btn .lua { display: none; }
+:root[data-tema="escuro"] .tema-btn .sol { display: inline; }
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+  --bg: #0F172A; --surface: #1E293B; --surface-2: #172236; --ink: #F8FAFC; --muted: #94A3B8; --line: #334155;
+  --accent: #14B8A6; --accent-ink: #5EEAD4; --accent-soft: rgba(20,184,166,.14); --sem-dado: #475569;
+  --on-accent: #020617; --vidro: rgba(15,23,42,.86); --hover: rgba(248,250,252,.07); --line-forte: #64748B;
+}
+:root[data-tema="escuro"] .marca__logo, :root[data-tema="escuro"] .logo { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%23F8FAFC' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%2322D3EE' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%2314B8A6'/%3E%3C/svg%3E"); }
+:root[data-tema="escuro"] .leaflet-bar a { background: var(--surface); color: var(--ink); border-color: var(--line); }
+:root[data-tema="escuro"] .leaflet-bar a:hover { background: var(--surface-2); }
 </style>
 </head>
 <body class="carregando">
@@ -671,9 +695,10 @@
       <a href="#prevencao">Prevenção</a>
       <a href="#privacidade">Privacidade</a>
       <a href="#perguntas">Perguntas</a>
-      <a href="organizacoes.html">Organizações</a>
+      <a href="organizacoes.html">Para empresas</a>
     </nav>
-    <a class="btn btn--primario btn--pilula" href="mapa.html" data-mapa>Abrir o mapa</a>
+    <button type="button" class="tema-btn" data-tema-btn aria-pressed="false" aria-label="Usar tema escuro"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="lua" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/><g class="sol"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></button>
+      <a class="btn btn--primario btn--pilula" href="mapa.html" data-mapa>Abrir o mapa</a>
   </div>
 </header>
 
@@ -685,7 +710,7 @@
     <p class="pathogen-linha"><strong>Pathogen. Informação que te previne.</strong> Transformamos dados epidemiológicos públicos em informação acessível para quem mora na cidade, no Epimapa SP, e em planejamento preventivo para organizações com unidades em São Paulo.</p>
     <div class="caminhos">
       <a class="btn btn--primario btn--pilula" href="mapa.html" data-mapa>Consultar mapa</a>
-      <a class="btn btn--secundario btn--pilula" href="organizacoes.html">Para organizações</a>
+      <a class="btn btn--secundario btn--pilula" href="organizacoes.html">Para empresas</a>
     </div>
 
     <ul class="atalhos" aria-label="Atalhos">
@@ -729,6 +754,7 @@
                 <div><dt>posição entre os 96</dt><dd id="f-rank">—</dd></div>
                 <div><dt id="f-se-k">boletim da COVISA</dt><dd id="f-se">—</dd></div>
               </dl>
+              <p class="faixa-dist" id="f-nivel" hidden></p>
               <h4 id="f-faixa-titulo">Os 96 distritos, do maior para o menor</h4>
               <svg class="faixa96" id="f-faixa" viewBox="0 0 960 56" preserveAspectRatio="none" role="img" aria-labelledby="f-faixa-titulo"></svg>
               <div class="faixa96__pontas" aria-hidden="true"><span id="f-faixa-ini">mais casos por habitante</span><span>menos</span></div>
@@ -775,7 +801,7 @@
           <div class="dados">
             <div class="bloco__cab">
               <div><h3 id="cid-titulo">Cidade de São Paulo</h3><div class="sub" id="cid-semana">—</div></div>
-              <span id="cid-badge" class="badge" data-nivel="1" title="Nível de alerta semanal do município inteiro (InfoDengue). Não existe nível de alerta por distrito.">—</span>
+              <span id="cid-badge" class="badge" data-nivel="1" title="Nível de alerta semanal do município inteiro (InfoDengue). A faixa de cada distrito é outra coisa: uma convenção da Pathogen pela incidência.">—</span>
             </div>
             <div id="cid-numeros">
               <div class="destaque">
@@ -1020,8 +1046,8 @@
           <a href="#notas">Notas e fontes</a>
           <a href="#privacidade">Privacidade</a>
           <a href="https://github.com/ReisDevv/Patogen" target="_blank" rel="noopener">Código no GitHub</a>
-          <a href="organizacoes.html">Para organizações</a>
-          <a href="impacto.html">Pathogen Impacto</a>
+          <a href="organizacoes.html">Para empresas</a>
+          <a href="organizacoes.html#impacto">Patrocínio de campanhas</a>
         </nav>
       </div>
     </div>
@@ -1057,6 +1083,7 @@
   <p class="chat__aviso">Não substitui atendimento médico. Suas perguntas não saem do seu navegador.</p>
 </section>
 
+<script src="nivel.js"></script>
 <script src="chat.js"></script>
 <script>
 // Link que a organização manda aos colaboradores (?de=Nome, gerado em organizacoes.html).
@@ -1123,7 +1150,10 @@
   const props = {};
   geo.features.forEach(f => { props[f.properties.id] = f.properties; });
   const dados = () => dd.doencas[doenca] || {};
-  const dadoDe = (id) => dados()[id] || { casos_ano: null, inc100k_ano: null };
+  // Ajuste para distrito pequeno (nivel.js), o mesmo do mapa.
+  const ajustes = {};
+  const ajusteDe = (id) => (ajustes[doenca] ||= PathogenNivel.ajustar(dados()))[id];
+  const dadoDe = (id) => Object.assign({ casos_ano: null, inc100k_ano: null }, dados()[id], { aj: ajusteDe(id) });
   const semDadosDistrito = () => (dd.sem_dados_por_distrito || []).includes(doenca);
   const temIncidencia = () => Object.values(dados()).some(d => typeof d.inc100k_ano === "number");
   const medida = (d) => typeof d.inc100k_ano === "number" ? d.inc100k_ano : (d.casos_ano || 0);
@@ -1151,7 +1181,7 @@
   }
   function corDe(d) {
     if (semDadosDistrito() || d.casos_ano == null) return "#c9d1d9";
-    if (typeof d.inc100k_ano === "number") return corPorInc(d.inc100k_ano);
+    if (typeof d.inc100k_ano === "number") return corPorInc(d.aj ? d.aj.inc : d.inc100k_ano);
     return corPorInc(LIMIARES[LIMIARES.length - 1] * d.casos_ano / maxCasos());
   }
 
@@ -1258,6 +1288,7 @@
     $("f-casos-k").textContent = doenca === "chikungunya" ? "casos autóctones confirmados desde janeiro" : "casos confirmados desde janeiro";
     $("f-inc").textContent = typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "não publicada";
     $("f-rank").textContent = `${pos}º`;
+    PathogenNivel.renderFaixa($("f-nivel"), d);
     $("f-se").textContent = `SE ${dd.se}/${dd.ano}`;
     $("f-se-k").textContent = dd.dados_ate ? `boletim da COVISA, dados até ${dia(dd.dados_ate)}` : "boletim da COVISA";
     // faixa dos 96: cada traço é um distrito, na ordem do ranking; o escolhido sobe e fica escuro

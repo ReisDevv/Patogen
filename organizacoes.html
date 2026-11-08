@@ -2,14 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script src="tema.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pathogen Organizações: planejamento preventivo por distrito</title>
-<meta name="description" content="Indicadores oficiais de dengue e chikungunya dos distritos das suas unidades em São Paulo, plano de prevenção e relatório gerencial. Protótipo demonstrativo da Pathogen.">
+<title>Pathogen para empresas: prevenção de dengue por distrito</title>
+<meta name="description" content="Os números oficiais de dengue do distrito de cada unidade da sua empresa, plano de prevenção, relatório e um link para os colaboradores. Protótipo da Pathogen.">
 <meta name="theme-color" content="#0F766E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10.56' fill='%230F172A'/%3E%3Cg transform='translate(7.68 7.68) scale(0.68)'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%23F8FAFC' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%2322D3EE' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%2314B8A6'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="institucional.css">
 </head>
 <body>
@@ -18,134 +19,110 @@
   <div class="wrap">
     <a class="marca" href="index.html" aria-label="Pathogen, página inicial do Epimapa SP">
       <span class="marca__logo" aria-hidden="true"></span>
-      <div><strong>Pathogen</strong><small>Organizações</small></div>
+      <div><strong>Pathogen</strong><small>Para empresas</small></div>
     </a>
     <nav class="site-nav" aria-label="Páginas">
       <a href="index.html">Epimapa SP</a>
       <a href="mapa.html">Mapa</a>
-      <a href="organizacoes.html" aria-current="page">Organizações</a>
-      <a href="impacto.html">Impacto</a>
+      <a href="organizacoes.html" aria-current="page">Para empresas</a>
+      <a href="#impacto">Patrocínio</a>
     </nav>
+    <button type="button" class="tema-btn" data-tema-btn aria-pressed="false" aria-label="Usar tema escuro"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="lua" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/><g class="sol"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></button>
   </div>
 </header>
 
 <main id="conteudo">
-  <section class="wrap heroi" aria-labelledby="titulo">
-    <span class="etiqueta">Em desenvolvimento: protótipo para projeto-piloto</span>
-    <h1 id="titulo">Transforme informações epidemiológicas territoriais em planejamento preventivo para suas unidades.</h1>
-    <p class="lead">O Pathogen Organizações reúne, para cada unidade, os indicadores oficiais de dengue e chikungunya do distrito onde ela fica, ajuda a organizar as ações preventivas e gera um relatório para acompanhamento gerencial.</p>
-    <div class="acoes">
-      <a class="btn btn--primario" href="#demonstracao">Abrir a demonstração</a>
-      <a class="btn btn--secundario" href="#piloto">Como funciona um piloto</a>
+  <section class="abertura" aria-labelledby="titulo">
+    <div class="wrap abertura__grade">
+      <div class="abertura__texto">
+        <p class="abertura__estado">Protótipo para projeto-piloto</p>
+        <h1 id="titulo">Cada unidade da sua empresa fica num distrito diferente. A dengue também.</h1>
+        <p class="abertura__lead">A cada boletim da COVISA, o Pathogen mostra os números oficiais do distrito de cada unidade, ajuda a planejar a prevenção e entrega um link para os colaboradores consultarem o próprio distrito. Sem coletar dado de ninguém.</p>
+        <div class="acoes">
+          <a class="btn btn--primario" href="#demonstracao">Ver a demonstração</a>
+          <a class="btn btn--fantasma" href="#piloto">Como funciona o piloto</a>
+        </div>
+      </div>
+      <figure class="mosaico">
+        <svg id="mosaico" role="img" aria-labelledby="mosaico-legenda"></svg>
+        <figcaption id="mosaico-legenda">Dengue em 2026 nos 96 distritos, boletim da COVISA <span id="mosaico-se">mais recente</span>. A, B, C e D são unidades de exemplo; os números são reais.</figcaption>
+      </figure>
     </div>
   </section>
 
-  <section class="secao secao--cinza" id="problema" aria-labelledby="problema-titulo">
+  <section class="secao" id="duas-telas" aria-labelledby="telas-titulo">
     <div class="wrap">
-      <h2 class="titulo" id="problema-titulo">O problema que queremos resolver.</h2>
-      <p class="lead">Quem cuida de várias unidades em São Paulo não tem um lugar simples para ver os números oficiais de arboviroses de cada território e para organizar e registrar as ações preventivas de cada unidade.</p>
-      <div class="grade">
-        <article class="painel"><h3>Dados espalhados</h3><p>Os números por distrito saem num boletim semanal em PDF da COVISA; a série da cidade, no InfoDengue. Acompanhar várias unidades exige abrir e cruzar documentos toda semana.</p></article>
-        <article class="painel"><h3>Ações sem registro comum</h3><p>Inspeções, verificação de reservatórios e campanhas educativas ficam em planilhas e mensagens separadas, difíceis de reunir num relatório.</p></article>
-        <article class="painel"><h3>Números que pedem cuidado</h3><p>Acumulado do ano, incidência por 100 mil habitantes, nível de alerta só municipal: cada indicador tem um significado e um limite, e o painel mostra os dois.</p></article>
+      <h2 class="titulo" id="telas-titulo">Duas pessoas, duas telas.</h2>
+      <p class="lead">Quem cuida das unidades acompanha os territórios. Quem trabalha nelas consulta o próprio distrito. Uma tela não enxerga a outra.</p>
+      <div class="telas">
+        <article class="tela">
+          <h3>Quem gere as unidades</h3>
+          <p>RH, facilities ou saúde ocupacional veem o distrito de cada unidade, com a semana do boletim, e registram o que foi feito em cada uma.</p>
+          <div class="rolagem"><table class="amostra" aria-label="Exemplo do painel com as unidades de exemplo">
+            <thead><tr><th>Unidade</th><th>Distrito</th><th class="num">por 100 mil</th><th>Faixa</th></tr></thead>
+            <tbody id="amostra-rh"><tr><td colspan="4" class="sem-dados">Carregando o boletim…</td></tr></tbody>
+          </table></div>
+          <ul class="lista-texto">
+            <li>Painel das unidades, com casos, incidência e faixa</li>
+            <li>Plano de prevenção por unidade</li>
+            <li>Relatório para a reunião de gestão</li>
+          </ul>
+        </article>
+        <article class="tela">
+          <h3>Quem trabalha nelas</h3>
+          <p>Cada colaborador recebe um link da empresa e vê, no celular, o distrito onde mora ou trabalha, com as orientações de prevenção.</p>
+          <div class="celular" aria-hidden="true">
+            <p class="celular__aviso"><strong>Sua empresa</strong> enviou este link para você acompanhar o seu distrito.</p>
+            <div class="celular__ficha">
+              <span class="celular__nome" id="cel-nome">Itaquera</span>
+              <span class="celular__v" id="cel-v">—</span>
+              <span class="celular__k">casos por 100 mil habitantes em 2026</span>
+              <span id="cel-faixa"></span>
+            </div>
+          </div>
+          <ul class="lista-texto">
+            <li>O distrito consultado não volta para a empresa</li>
+            <li>Sem cadastro e sem aplicativo</li>
+            <li>Os mesmos números do Epimapa SP, com fonte e data</li>
+          </ul>
+        </article>
       </div>
     </div>
   </section>
 
-  <section class="secao" id="como-funciona" aria-labelledby="como-titulo">
+  <section class="secao secao--cinza" id="como-funciona" aria-labelledby="como-titulo">
     <div class="wrap">
-      <h2 class="titulo" id="como-titulo">Como funciona.</h2>
+      <h2 class="titulo" id="como-titulo">Três passos.</h2>
       <ol class="passos">
-        <li><strong>Identifique as unidades</strong><span>Um nome de referência para cada uma. Não é preciso endereço.</span></li>
-        <li><strong>Associe ao distrito</strong><span>Cada unidade fica ligada a um dos 96 distritos administrativos da cidade.</span></li>
-        <li><strong>Consulte os indicadores oficiais</strong><span>Dengue e chikungunya do boletim da COVISA, com a semana e a data de corte.</span></li>
-        <li><strong>Compare os territórios</strong><span>Lado a lado, com a métrica e o período escritos em cada tabela.</span></li>
-        <li><strong>Avise os colaboradores</strong><span>Um link para cada pessoa ver o próprio distrito no celular. Nada do que ela consulta volta para a organização.</span></li>
-        <li><strong>Organize as ações preventivas</strong><span>Atividades por unidade, com período planejado e status.</span></li>
-        <li><strong>Gere o relatório</strong><span>Dados oficiais separados do que a organização registrou, pronto para imprimir ou salvar em PDF.</span></li>
+        <li><strong>Cadastre as unidades</strong><span>Só um nome e o distrito de cada uma. Não pedimos endereço nem lista de funcionários.</span></li>
+        <li><strong>Mande o link aos colaboradores</strong><span>Por e-mail, pela intranet ou num cartaz com QR code. Cada pessoa consulta o próprio distrito.</span></li>
+        <li><strong>Acompanhe a cada boletim</strong><span>Os números das unidades se atualizam sozinhos. Você registra as ações e gera o relatório.</span></li>
       </ol>
-    </div>
-  </section>
-
-  <section class="secao secao--cinza" id="publico" aria-labelledby="publico-titulo">
-    <div class="wrap">
-      <h2 class="titulo" id="publico-titulo">Quem pode usar.</h2>
-      <div class="grade">
-        <article class="painel">
-          <h3>Quem gere unidades</h3>
-          <ul class="lista-texto">
-            <li>Empresas com várias unidades na cidade</li>
-            <li>Administradoras de condomínios</li>
-            <li>Instituições de ensino</li>
-          </ul>
-        </article>
-        <article class="painel">
-          <h3>Quem cuida do espaço</h3>
-          <ul class="lista-texto">
-            <li>Gestores de facilities</li>
-            <li>Gestores de operações e manutenção</li>
-            <li>Profissionais de saúde e segurança ocupacional</li>
-          </ul>
-        </article>
-        <article class="painel">
-          <h3>O benefício para o gestor</h3>
-          <p>Um lugar só para ver o território de todas as unidades, com fonte e data de cada número; um plano de prevenção por unidade; e um relatório para levar à reunião de gestão sem montar planilhas.</p>
-        </article>
-      </div>
     </div>
   </section>
 
   <section class="secao" id="informacoes" aria-labelledby="info-titulo">
     <div class="wrap">
-      <h2 class="titulo" id="info-titulo">Quais informações aparecem.</h2>
+      <h2 class="titulo" id="info-titulo">De onde vêm os números, e o que fica de fora.</h2>
       <div class="grade">
         <article class="painel">
-          <span class="rotulo">Do distrito de cada unidade</span>
           <h3>Boletim da COVISA</h3>
-          <ul class="lista-texto">
-            <li>Dengue: casos confirmados e incidência por 100 mil habitantes, acumulados no ano</li>
-            <li>Chikungunya: casos autóctones confirmados, acumulados no ano</li>
-            <li>Semana epidemiológica, data de publicação e data de corte dos registros</li>
-          </ul>
+          <p>Por distrito, toda semana: casos de dengue e incidência por 100 mil habitantes, casos de chikungunya, semana do boletim e data de corte.</p>
         </article>
         <article class="painel">
-          <span class="rotulo">Da cidade inteira</span>
-          <h3>InfoDengue</h3>
-          <ul class="lista-texto">
-            <li>Casos notificados por semana</li>
-            <li>Nível de alerta, que é municipal: não existe nível por distrito</li>
-          </ul>
+          <h3>Faixa de cada distrito</h3>
+          <p>Uma convenção da Pathogen pela incidência, de 1 a 4. Em distritos pequenos a taxa é puxada para a média da cidade, e o painel avisa quando o dado é instável.</p>
         </article>
         <article class="painel painel--tinta">
-          <span class="rotulo">O que o painel não faz</span>
-          <h3>Limites assumidos</h3>
+          <h3>O que o Pathogen não faz</h3>
           <ul class="lista-texto">
-            <li>Não calcula risco de uma unidade, imóvel ou pessoa</li>
-            <li>Não faz previsão nem cria índice próprio</li>
-            <li>Não recebe dados de saúde de funcionários ou moradores</li>
-            <li>Zika: a COVISA não publica por distrito desde 2018, então aparece "Sem dados"</li>
+            <li>Não recebe dado de saúde de funcionários</li>
+            <li>Não calcula risco de pessoa, imóvel ou unidade</li>
+            <li>Não faz previsão nem promete redução de casos</li>
+            <li>Zika: a COVISA não publica por distrito, então aparece "Sem dados"</li>
           </ul>
         </article>
       </div>
-    </div>
-  </section>
-
-  <section class="secao secao--cinza" id="piloto" aria-labelledby="piloto-titulo">
-    <div class="wrap">
-      <h2 class="titulo" id="piloto-titulo">Como funcionaria um projeto-piloto.</h2>
-      <p class="lead">O produto ainda não está em operação com nenhuma organização. O piloto é a etapa em que ele seria testado com uma organização interessada, por um período combinado.</p>
-      <div class="grade">
-        <article class="painel"><span class="rotulo">1. Combinar</span><h3>Escopo</h3><p>Quais unidades entram, em quais distritos, por quanto tempo, e quem na organização acompanha.</p></article>
-        <article class="painel"><span class="rotulo">2. Acompanhar</span><h3>Boletins e plano</h3><p>A cada boletim da COVISA, os indicadores das unidades são atualizados. A organização registra as atividades preventivas no plano.</p></article>
-        <article class="painel"><span class="rotulo">3. Avaliar</span><h3>Relatório e conversa</h3><p>Relatórios periódicos com dados oficiais e atividades registradas, e uma avaliação do que foi útil para o gestor.</p></article>
-      </div>
-      <p class="fonte">O piloto não inclui dados de saúde de pessoas nem promete redução de casos: avaliar efeito epidemiológico exigiria um estudo específico.</p>
-      <div class="grade">
-        <article class="painel"><span class="rotulo">Depois do piloto</span><h3>Assinatura mensal</h3><p>A proposta é uma assinatura mensal por organização, de valor baixo, com o painel das unidades, o link dos colaboradores e um relatório a cada boletim da COVISA. O valor ainda não foi definido.</p></article>
-        <article class="painel"><span class="rotulo">Proposta, ainda não emitido</span><h3>Selo Pathogen</h3><p>Para a organização que mantém a prevenção em dia: comunicação de prevenção a cada 3 meses, com as regiões mais afetadas; ações registradas no plano de cada unidade; e afastamento sem punição nem perda de bônus. O Selo atesta engajamento em prevenção, não ausência de casos.</p></article>
-      </div>
-      <!-- EQUIPE: o projeto não tem canal de contato comercial configurado. Preencha aqui o canal oficial (e-mail ou formulário) quando ele existir. -->
-      <p class="aviso-demo" id="contato"><span>Contato para piloto: canal ainda não configurado pela equipe Pathogen.</span></p>
     </div>
   </section>
 
@@ -257,6 +234,67 @@
       <article class="relatorio" id="relatorio"></article>
     </div>
   </section>
+
+  <section class="secao secao--cinza" id="piloto" aria-labelledby="piloto-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="piloto-titulo">Como funcionaria um piloto.</h2>
+      <p class="lead">O produto ainda não opera com nenhuma organização. O piloto é a etapa de teste com uma organização interessada, por um período combinado.</p>
+      <ol class="passos">
+        <li><strong>Combinar</strong><span>Quais unidades entram, por quanto tempo e quem na organização acompanha.</span></li>
+        <li><strong>Acompanhar</strong><span>A cada boletim da COVISA, os números se atualizam e a organização registra as ações no plano.</span></li>
+        <li><strong>Avaliar</strong><span>Relatórios com dados oficiais e ações registradas, e uma conversa sobre o que foi útil para o gestor.</span></li>
+      </ol>
+      <div class="grade">
+        <article class="painel"><h3>Depois do piloto: assinatura mensal</h3><p>Por organização e de valor baixo, com o painel das unidades, o link dos colaboradores e um relatório a cada boletim. O valor ainda não foi definido.</p></article>
+        <article class="painel"><h3>Selo Pathogen, em proposta</h3><p>Para quem mantém a prevenção em dia: comunicação de prevenção a cada 3 meses, ações registradas no plano de cada unidade e afastamento sem punição nem perda de bônus. Atesta engajamento em prevenção, não ausência de casos. Ainda não é emitido.</p></article>
+      </div>
+      <p class="fonte">O piloto não inclui dados de saúde de pessoas nem promete redução de casos: medir esse efeito exigiria um estudo específico.</p>
+    </div>
+  </section>
+
+  <section class="secao" id="impacto" aria-labelledby="impacto-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="impacto-titulo">Patrocine uma campanha de prevenção.</h2>
+      <p class="lead">Para empresas, institutos e ONGs que querem financiar prevenção num território escolhido, com relatório do que foi feito. O Epimapa SP continua gratuito para quem mora na cidade.</p>
+      <div class="grade">
+        <article class="painel">
+          <h3>O que pode ser financiado</h3>
+          <ul class="lista-texto">
+            <li>Campanhas sobre criadouros e reservatórios, com as orientações do Ministério da Saúde</li>
+            <li>Materiais impressos e digitais, com a fonte de cada orientação</li>
+            <li>Atividades em escolas, condomínios e espaços comunitários</li>
+            <li>Projetos em distritos escolhidos a partir dos números oficiais</li>
+          </ul>
+        </article>
+        <article class="painel">
+          <h3>O que o patrocinador recebe</h3>
+          <ul class="lista-texto">
+            <li>Identificação como apoiador da campanha</li>
+            <li>Relatório de execução: atividades e materiais, com locais e períodos</li>
+            <li>Os números oficiais dos territórios, separados do que a campanha fez</li>
+          </ul>
+        </article>
+        <article class="painel painel--tinta">
+          <h3>O que não entra</h3>
+          <ul class="lista-texto">
+            <li>Anúncio de remédio, vacina ou produto regulado</li>
+            <li>Anúncio dirigido pelo que a pessoa pesquisou: o site não guarda isso</li>
+            <li>Dado de quem usa o Epimapa ou participa das atividades</li>
+            <li>Patrocinador apresentado como fonte dos números</li>
+          </ul>
+        </article>
+      </div>
+      <p class="fonte">O relatório não afirma que uma campanha reduziu casos de dengue. Isso exigiria uma avaliação epidemiológica que não faz parte desta proposta.</p>
+    </div>
+  </section>
+
+  <section class="secao secao--cinza" id="contato" aria-labelledby="contato-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="contato-titulo">Fale com a equipe.</h2>
+      <!-- EQUIPE: o projeto não tem canal de contato comercial configurado. Preencha aqui o canal oficial (e-mail ou formulário) quando ele existir. -->
+      <p class="aviso-demo"><span>Canal de contato para piloto e patrocínio ainda não configurado pela equipe Pathogen.</span></p>
+    </div>
+  </section>
 </main>
 
 <footer class="rodape">
@@ -265,8 +303,8 @@
     <nav aria-label="Rodapé">
       <a href="index.html">Epimapa SP</a>
       <a href="mapa.html">Mapa</a>
-      <a href="organizacoes.html">Pathogen Organizações</a>
-      <a href="impacto.html">Pathogen Impacto</a>
+      <a href="organizacoes.html">Para empresas</a>
+      <a href="organizacoes.html#impacto">Patrocínio de campanhas</a>
     </nav>
     <p>Projeto independente, sem vínculo com a Prefeitura, o Ministério da Saúde ou a Fiocruz. Dados: boletim de arboviroses da COVISA/SMS-SP (distritos) e InfoDengue (cidade). Não substitui orientação médica nem a vigilância em saúde.</p>
   </div>
@@ -561,5 +599,7 @@
   if (boletimNovo) persistir();   // quem já tinha dados gravados: registra que este boletim já foi visto
 })();
 </script>
+<script src="nivel.js"></script>
+<script src="empresas.js"></script>
 </body>
 </html>
