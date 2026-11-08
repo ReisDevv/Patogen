@@ -261,3 +261,12 @@ body { background: var(--surface); }
 .telas { gap: 48px; }
 .grade { gap: 36px 48px; }
 :root[data-tema="escuro"] .mosaico svg.revelado path, .mosaico svg.revelado path { fill: var(--cor); }
+
+/* fotos ilustrativas (2026-11-08): carregam só ao rolar; a legenda diz que são geradas por IA */
+.foto { margin: 40px 0 0; }
+.foto img { display: block; width: 100%; height: auto; border-radius: 16px; object-fit: cover; background: var(--surface-2); }
+.foto--larga img { aspect-ratio: 21 / 9; }
+.foto--vaso { margin: 0; }
+.foto--vaso img { aspect-ratio: 4 / 5; }
+.foto figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); }
+@media (max-width: 700px) { .foto--larga img { aspect-ratio: 4 / 3; } }

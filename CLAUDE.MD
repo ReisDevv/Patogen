@@ -272,6 +272,10 @@ depois; define o que pode ser construído.
 ivel.js, 	ema.js, empresas.js, chat.js) entram com `?v=<commit>`: ao mudar um deles, troque o `v` em todas as páginas, senão o navegador (GitHub Pages guarda 10 min) mostra a página nova com o CSS velho.
 - Não formate o GeoJSON com indentação (tamanho importa). JSON de dados pode ter `indent=1`.
 - Tamanho de página: cada página (`index.html` ou `mapa.html`, mais `chat.js`) + dados abaixo de 500 KB no total.
+- Fotos (2026-11-08): `img/fotos/`, geradas no Gemini pelo dono a partir de prompts do projeto, reduzidas
+  (largura ≤ 1600 px, JPEG ~75%), com `loading="lazy"`, `width`/`height` e `alt` descritivo; ficam fora da conta dos 500 KB
+  porque não entram no carregamento inicial. A legenda sempre diz "Imagem ilustrativa gerada por IA." Nada de
+  mosquito, texto ou logotipo nas fotos.
 - Acessibilidade: foco visível, `aria-pressed`/`aria-expanded` mantidos, `prefers-reduced-motion` respeitado.
 - Direção editorial (2026-11-08, aprovada pelo dono a partir de um protótipo): jornalismo de dados, com o mapa
   dos 96 como protagonista na abertura (título em 2 linhas, busca, ficha ao lado) e a seção "Os 96" em barras

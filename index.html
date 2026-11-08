@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<script src="tema.js?v=eaba778"></script>
+<script src="tema.js?v=e23dc7d"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
   // Endereços do mapa na raiz (#doença/distrito, usados antes de existir esta página) continuam abrindo o mapa.
@@ -742,6 +742,25 @@ h2.titulo { font-size: clamp(32px, 3.6vw, 52px); line-height: 1.04; letter-spaci
   .painel, .grade-cidade .painel, .grade-cidade .painel:not(.painel--largo), .prevencao .painel, .doencas .painel { padding-inline: 0; padding-bottom: 16px; }
   .prevencao .painel--tinta { padding: 24px 20px; }
   .barras96 { height: 200px; }
+  .barras96 text { display: none; }
+}
+
+/* fotos ilustrativas (2026-11-08): carregam só ao rolar; a legenda diz que são geradas por IA */
+.foto { margin: 40px 0 0; }
+.foto img { display: block; width: 100%; height: auto; border-radius: 16px; object-fit: cover; background: var(--surface-2); }
+.foto--larga img { aspect-ratio: 21 / 9; }
+.foto--vaso { margin: 0; }
+.foto--larga + .prevencao { margin-top: 56px; }
+.foto--vaso img { aspect-ratio: 4 / 5; }
+.foto figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); }
+@media (max-width: 700px) { .foto--larga img { aspect-ratio: 4 / 3; } }
+.prevencao__largo { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); column-gap: 48px; align-content: start; }
+.prevencao__largo > .foto--vaso { grid-column: 1; grid-row: 1 / span 6; }
+.prevencao__largo > :not(.foto) { grid-column: 2; }
+@media (max-width: 700px) {
+  .prevencao__largo { grid-template-columns: 1fr; }
+  .prevencao__largo > .foto--vaso, .prevencao__largo > :not(.foto) { grid-column: 1; grid-row: auto; }
+  .prevencao__largo > .foto--vaso { max-width: 320px; margin-bottom: 20px; }
 }
 </style>
 </head>
@@ -969,6 +988,10 @@ h2.titulo { font-size: clamp(32px, 3.6vw, 52px); line-height: 1.04; letter-spaci
           <p class="lead">O mosquito se cria em água parada perto de casa. Uma volta pela casa, toda semana, acaba com a maior parte dos criadouros.</p>
         </div>
       </div>
+      <figure class="foto foto--larga">
+        <img src="img/fotos/prev-laje.jpg" width="1600" height="1073" loading="lazy" decoding="async" alt="Laje de uma casa em São Paulo ao entardecer, com caixa-d'água tampada, ralo limpo e varal; prédios e morros ao fundo.">
+        <figcaption>Caixa-d'água tampada e ralo sem água parada. Imagem ilustrativa gerada por IA.</figcaption>
+      </figure>
       <div class="prevencao">
         <article class="painel" aria-labelledby="volta-titulo">
           <span class="rotulo">A volta pela casa</span>
@@ -1012,6 +1035,10 @@ h2.titulo { font-size: clamp(32px, 3.6vw, 52px); line-height: 1.04; letter-spaci
         </article>
 
         <article class="painel prevencao__largo" aria-labelledby="amb-titulo">
+          <figure class="foto foto--vaso">
+            <img src="img/fotos/prev-vaso.jpg" width="800" height="993" loading="lazy" decoding="async" alt="Mãos colocando areia no pratinho de um vaso de planta, numa varanda de apartamento.">
+            <figcaption>Areia no pratinho até a borda. Imagem ilustrativa gerada por IA.</figcaption>
+          </figure>
           <span class="rotulo">Casa e reservatórios</span>
           <h3 id="amb-titulo">Proteja os ambientes.</h3>
           <ul class="lista-texto">
@@ -1149,8 +1176,8 @@ h2.titulo { font-size: clamp(32px, 3.6vw, 52px); line-height: 1.04; letter-spaci
   <p class="chat__aviso">Não substitui atendimento médico. Suas perguntas não saem do seu navegador.</p>
 </section>
 
-<script src="nivel.js?v=eaba778"></script>
-<script src="chat.js?v=eaba778"></script>
+<script src="nivel.js?v=e23dc7d"></script>
+<script src="chat.js?v=e23dc7d"></script>
 <script>
 // Link que a organização manda aos colaboradores (?de=Nome, gerado em organizacoes.html).
 // Só mostra o nome: nada sobre a consulta volta para a organização.
