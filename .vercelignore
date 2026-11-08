@@ -1,0 +1,13 @@
+# O site é estático: só sobem as páginas, img/ e data/.
+# requirements.txt fazia a Vercel tratar o projeto como app Python (PYTHON_ENTRYPOINT_NOT_FOUND).
+requirements.txt
+scripts/
+tests/
+docs/*.md
+.github/
+.claude/
+.agents/
+CLAUDE.MD
+README.md
+skills-lock.json
+data/covisa/
