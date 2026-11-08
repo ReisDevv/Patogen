@@ -8,13 +8,18 @@
 #   - Settings > Pages > Source = "GitHub Actions": quem publica é este
 #     workflow, empacotando a raiz do repositório.
 #
-# Roda a cada push na main, então os commits de dados feitos por
-# atualizar-dados.yml republicam o site automaticamente.
+# Roda a cada push na main e ao fim de cada atualização de dados. O push feito
+# pelo atualizar-dados.yml usa o GITHUB_TOKEN, e o GitHub não dispara workflows
+# a partir desse push: sem o workflow_run, o site ficou parado no commit de
+# 2026-10-08 enquanto os dados seguiam sendo commitados.
 name: Publicar site (GitHub Pages)
 
 on:
   push:
     branches: [main]
+  workflow_run:
+    workflows: ["Atualizar dados (InfoDengue e COVISA)"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:

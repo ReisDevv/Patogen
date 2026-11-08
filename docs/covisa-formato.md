@@ -85,6 +85,24 @@ com `extract_words()` e posições:
 Se qualquer etapa falhar (distrito sem par, distrito faltando, soma não bate, ano do
 boletim não está no cabeçalho), o script **para com erro**. Não há modo "melhor esforço".
 
+## Mudanças observadas desde a investigação
+
+- **SE 40/2026 (publicada em 19/10/2026): ponto de milhar.** A COVISA passou a escrever números
+  com 4 dígitos ou mais como `11.920` em vez de `11920`. Na SE 40 só na linha TOTAL; na SE 41 em
+  todas as linhas (casos de 2024, `EM INVESTIGAÇÃO`). O `NUM_RE` antigo descartava esses tokens,
+  as linhas ficavam com menos de 10 números e o script parava (SE 40: "linha TOTAL ilegível";
+  SE 41: "ids sem linha no quadro"). Corrigido em 2026-11-01: `NUM_RE` aceita os dois formatos e
+  `inteiro()` / `decimal()` tiram o ponto antes de converter. Como o job parava nesse passo, o
+  InfoDengue também deixou de ser commitado de 19/10 a 01/11.
+- **Domínio:** `www.prefeitura.sp.gov.br` passou a redirecionar para `prefeitura.sp.gov.br`.
+  O script usa o endereço sem `www`.
+- **Slug:** varia de edição para edição (`boletimarbo-se41_23out26-pdf`,
+  `1-arbo-urbana_-se07_27fev26-pdf`, `boletimarbo-se11_urbanas-pdf`). O script não depende dele:
+  pega os links "Semana Epidemiológica N" na ordem da página e descarta os que têm `silvestre`
+  no slug. Um silvestre que escapasse falharia alto na leitura (não tem quadro por distrito).
+- **Datas obrigatórias:** sem `PUBLICADO EM` na capa ou sem `dados provisórios até` no quadro de
+  dengue, o script para. A data de corte não pode ser posterior à publicação.
+
 ## Semana epidemiológica
 
 Vem da capa: `SEMANA 33/2026`. Não deduzir da data de hoje nem do slug.

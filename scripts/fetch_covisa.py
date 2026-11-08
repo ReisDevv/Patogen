@@ -27,6 +27,7 @@ import json
 import re
 import sys
 import unicodedata
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -40,11 +41,12 @@ DISTRITOS = RAIZ / "data" / "distritos.geojson"
 PASTA_SNAPSHOTS = RAIZ / "data" / "covisa"
 SAIDA = RAIZ / "data" / "casos_distrito.json"
 
-PAGINA_ENTRADA = "https://www.prefeitura.sp.gov.br/web/saude/w/vigilancia_em_saude/boletim_covisa/arboviroses"
-BASE = "https://www.prefeitura.sp.gov.br"
+PAGINA_ENTRADA = "https://prefeitura.sp.gov.br/web/saude/w/vigilancia_em_saude/boletim_covisa/arboviroses"
+BASE = "https://prefeitura.sp.gov.br"   # o endereço com www redireciona para este desde 2026-10
 USER_AGENT = "epimapa-sp/0.1"   # o servidor devolve 403 para o User-Agent padrão do Python
 
-NUM_RE = re.compile(r"^[0-9]+(,[0-9]+)?$")
+# Célula numérica do quadro. Desde a SE 40/2026 a COVISA usa ponto de milhar (11.920); antes, 11920.
+NUM_RE = re.compile(r"^(?:[0-9]{1,3}(?:\.[0-9]{3})+|[0-9]+)(?:,[0-9]+)?$")
 ANOS_RE = re.compile(r"^(20[0-9]{2}){4,6}$")
 # Como a COVISA escreve -> id do GeoJSON. Só o que a normalização não resolve.
 APELIDOS = {"jardimsaoluiz": "jardim-sao-luis"}
@@ -59,22 +61,42 @@ def letras(s: str) -> str:
     return re.sub(r"[^a-z0-9]", "", s.lower())
 
 
+def inteiro(tok: str) -> int:
+    return int(tok.replace(".", ""))
+
+
+def decimal(tok: str) -> float:
+    return float(tok.replace(".", "").replace(",", "."))
+
+
 def baixar(url: str) -> bytes:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=60) as resp:
         return resp.read()
 
 
-def descobrir_mais_recente() -> tuple[str, int]:
-    """Primeiro link de boletim urbano na página de entrada (a lista vem do mais novo)."""
-    html = baixar(PAGINA_ENTRADA).decode("utf-8", "replace")
+def links_urbanos(html: str) -> list[tuple[str, int]]:
+    """Links "Semana Epidemiológica N" da página, na ordem dela, sem os de arboviroses silvestres.
+
+    O slug muda de edição para edição (boletimarbo-se41_..., 1-arbo-urbana_-se07_..., boletimarbo-se11_urbanas),
+    então não é usado para reconhecer o boletim urbano; só para descartar os silvestres (arbo_silvestre).
+    """
     links = re.findall(
-        r'href="(/documents/d/saude/boletimarbo-se\d+[^"]*)"[^>]*>\s*Semana\s+Epidemiol\S*\s+(\d+)', html, re.I
+        r'href="((?:https?://[^/"]+)?/documents/d/saude/[^"]+)"[^>]*>\s*Semana\s+Epidemiol\S*\s+(\d+)', html, re.I
     )
+    return [(urllib.parse.urljoin(BASE, url), int(se)) for url, se in links if "silvestre" not in url.lower()]
+
+
+def descobrir_mais_recente() -> tuple[str, int]:
+    """Primeiro link de boletim urbano na página de entrada (a lista vem do mais novo).
+
+    Se a página trouxer um silvestre por engano, a leitura do PDF falha alto: ele não tem os quadros por distrito.
+    """
+    links = links_urbanos(baixar(PAGINA_ENTRADA).decode("utf-8", "replace"))
     if not links:
-        raise RuntimeError("nenhum link de boletim na página de entrada; o HTML mudou?")
-    caminho, se = links[0]
-    return BASE + caminho, int(se)
+        raise RuntimeError("nenhum link de boletim urbano na página de entrada; o HTML mudou?")
+    print("primeiros links na página: " + ", ".join(f"SE {se}" for _, se in links[:3]))
+    return links[0]
 
 
 def ler_capa(pdf) -> dict:
@@ -220,8 +242,8 @@ def valores_do_ano(anos: list[int], toks: list[str], por_ano: int, ano: int) -> 
     if ano not in anos:
         raise RuntimeError(f"ano {ano} do boletim não está no cabeçalho do quadro {anos}")
     i = anos.index(ano) * por_ano
-    casos = int(toks[i])
-    inc = float(toks[i + 1].replace(",", ".")) if por_ano == 2 else None
+    casos = inteiro(toks[i])
+    inc = decimal(toks[i + 1]) if por_ano == 2 else None
     return casos, inc
 
 
@@ -244,7 +266,7 @@ def extrair_doenca(doenca: str, paginas: list, ano: int, ids: set[str]) -> dict:
     if inv_toks is not None:
         if len(inv_toks) != len(anos):
             raise RuntimeError(f"{doenca}: linha EM INVESTIGAÇÃO ilegível: {inv_toks}")
-        investigacao = int(inv_toks[anos.index(ano)])
+        investigacao = inteiro(inv_toks[anos.index(ano)])
     soma = sum(d["casos_ano"] for d in distritos.values())
     if soma + (investigacao or 0) != total:
         raise RuntimeError(f"{doenca}: soma dos distritos {soma} + em investigação {investigacao} != TOTAL {total}")
@@ -266,6 +288,8 @@ def dados_ate(paginas: list) -> str | None:
 
 def montar_snapshot(pdf, url: str | None, ids: set[str]) -> dict:
     capa = ler_capa(pdf)
+    if not capa["publicado_em"]:
+        raise RuntimeError("capa sem data de publicação ('PUBLICADO EM: DD/MM/AA'); o layout mudou?")
     quadros = localizar_quadros(pdf)
     for doenca in COLUNAS_POR_ANO:
         if doenca not in quadros:
@@ -278,11 +302,16 @@ def montar_snapshot(pdf, url: str | None, ids: set[str]) -> dict:
         "sem_dados_por_distrito": True,
         "observacao": "o quadro por distrito de zika só cobre 2016–2017; sem caso autóctone desde 2018",
     }
+    corte = dados_ate(quadros["dengue"])
+    if not corte:
+        raise RuntimeError("quadro de dengue sem 'dados provisórios até DD.MM.AAAA' (data de corte); o layout mudou?")
+    if corte > capa["publicado_em"]:
+        raise RuntimeError(f"data de corte {corte} depois da publicação {capa['publicado_em']}: datas lidas errado")
     return {
         "fonte": f"COVISA/SMS-SP, boletim SE {capa['se']}/{capa['ano']}",
         "url": url,
         **capa,
-        "dados_ate": dados_ate(quadros["dengue"]),
+        "dados_ate": corte,
         "extraido_em": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "doencas": doencas,
     }
@@ -313,6 +342,19 @@ def derivar(snapshots: list[dict]) -> dict:
         "fonte": atual["fonte"],
         "ano": atual["ano"],
         "se": atual["se"],
+        # Rastreabilidade: de onde veio, quando a COVISA publicou, até quando vão os registros do SINAN.
+        "url": atual.get("url"),
+        "publicado_em": atual.get("publicado_em"),
+        "periodo": atual.get("periodo"),
+        "dados_ate": atual.get("dados_ate"),
+        "extraido_em": atual.get("extraido_em"),
+        # Só existe snapshot de boletim que passou em todas as conferências de extrair_doenca e montar_snapshot.
+        "validacao": {
+            "status": "aprovada",
+            "distritos": {d: len(b["distritos"]) for d, b in atual["doencas"].items() if "distritos" in b},
+            "conferencias": "96 distritos casados com o GeoJSON, sem repetição; ano do boletim no cabeçalho do quadro; "
+                            "soma dos distritos (+ em investigação) igual à linha TOTAL; datas de publicação e de corte lidas",
+        },
         "gerado_em": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "boletim_anterior_se": {"ano": anterior["ano"], "se": anterior["se"]} if anterior else None,
         "sem_dados_por_distrito": sem_dados,

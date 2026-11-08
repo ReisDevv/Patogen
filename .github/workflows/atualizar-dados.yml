@@ -1,9 +1,13 @@
 # Rotina 1 do Epimapa SP: busca a série municipal no InfoDengue e o boletim
-# semanal da COVISA toda noite e faz commit dos JSONs atualizados. Com o
-# GitHub Pages ligado, o site publicado passa a refletir os dados novos.
+# semanal da COVISA toda noite e faz commit dos JSONs atualizados.
 #
 # O boletim da COVISA sai às segundas; nos outros dias fetch_covisa.py
-# reconhece que a SE já foi extraída e não faz nada.
+# reconhece que a SE já foi extraída e não grava nada.
+#
+# As duas fontes são independentes: se uma falhar, a outra ainda é gravada,
+# e o job termina em vermelho dizendo qual falhou. Nenhum script grava dado
+# que não passou na própria validação, então o último conjunto válido fica.
+# Publicar o site depois disso é com o deploy-pages.yml (gatilho workflow_run).
 name: Atualizar dados (InfoDengue e COVISA)
 
 on:
@@ -26,14 +30,26 @@ jobs:
           cache-dependency-path: requirements.txt
       - name: Instalar dependências (pdfplumber, só para o scraper da COVISA)
         run: pip install -r requirements.txt
+      - name: Testar o leitor do boletim COVISA
+        run: python -m unittest discover -s tests -v
       - name: Buscar InfoDengue
+        id: infodengue
+        continue-on-error: true
         run: python scripts/fetch_infodengue.py --anos 2
       - name: Buscar boletim COVISA
+        id: covisa
+        continue-on-error: true
         run: python scripts/fetch_covisa.py
-      - name: Commitar se mudou
+      - name: Commitar o que passou na validação
         run: |
           git config user.name "epimapa-bot"
           git config user.email "bot@users.noreply.github.com"
           git add data/infodengue.json data/casos_distrito.json data/covisa/
           git diff --cached --quiet && echo "sem mudanças" || git commit -m "dados: InfoDengue e COVISA $(date -u +%F)"
           git push
+      - name: Falhar se alguma fonte não foi atualizada
+        if: steps.infodengue.outcome == 'failure' || steps.covisa.outcome == 'failure'
+        run: |
+          [ "${{ steps.infodengue.outcome }}" = failure ] && echo "::error title=InfoDengue::falhou; data/infodengue.json anterior mantido. Veja o passo 'Buscar InfoDengue'."
+          [ "${{ steps.covisa.outcome }}" = failure ] && echo "::error title=COVISA::falhou; último boletim válido mantido. Veja o passo 'Buscar boletim COVISA' e docs/covisa-formato.md."
+          exit 1

@@ -52,7 +52,7 @@ def normalizar(linha: dict) -> dict:
     """
     inicio = linha.get("data_iniSE")
     if isinstance(inicio, (int, float)):           # epoch em milissegundos
-        inicio = dt.datetime.utcfromtimestamp(inicio / 1000).date().isoformat()
+        inicio = dt.datetime.fromtimestamp(inicio / 1000, dt.timezone.utc).date().isoformat()
 
     se = int(linha.get("SE", 0))                    # formato AAAASS, ex. 202634
     nivel = int(linha.get("nivel") or 0)
@@ -97,13 +97,17 @@ def main() -> int:
         "doencas": {},
     }
 
+    # A API devolve [] para zika em São Paulo (sem série municipal); isso é normal. Suspeito é uma
+    # série que existia no arquivo anterior voltar vazia.
+    antes = json.loads(SAIDA.read_text(encoding="utf-8"))["doencas"] if SAIDA.exists() else {}
+    falhas = []
     for doenca in DOENCAS:
         print(f"[{doenca}] buscando {ano_ini}–{hoje.year}...", end=" ", flush=True)
         try:
             bruto = buscar(doenca, ano_ini, hoje.year)
         except Exception as e:  # rede, timeout, JSON inválido
             print(f"falhou: {e}")
-            saida["doencas"][doenca] = {"erro": str(e), "semanas": []}
+            falhas.append(f"{doenca}: {e}")
             continue
 
         semanas = sorted((normalizar(l) for l in bruto), key=lambda s: (s["ano"], s["se"]))
@@ -121,7 +125,13 @@ def main() -> int:
             ),
         }
         print(f"{len(semanas)} semanas, última SE {atual['se']}/{atual['ano']}" if atual else "sem dados")
+        if not atual and antes.get(doenca, {}).get("semanas"):
+            falhas.append(f"{doenca}: a API não devolveu nenhuma semana, e o arquivo anterior tinha série")
 
+    if falhas:
+        # Sem gravar: a série válida anterior continua no ar em vez de uma série vazia.
+        print("erro: nada gravado, data/infodengue.json anterior preservado. " + "; ".join(falhas), file=sys.stderr)
+        return 1
     SAIDA.parent.mkdir(parents=True, exist_ok=True)
     SAIDA.write_text(json.dumps(saida, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"gravado em {SAIDA.relative_to(RAIZ)}")
