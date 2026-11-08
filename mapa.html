@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<script src="tema.js?v=e23dc7d"></script>
+<script src="tema.js?v=727388d"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Epimapa SP — arboviroses por distrito</title>
 <meta name="description" content="Dengue, chikungunya e zika por distrito da cidade de São Paulo, com dados do InfoDengue e do boletim da vigilância municipal (COVISA).">
@@ -484,7 +484,23 @@
   }
 
   /* ---------- mobile: marca + busca numa linha, doenças embaixo; painel vira bottom sheet ---------- */
-  @media (max-width: 900px) and (min-height: 500px), (max-width: 560px) {
+  /* ---------- Direção editorial (2026-11-08): painel como coluna, tipografia e números como na página inicial ---------- */
+:root { --painel-w: 372px; }
+.painel { top: var(--topo); left: 0; bottom: 0; max-height: none; border-radius: 0; box-shadow: none; border-right: 1px solid var(--line); }
+.painel__corpo { padding: 6px 28px 28px; }
+.bloco { padding: 22px 0; }
+.bloco h2 { font: 600 19px/1.2 var(--f-titulo); letter-spacing: -.02em; }
+#dist-nome { font-size: 28px; line-height: 1.1; letter-spacing: -.03em; }
+.destaque .v { font: 500 46px/1 var(--f-num); letter-spacing: -.04em; }
+.stats { gap: 18px 20px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--ink); }
+.stat .v { font: 500 26px/1.1 var(--f-num); letter-spacing: -.03em; }
+.top5 .num { font-family: var(--f-num); }
+#dist-se { font-size: 19px; white-space: nowrap; padding-top: 5px; }
+.top5 button { border-radius: 0; border-bottom: 1px solid var(--line); }
+.top5 li + li { margin-top: 0; }
+.faixa-dist { padding-top: 14px; border-top: 1px solid var(--line); }
+.topo { border-bottom: 1px solid var(--line); }
+@media (max-width: 900px) and (min-height: 500px), (max-width: 560px) {
     :root { --topo: 104px; }
     .topo { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; gap: 8px 12px; padding: 8px 12px; }
     .marca { grid-row: 1; grid-column: 1; gap: 8px; }
@@ -863,8 +879,8 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="nivel.js?v=e23dc7d"></script>
-<script src="chat.js?v=e23dc7d"></script>
+<script src="nivel.js?v=727388d"></script>
+<script src="chat.js?v=727388d"></script>
 <script>
 (async function () {
   const $ = (id) => document.getElementById(id);

@@ -195,7 +195,7 @@ depois; define o que pode ser construído.
   leva ao mapa. O mapa (`mapa.html`) abre direto, sem janela por cima, igual ao vídeo da banca.
   A página inicial copia de `mapa.html` os tokens, os componentes (seletor, busca, badges,
   gráfico, escala, Epi) e as regras de cor: se mudar o desenho ou as cores lá, replique aqui.
-  O caminho inverso não vale: o visual do mapa (cores, modelo, formato) fica igual ao vídeo da
+  Desde 2026-11-08 (pedido do dono) o mapa segue a direção editorial: painel como coluna lateral fixa no desktop (`--painel-w: 372px`; o enquadramento usa `352 + 32` px no JS), títulos Space Grotesk e números mono; a gaveta do celular não mudou. Antes disso valia: o visual do mapa (cores, modelo, formato) fica igual ao vídeo da
   banca, decisão do dono (2026-10). Não mude o mapa para acompanhar a página inicial. A única
   exceção aprovada foi o símbolo da marca no topo e o ícone da aba.
 - Marca (2026-11-08, escolhida pelo time; substitui a "Lente" de 2026-10): a empresa é a
