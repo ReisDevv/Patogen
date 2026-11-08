@@ -144,6 +144,27 @@ def caixa_alta(t: str) -> bool:
     return bool(l) and all(c.isupper() for c in l)
 
 
+def separar_colados(w: dict) -> list[dict]:
+    """'AricanduvaCARRÃO' -> ['Aricanduva', 'CARRÃO'].
+
+    Quando o espaço entre a subprefeitura e o distrito fica menor que x_tolerance, o pdfplumber
+    junta os dois numa palavra (SE 42/2026, Carrão). Corta antes do trecho final em maiúsculas
+    (3+ letras) que vem depois de uma minúscula, usando a posição de cada letra.
+    """
+    t, chars = w["text"], w.get("chars")
+    minusculas = [i for i, c in enumerate(t) if c.islower()]
+    if not minusculas or not chars or len(chars) != len(t):
+        return [w]
+    i = minusculas[-1] + 1
+    if len(t) - i < 3 or not caixa_alta(t[i:]):
+        return [w]
+
+    def parte(cs: list[dict]) -> dict:
+        return {**w, "text": "".join(c["text"] for c in cs), "x0": cs[0]["x0"], "x1": cs[-1]["x1"], "chars": cs}
+
+    return [parte(chars[:i]), parte(chars[i:])]
+
+
 def agrupar_linhas(palavras: list[dict], tol: float = 2.0) -> list[dict]:
     linhas: list[dict] = []
     for w in sorted(palavras, key=lambda w: w["top"]):
@@ -160,7 +181,7 @@ def extrair_pagina(pagina, por_ano: int) -> tuple[list[int], dict[str, list[str]
     O PDF não tem grade de tabela, então a leitura é por posição das palavras.
     Os parâmetros (tolerâncias, janelas) estão justificados em docs/covisa-formato.md.
     """
-    palavras = pagina.extract_words(x_tolerance=5, y_tolerance=1)
+    palavras = [p for w in pagina.extract_words(x_tolerance=5, y_tolerance=1, return_chars=True) for p in separar_colados(w)]
     guarda = pagina.width * 0.15     # descarta o rótulo CRS rotacionado na margem
     numeros = [w for w in palavras if NUM_RE.match(w["text"]) and w["x0"] > guarda]
     caps = [w for w in palavras if not NUM_RE.match(w["text"]) and caixa_alta(w["text"]) and w["x0"] > guarda]
