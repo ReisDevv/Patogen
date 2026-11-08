@@ -48,6 +48,25 @@ class Numeros(unittest.TestCase):
             fc.valores_do_ano(ANOS, ["1"] * 5, 1, 2027)
 
 
+def palavra(texto: str, x0: float = 100.0, passo: float = 4.0) -> dict:
+    """Palavra no formato do extract_words(return_chars=True), uma letra a cada `passo` pontos."""
+    chars = [{"text": c, "x0": x0 + i * passo, "x1": x0 + (i + 1) * passo, "top": 250.0} for i, c in enumerate(texto)]
+    return {"text": texto, "x0": x0, "x1": x0 + len(texto) * passo, "top": 250.0, "chars": chars}
+
+
+class PalavrasColadas(unittest.TestCase):
+    # SE 42/2026: o pdfplumber leu "AricanduvaCARRÃO" (subprefeitura + distrito) como uma palavra só.
+    def test_separa_subprefeitura_do_distrito(self):
+        a, b = fc.separar_colados(palavra("AricanduvaCARRÃO"))
+        self.assertEqual((a["text"], b["text"]), ("Aricanduva", "CARRÃO"))
+        self.assertEqual(b["x0"], 140.0)
+        self.assertEqual(a["x1"], 140.0)
+
+    def test_nao_mexe_no_que_nao_esta_colado(self):
+        for t in ("CARRÃO", "Mooca/", "Aricanduva", "JD.ÂNGELA", "ooca/", "11.920", "BrasilândiaCA"):
+            self.assertEqual([w["text"] for w in fc.separar_colados(palavra(t))], [t], t)
+
+
 class PaginaDeEntrada(unittest.TestCase):
     HTML = """
       <strong>Arbovirose Urbanas</strong>

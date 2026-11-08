@@ -94,6 +94,11 @@ boletim não está no cabeçalho), o script **para com erro**. Não há modo "me
   SE 41: "ids sem linha no quadro"). Corrigido em 2026-11-01: `NUM_RE` aceita os dois formatos e
   `inteiro()` / `decimal()` tiram o ponto antes de converter. Como o job parava nesse passo, o
   InfoDengue também deixou de ser commitado de 19/10 a 01/11.
+- **SE 42/2026 (publicada em 03/11/2026): `AricanduvaCARRÃO` mesmo com tolerância 5.** No quadro
+  de dengue o espaço entre a UVIS e o distrito ficou menor que 5 pt e o Carrão saiu colado
+  ("ids sem linha no quadro: ['carrao']"). Corrigido em 2026-11-08: `extract_words(return_chars=True)`
+  e `separar_colados()` cortam antes do trecho final em caixa alta (3+ letras) que vem depois de uma
+  minúscula, com a posição de cada letra. Teste em `PalavrasColadas`.
 - **Domínio:** `www.prefeitura.sp.gov.br` passou a redirecionar para `prefeitura.sp.gov.br`.
   O script usa o endereço sem `www`.
 - **Slug:** varia de edição para edição (`boletimarbo-se41_23out26-pdf`,
