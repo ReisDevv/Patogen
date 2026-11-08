@@ -9,7 +9,7 @@
 </script>
 <title>Epimapa SP: a dengue está alta no meu bairro?</title>
 <meta name="description" content="Dengue, chikungunya e zika nos 96 distritos de São Paulo, com dados oficiais do InfoDengue e do boletim da vigilância municipal (COVISA), atualizados toda semana.">
-<meta name="theme-color" content="#1d5c7a">
+<meta name="theme-color" content="#0F766E">
 <link rel="canonical" href="https://reisdevv.github.io/Patogen/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://reisdevv.github.io/Patogen/">
@@ -24,7 +24,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="img/icone-180.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10.5' fill='%231d5c7a'/%3E%3Cg transform='translate(7.68 7.68) scale(0.68)'%3E%3Cpath fill='%23fff' d='M10.3 5h7.2v33l-3.6 5.5-3.6-5.5z'/%3E%3Ccircle cx='24.2' cy='18.5' r='10.2' fill='none' stroke='%23fff' stroke-width='7'/%3E%3Ccircle cx='24.2' cy='18.5' r='3.2' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10.56' fill='%230F172A'/%3E%3Cg transform='translate(7.68 7.68) scale(0.68)'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%23F8FAFC' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%2322D3EE' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%2314B8A6'/%3E%3C/g%3E%3C/svg%3E">
 <!-- os mesmos dados do mapa: a prévia usa agora e o mapa abre do cache depois -->
 <link rel="preload" href="data/distritos.geojson" as="fetch" crossorigin>
 <link rel="preload" href="data/casos_distrito.json" as="fetch" crossorigin>
@@ -42,12 +42,12 @@
     --bg: #e9edf1;
     --surface: #ffffff;
     --surface-2: #f3f5f8;
-    --ink: #16202b;
+    --ink: #0F172A;
     --muted: #5b6877;
     --line: #dde3e9;
-    --accent: #1d5c7a;
-    --accent-ink: #0f3a4f;
-    --accent-soft: #e3eef3;
+    --accent: #0F766E;
+    --accent-ink: #115E59;
+    --accent-soft: #E6F4F1;
     --n1: #3d9a6a; --n2: #e8c04a; --n3: #e8802f; --n4: #c8322b;
     --sem-dado: #c9d1d9;
     --r-box: 12px; --r-ctl: 8px; --r-pilula: 999px;
@@ -69,6 +69,7 @@
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
+  .convite { margin: 0 0 20px; padding: 12px 16px; max-width: 640px; border-radius: var(--r-box); background: var(--accent-soft); color: var(--accent-ink); font-size: 15px; line-height: 1.45; }
   html { scroll-behavior: smooth; scroll-padding-top: calc(var(--topo) + 12px); }
   body {
     margin: 0;
@@ -94,8 +95,8 @@
 
   /* ---------- componentes do mapa.html ---------- */
   .marca { display: flex; align-items: center; gap: 10px; }
-  /* símbolo da Pathogen (img/marca/pathogen-simbolo.svg) */
-  .marca__logo { width: 28px; height: 28px; flex: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%2316202b' d='M10.3 5h7.2v33l-3.6 5.5-3.6-5.5z'/%3E%3Ccircle cx='24.2' cy='18.5' r='10.2' fill='none' stroke='%2316202b' stroke-width='7'/%3E%3Ccircle cx='24.2' cy='18.5' r='3.2' fill='%231d5c7a'/%3E%3C/svg%3E") center / contain no-repeat; }
+  /* símbolo da Pathogen (img/marca/pathogen-radar.svg) */
+  .marca__logo { width: 28px; height: 28px; flex: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%230F172A' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%230E7490' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%230F766E'/%3E%3C/svg%3E") center / contain no-repeat; }
   .seg {
     display: inline-flex; justify-self: center; gap: 2px; padding: 3px;
     background: var(--surface-2); border-radius: var(--r-ctl);
@@ -394,6 +395,11 @@
   .heroi { padding-block: 56px 0; }
   .heroi h1 { font-size: var(--t-heroi); line-height: 1.02; letter-spacing: -.04em; font-weight: 600; margin: 0; max-width: 14ch; text-wrap: balance; }
   .heroi .lead { font-size: 21px; max-width: 46ch; }
+  .pathogen-linha { margin: 18px 0 0; max-width: 62ch; color: var(--muted); font-size: 15.5px; text-wrap: pretty; }
+  .pathogen-linha strong { color: var(--ink); font-weight: 600; }
+  .caminhos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .caminhos .btn { white-space: normal; text-align: center; }
+  .prevencao__largo { grid-column: 1 / -1; }
   /* atalhos com ícone, como a fileira de modelos de uma loja */
   .atalhos { list-style: none; margin: 40px 0 0; padding: 0 0 4px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
   .atalhos::-webkit-scrollbar { display: none; }
@@ -665,6 +671,7 @@
       <a href="#prevencao">Prevenção</a>
       <a href="#privacidade">Privacidade</a>
       <a href="#perguntas">Perguntas</a>
+      <a href="organizacoes.html">Organizações</a>
     </nav>
     <a class="btn btn--primario btn--pilula" href="mapa.html" data-mapa>Abrir o mapa</a>
   </div>
@@ -672,8 +679,14 @@
 
 <main id="conteudo">
   <section class="wrap heroi" aria-labelledby="titulo">
+    <p class="convite" id="convite" hidden><strong id="convite-org"></strong> enviou este link para você acompanhar o distrito onde mora ou trabalha. Ninguém fica sabendo qual distrito você consulta, nem quem enviou.</p>
     <h1 id="titulo">A dengue está alta no meu bairro?</h1>
     <p class="lead">Dengue, chikungunya e zika nos 96 distritos de São Paulo, com os números oficiais da semana e a fonte de cada um.</p>
+    <p class="pathogen-linha"><strong>Pathogen. Informação que te previne.</strong> Transformamos dados epidemiológicos públicos em informação acessível para quem mora na cidade, no Epimapa SP, e em planejamento preventivo para organizações com unidades em São Paulo.</p>
+    <div class="caminhos">
+      <a class="btn btn--primario btn--pilula" href="mapa.html" data-mapa>Consultar mapa</a>
+      <a class="btn btn--secundario btn--pilula" href="organizacoes.html">Para organizações</a>
+    </div>
 
     <ul class="atalhos" aria-label="Atalhos">
       <li><button type="button" data-ir-busca><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar distrito</button></li>
@@ -714,7 +727,7 @@
               <dl class="ficha__numeros">
                 <div><dt>por 100 mil habitantes</dt><dd id="f-inc">—</dd></div>
                 <div><dt>posição entre os 96</dt><dd id="f-rank">—</dd></div>
-                <div><dt id="f-novos-k">desde o boletim anterior</dt><dd id="f-novos">—</dd></div>
+                <div><dt id="f-se-k">boletim da COVISA</dt><dd id="f-se">—</dd></div>
               </dl>
               <h4 id="f-faixa-titulo">Os 96 distritos, do maior para o menor</h4>
               <svg class="faixa96" id="f-faixa" viewBox="0 0 960 56" preserveAspectRatio="none" role="img" aria-labelledby="f-faixa-titulo"></svg>
@@ -762,7 +775,7 @@
           <div class="dados">
             <div class="bloco__cab">
               <div><h3 id="cid-titulo">Cidade de São Paulo</h3><div class="sub" id="cid-semana">—</div></div>
-              <span id="cid-badge" class="badge" data-nivel="1" title="Nível de alerta semanal (InfoDengue)">—</span>
+              <span id="cid-badge" class="badge" data-nivel="1" title="Nível de alerta semanal do município inteiro (InfoDengue). Não existe nível de alerta por distrito.">—</span>
             </div>
             <div id="cid-numeros">
               <div class="destaque">
@@ -905,6 +918,21 @@
           </ul>
           <p class="fonte">Orientações resumidas do Ministério da Saúde.<sup class="nota-ref"><a href="#nota-5" aria-label="Nota 5">5</a></sup> Este site não substitui avaliação médica.</p>
         </article>
+
+        <article class="painel prevencao__largo" aria-labelledby="amb-titulo">
+          <span class="rotulo">Casa e reservatórios</span>
+          <h3 id="amb-titulo">Proteja os ambientes.</h3>
+          <ul class="lista-texto">
+            <li>Reservatórios e qualquer lugar que acumule água: totalmente cobertos com telas, capas ou tampas.</li>
+            <li>Telas em portas e janelas, mosquiteiro sobre a cama e, quando houver, ar-condicionado.</li>
+            <li>De dia, quando o mosquito mais pica: calça e camisa de manga comprida e repelente à base de DEET, IR3535 ou icaridina, seguindo a orientação do fabricante.</li>
+          </ul>
+          <div class="caminhos">
+            <a class="btn btn--primario btn--pilula" href="https://sp156.prefeitura.sp.gov.br/portal/servicos/informacao?servico=810" target="_blank" rel="noopener">Comunicar possível foco de água parada — SP156</a>
+            <a class="btn btn--secundario btn--pilula" href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue/faq/dengue/como-se-prevenir-da-dengue" target="_blank" rel="noopener">Como se prevenir, pelo Ministério da Saúde</a>
+          </div>
+          <p class="fonte">O pedido de vistoria é feito no serviço oficial da Prefeitura. O Epimapa não recebe fotos, endereços nem denúncias.<sup class="nota-ref"><a href="#nota-5" aria-label="Nota 5">5</a></sup></p>
+        </article>
       </div>
     </div>
   </section>
@@ -956,11 +984,11 @@
   <section class="wrap notas" id="notas" aria-labelledby="notas-titulo">
     <h2 class="sr" id="notas-titulo">Notas e fontes</h2>
     <ol>
-      <li id="nota-1">Distritos: <a href="https://www.prefeitura.sp.gov.br/web/saude/w/vigilancia_em_saude/boletim_covisa/arboviroses" target="_blank" rel="noopener">boletim de arboviroses da COVISA</a>, Secretaria Municipal da Saúde de São Paulo<span id="nota-1-se"></span>. Casos confirmados por ano de início dos sintomas, acumulados desde janeiro, e incidência por 100 mil habitantes como publicada no boletim. Chikungunya: só casos autóctones, sem incidência. Zika: sem quadro por distrito desde 2018. "Desde o boletim anterior" é a diferença entre o acumulado deste boletim e o do anterior, e fica negativa quando a vigilância revisa casos. O PDF é lido automaticamente e só é aceito se a soma dos distritos bater com o total do boletim.</li>
+      <li id="nota-1">Distritos: <a href="https://www.prefeitura.sp.gov.br/web/saude/w/vigilancia_em_saude/boletim_covisa/arboviroses" target="_blank" rel="noopener">boletim de arboviroses da COVISA</a>, Secretaria Municipal da Saúde de São Paulo<span id="nota-1-se"></span>. Casos confirmados por ano de início dos sintomas, acumulados desde janeiro, e incidência por 100 mil habitantes como publicada no boletim. Chikungunya: só casos autóctones, sem incidência. Zika: sem quadro por distrito desde 2018. A COVISA revisa as semanas anteriores a cada edição, por isso a diferença entre dois boletins não é mostrada como casos novos. O PDF é lido automaticamente e só é aceito se a soma dos distritos bater com o total do boletim.</li>
       <li id="nota-2">Cidade: <a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue</a>, da Fiocruz e da FGV, a partir do SINAN do Ministério da Saúde<span id="nota-2-data"></span>. Casos notificados por semana epidemiológica. O InfoDengue também publica uma estimativa que corrige o atraso das notificações; o site mostra o número notificado. O nível de alerta, de 1 a 4, vale para a cidade inteira.</li>
       <li id="nota-3">Contorno dos 96 distritos e das 32 subprefeituras: GeoSampa, Prefeitura de São Paulo.</li>
       <li id="nota-4">Mapa-base do mapa completo: Esri, HERE, Garmin e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores do OpenStreetMap</a>, com a biblioteca Leaflet.</li>
-      <li id="nota-5">Orientações de saúde resumidas do <a href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue" target="_blank" rel="noopener">Ministério da Saúde</a>. Não substituem avaliação médica.</li>
+      <li id="nota-5">Orientações de saúde resumidas do <a href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue" target="_blank" rel="noopener">Ministério da Saúde</a> e da página <a href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue/faq/dengue/como-se-prevenir-da-dengue" target="_blank" rel="noopener">Como se prevenir da dengue</a>. Não substituem avaliação médica. Pedido de vistoria: <a href="https://sp156.prefeitura.sp.gov.br/portal/servicos/informacao?servico=810" target="_blank" rel="noopener">serviço SP156 da Prefeitura</a>.</li>
     </ol>
     <p id="dados-no-ar"></p>
   </section>
@@ -992,6 +1020,8 @@
           <a href="#notas">Notas e fontes</a>
           <a href="#privacidade">Privacidade</a>
           <a href="https://github.com/ReisDevv/Patogen" target="_blank" rel="noopener">Código no GitHub</a>
+          <a href="organizacoes.html">Para organizações</a>
+          <a href="impacto.html">Pathogen Impacto</a>
         </nav>
       </div>
     </div>
@@ -1015,7 +1045,7 @@
 <section class="chat" id="chat" role="dialog" aria-labelledby="chat-titulo" hidden>
   <header class="chat__cab">
     <span class="robo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V6"/><circle cx="12" cy="2.6" r="1.1" fill="currentColor" stroke="none"/><rect x="4" y="6" width="16" height="12" rx="4"/><circle cx="9" cy="11.6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="11.6" r="1.4" fill="currentColor" stroke="none"/><path d="M9.5 15h5M2 10.5v3M22 10.5v3"/></svg></span>
-    <div><h2 id="chat-titulo">Epi, assistente do mapa</h2><div class="sub">Responde com os números do último boletim</div></div>
+    <div><h2 id="chat-titulo">Epi, assistente do mapa</h2><div class="sub">Assistente informativo: dados oficiais e prevenção</div></div>
     <button type="button" class="fechar" id="chat-fechar" aria-label="Fechar assistente">✕</button>
   </header>
   <div class="chat__msgs" id="chat-msgs" role="log" aria-live="polite"></div>
@@ -1028,6 +1058,16 @@
 </section>
 
 <script src="chat.js"></script>
+<script>
+// Link que a organização manda aos colaboradores (?de=Nome, gerado em organizacoes.html).
+// Só mostra o nome: nada sobre a consulta volta para a organização.
+(function () {
+  const org = (new URLSearchParams(location.search).get("de") || "").trim().slice(0, 60);
+  if (!org) return;
+  document.getElementById("convite-org").textContent = org;
+  document.getElementById("convite").hidden = false;
+})();
+</script>
 <script>
 (async function () {
   const $ = (id) => document.getElementById(id);
@@ -1083,7 +1123,7 @@
   const props = {};
   geo.features.forEach(f => { props[f.properties.id] = f.properties; });
   const dados = () => dd.doencas[doenca] || {};
-  const dadoDe = (id) => dados()[id] || { casos_ano: null, inc100k_ano: null, novos_desde_boletim: null };
+  const dadoDe = (id) => dados()[id] || { casos_ano: null, inc100k_ano: null };
   const semDadosDistrito = () => (dd.sem_dados_por_distrito || []).includes(doenca);
   const temIncidencia = () => Object.values(dados()).some(d => typeof d.inc100k_ano === "number");
   const medida = (d) => typeof d.inc100k_ano === "number" ? d.inc100k_ano : (d.casos_ano || 0);
@@ -1091,6 +1131,8 @@
   const ranking = () => Object.entries(dados()).sort((a, b) => medida(b[1]) - medida(a[1])).map(e => e[0]);
   const refBoletim = () => `Boletim COVISA SE ${dd.se}/${dd.ano} · acumulado desde janeiro`;
   const dataBR = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "data desconhecida";
+  // Data sem hora ("2026-10-23"): ao meio-dia, para o fuso de SP não voltar um dia.
+  const dia = (s) => s ? new Date(s + "T12:00:00").toLocaleDateString("pt-BR") : "data desconhecida";
 
   function mix(a, b, t) {
     const pa = a.match(/\w\w/g).map(h => parseInt(h, 16));
@@ -1216,18 +1258,12 @@
     $("f-casos-k").textContent = doenca === "chikungunya" ? "casos autóctones confirmados desde janeiro" : "casos confirmados desde janeiro";
     $("f-inc").textContent = typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "não publicada";
     $("f-rank").textContent = `${pos}º`;
-    const n = d.novos_desde_boletim, novos = $("f-novos");
-    novos.classList.remove("up", "down");
-    if (n == null) { novos.textContent = "—"; $("f-novos-k").textContent = "sem boletim anterior para comparar"; }
-    else {
-      novos.textContent = `${n > 0 ? "+" : n < 0 ? "−" : ""}${fmt.format(Math.abs(n))}`;
-      if (n) novos.classList.add(n > 0 ? "up" : "down");
-      $("f-novos-k").textContent = n < 0 ? "revisado para baixo desde o boletim anterior" : `desde o boletim da SE ${dd.boletim_anterior_se.se}`;
-    }
+    $("f-se").textContent = `SE ${dd.se}/${dd.ano}`;
+    $("f-se-k").textContent = dd.dados_ate ? `boletim da COVISA, dados até ${dia(dd.dados_ate)}` : "boletim da COVISA";
     // faixa dos 96: cada traço é um distrito, na ordem do ranking; o escolhido sobe e fica escuro
     const L = 960 / rank.length;
     $("f-faixa").innerHTML = rank.map((id, i) => id === selecionado
-      ? `<rect x="${(i * L - 1).toFixed(1)}" y="0" width="${(L + 2).toFixed(1)}" height="56" rx="2" fill="#16202b"/>`
+      ? `<rect x="${(i * L - 1).toFixed(1)}" y="0" width="${(L + 2).toFixed(1)}" height="56" rx="2" fill="#0F172A"/>`
       : `<rect x="${(i * L + 1).toFixed(1)}" y="16" width="${(L - 2).toFixed(1)}" height="30" rx="2" fill="${corDe(dadoDe(id))}"/>`).join("");
     $("f-faixa").setAttribute("aria-label", `${f.nome} é o ${pos}º de ${rank.length} distritos.`);
     $("f-faixa-ini").textContent = temIncidencia() ? "mais casos por habitante" : "mais casos";
@@ -1281,7 +1317,7 @@
       return;
     }
     $("cid-semana").textContent = `${NOME_DOENCA[doenca]}, semana ${atual.se}/${atual.ano} · InfoDengue`;
-    $("cid-badge").textContent = NIVEL_NOME[atual.nivel] || "—";
+    $("cid-badge").textContent = `alerta municipal: ${NIVEL_NOME[atual.nivel] || "—"}`;
     $("cid-badge").dataset.nivel = atual.nivel || 1;
     $("cid-casos").textContent = fmt.format(atual.casos);
     const sem = serie.semanas.slice(-26);
@@ -1437,9 +1473,11 @@
   addEventListener("pageshow", pronto);
 
   // ---------- notas e rodapé: a semana de cada fonte ----------
-  const noAr = `Dados no ar: InfoDengue atualizado em ${dataBR(cd.atualizado_em)} e boletim COVISA da semana ${dd.se}/${dd.ano}.`;
+  const noAr = `Dados no ar: InfoDengue atualizado em ${dataBR(cd.atualizado_em)} e boletim COVISA da semana ${dd.se}/${dd.ano}${dd.dados_ate ? ` (dados até ${dia(dd.dados_ate)})` : ""}.`;
   $("dados-no-ar").textContent = noAr;
-  $("nota-1-se").textContent = `, semana epidemiológica ${dd.se}/${dd.ano}` + (dd.boletim_anterior_se ? `, comparada à ${dd.boletim_anterior_se.se}/${dd.boletim_anterior_se.ano}` : "");
+  $("nota-1-se").textContent = `, semana epidemiológica ${dd.se}/${dd.ano}` +
+    (dd.publicado_em ? `, publicado em ${dia(dd.publicado_em)}` : "") +
+    (dd.dados_ate ? `, com dados provisórios do SINAN até ${dia(dd.dados_ate)}` : "");
   $("nota-2-data").textContent = `, atualizado em ${dataBR(cd.atualizado_em)}`;
 
   trocarDoenca("dengue");

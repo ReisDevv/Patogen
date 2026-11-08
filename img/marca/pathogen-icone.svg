@@ -1,2 +1,2 @@
-<!-- Pathogen, símbolo "Lente". Construção em img/marca/pathogen-marca.png. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10.5" fill="#1d5c7a"/><g transform="translate(7.68 7.68) scale(0.68)"><path fill="#fff" d="M10.3 5h7.2v33l-3.6 5.5-3.6-5.5z"/><circle cx="24.2" cy="18.5" r="10.2" fill="none" stroke="#fff" stroke-width="7"/><circle cx="24.2" cy="18.5" r="3.2" fill="#fff"/></g></svg>
+<!-- Pathogen, símbolo Radar-O. Regras em docs/design-system.pdf. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10.56" fill="#0F172A"/><g transform="translate(7.68 7.68) scale(0.68)"><circle cx="24" cy="24" r="18.7" fill="none" stroke="#F8FAFC" stroke-width="6.6"/><path d="M22.91 16.17A11 11 0 0 1 31.96 26.04" fill="none" stroke="#22D3EE" stroke-width="3.3" stroke-linecap="round"/><circle cx="21" cy="27" r="4.6" fill="#14B8A6"/></g></svg>

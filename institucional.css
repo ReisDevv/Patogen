@@ -1,0 +1,159 @@
+/*
+ * Estilo das páginas institucionais da Pathogen (organizacoes.html e impacto.html).
+ * Mesmos tokens, fonte e componentes da página inicial (index.html): se mudar lá, replique aqui.
+ * O mapa (mapa.html) e a página inicial continuam com o CSS embutido.
+ */
+:root {
+  --bg: #e9edf1;
+  --surface: #ffffff;
+  --surface-2: #f3f5f8;
+  --ink: #0F172A;
+  --muted: #5b6877;
+  --line: #dde3e9;
+  --accent: #0F766E;
+  --accent-ink: #115E59;
+  --accent-soft: #E6F4F1;
+  --sem-dado: #c9d1d9;
+  --r-box: 12px; --r-ctl: 8px; --r-pilula: 999px;
+  --sombra: 0 1px 2px rgba(22,32,43,.05), 0 10px 30px -8px rgba(22,32,43,.18);
+  --topo: 64px;
+  --dur: 180ms;
+  --sobre-tinta: #f3f5f8;
+  --sobre-tinta-2: #a9b5c1;
+  --t-heroi: clamp(36px, 4.6vw, 60px);
+  --t-titulo: clamp(28px, 3vw, 40px);
+  --t-painel: clamp(20px, 1.8vw, 24px);
+  --secao-y: clamp(56px, 7vw, 96px);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--topo) + 12px); }
+body {
+  margin: 0; font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif; font-variant-numeric: tabular-nums;
+  color: var(--ink); background: var(--surface); line-height: 1.5; font-size: 17px; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 24px; }
+.secao { padding-block: var(--secao-y); }
+.secao--cinza { background: var(--surface-2); }
+.titulo { font-size: var(--t-titulo); line-height: 1.08; letter-spacing: -.03em; font-weight: 600; margin: 0; max-width: 24ch; text-wrap: balance; }
+.lead { font-size: 19px; color: var(--muted); margin: 14px 0 0; max-width: 60ch; text-wrap: pretty; }
+.fonte { font-size: 13px; color: var(--muted); margin: 14px 0 0; text-wrap: pretty; }
+.rotulo { display: block; font-size: 14px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+
+/* topo */
+.site-topo { position: sticky; top: 0; z-index: 900; height: var(--topo); background: rgba(255,255,255,.88); backdrop-filter: saturate(1.6) blur(16px); border-bottom: 1px solid var(--line); }
+.site-topo .wrap { height: 100%; display: flex; align-items: center; gap: 12px; }
+a.marca { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; border-radius: var(--r-ctl); }
+.marca strong { display: block; font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.1; }
+.marca small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.marca__logo { width: 28px; height: 28px; flex: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%230F172A' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%230E7490' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%230F766E'/%3E%3C/svg%3E") center / contain no-repeat; }
+.site-nav { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+.site-nav a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 12px; border-radius: var(--r-ctl); white-space: nowrap; transition: color var(--dur), background var(--dur); }
+.site-nav a:hover { color: var(--ink); background: rgba(22,32,43,.05); }
+.site-nav a[aria-current="page"] { color: var(--ink); }
+
+/* botões */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: var(--r-pilula);
+  padding: 9px 16px; font-weight: 500; text-decoration: none; cursor: pointer; text-align: center;
+  transition: background var(--dur), border-color var(--dur), color var(--dur), transform var(--dur);
+}
+.btn:active { transform: scale(.98); }
+.btn--primario { background: var(--accent); color: #fff; }
+.btn--primario:hover { background: var(--accent-ink); }
+.btn--secundario { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.btn--secundario:hover { border-color: #c6ced6; background: var(--surface-2); }
+.btn--pequeno { padding: 5px 12px; font-size: 14px; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+
+/* herói */
+.heroi { padding-block: 56px 48px; }
+.heroi h1 { font-size: var(--t-heroi); line-height: 1.04; letter-spacing: -.035em; font-weight: 600; margin: 0; max-width: 20ch; text-wrap: balance; }
+.etiqueta { display: inline-block; font-size: 13px; font-weight: 500; color: var(--accent-ink); background: var(--accent-soft); border-radius: var(--r-pilula); padding: 4px 12px; margin-bottom: 18px; }
+
+/* painéis e grades */
+.painel { background: var(--surface-2); border-radius: var(--r-box); padding: 28px; }
+.secao--cinza .painel { background: var(--surface); }
+.painel h3 { font-size: var(--t-painel); line-height: 1.2; letter-spacing: -.02em; font-weight: 600; margin: 0; text-wrap: balance; }
+.painel p { margin: 10px 0 0; text-wrap: pretty; }
+.painel--tinta { background: var(--ink); color: var(--sobre-tinta); }
+.painel--tinta p, .painel--tinta .rotulo, .painel--tinta li { color: var(--sobre-tinta-2); }
+.grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 36px; }
+.lista-texto { margin: 10px 0 0; padding-left: 20px; }
+.lista-texto li + li { margin-top: 6px; }
+.passos { list-style: none; counter-reset: passo; padding: 0; margin: 36px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.passos li { counter-increment: passo; background: var(--surface); border-radius: var(--r-box); padding: 24px; }
+.passos li::before { content: counter(passo); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: #fff; font-weight: 600; font-size: 15px; margin-bottom: 14px; }
+.passos strong { display: block; font-weight: 600; }
+.passos span { display: block; color: var(--muted); margin-top: 6px; font-size: 15.5px; text-wrap: pretty; }
+
+/* aviso permanente */
+.aviso-demo { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; border-radius: var(--r-ctl); border: 1px solid #c6ced6; background: var(--surface); font-size: 15px; font-weight: 500; }
+.aviso-demo svg { width: 20px; height: 20px; flex: none; color: var(--accent); margin-top: 2px; }
+
+/* formulários */
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end; margin-top: 16px; }
+.campo { display: grid; gap: 4px; font-size: 14px; font-weight: 500; }
+.campo input, .campo select, .campo textarea { font-size: 16px; font-weight: 400; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface); width: 100%; }
+.campo small { color: var(--muted); font-weight: 400; }
+.campo--largo { grid-column: 1 / -1; }
+
+/* indicadores e tabelas */
+.numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 16px; }
+.numeros > div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 14px 16px; }
+.numeros .v { font-size: 24px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
+.numeros .k { color: var(--muted); font-size: 13px; margin-top: 4px; text-wrap: pretty; }
+.rolagem { overflow-x: auto; margin-top: 14px; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 15px; background: var(--surface); }
+.tabela caption { text-align: left; font-weight: 600; padding: 0 0 8px; }
+.tabela th { text-align: left; font-size: 13px; font-weight: 600; color: var(--muted); padding: 10px 10px; border-bottom: 1px solid var(--line); vertical-align: bottom; }
+.tabela td { padding: 10px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tabela .num { text-align: right; white-space: nowrap; }
+.tabela small { display: block; color: var(--muted); font-size: 13px; }
+.sem-dados { color: var(--muted); font-style: italic; }
+.vazio { color: var(--muted); margin: 14px 0 0; }
+.bloco + .bloco { margin-top: 40px; }
+.bloco h3 { font-size: 20px; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+.status-concluida { color: var(--accent-ink); font-weight: 600; }
+
+/* rodapé */
+.rodape { background: var(--surface-2); padding-block: 28px 40px; font-size: 13px; color: var(--muted); }
+.rodape__trilha { display: flex; align-items: center; gap: 10px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.rodape__trilha .marca__logo { width: 20px; height: 20px; }
+.rodape nav { display: flex; flex-wrap: wrap; gap: 8px 20px; padding-block: 16px; }
+.rodape nav a { color: var(--muted); text-decoration: none; }
+.rodape nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.rodape p { margin: 0; text-wrap: pretty; }
+
+@media (max-width: 720px) {
+  .wrap { padding-inline: 16px; }
+  .marca small { display: none; }
+  .heroi { padding-block: 36px 32px; }
+  .painel { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
+
+/* relatório executivo: na impressão (e no "Salvar como PDF" do navegador) sai só o relatório */
+.relatorio { display: none; }
+@media print {
+  @page { margin: 16mm; }
+  body { font-size: 11pt; background: #fff; }
+  body > *:not(main), main > *:not(#demonstracao), #demonstracao > .wrap > *:not(.relatorio) { display: none !important; }
+  #demonstracao { padding: 0; background: #fff; }
+  .relatorio { display: block !important; }
+  .relatorio h1 { font-size: 20pt; margin: 0 0 4pt; }
+  .relatorio h2 { font-size: 14pt; margin: 18pt 0 6pt; border-bottom: 1px solid #999; padding-bottom: 3pt; }
+  .relatorio h3 { font-size: 12pt; margin: 12pt 0 4pt; }
+  .relatorio .tabela { font-size: 10pt; }
+  .relatorio .tabela th, .relatorio .tabela td { padding: 4pt 6pt; }
+  .relatorio tr, .relatorio li { break-inside: avoid; }
+  .relatorio a { color: inherit; }
+}

@@ -7,7 +7,7 @@
 <meta name="description" content="Dengue, chikungunya e zika por distrito da cidade de São Paulo, com dados do InfoDengue e do boletim da vigilância municipal (COVISA).">
 <meta property="og:title" content="Epimapa SP — arboviroses por distrito">
 <meta property="og:description" content="A dengue está alta no meu bairro? Mapa por distrito de São Paulo com dados públicos de vigilância.">
-<meta name="theme-color" content="#1d5c7a">
+<meta name="theme-color" content="#0F766E">
 <link rel="canonical" href="https://reisdevv.github.io/Patogen/mapa.html">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://reisdevv.github.io/Patogen/mapa.html">
@@ -24,24 +24,24 @@
 <link rel="preload" href="data/distritos.geojson" as="fetch" crossorigin>
 <link rel="preload" href="data/casos_distrito.json" as="fetch" crossorigin>
 <link rel="preload" href="data/infodengue.json" as="fetch" crossorigin>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10.5' fill='%231d5c7a'/%3E%3Cg transform='translate(7.68 7.68) scale(0.68)'%3E%3Cpath fill='%23fff' d='M10.3 5h7.2v33l-3.6 5.5-3.6-5.5z'/%3E%3Ccircle cx='24.2' cy='18.5' r='10.2' fill='none' stroke='%23fff' stroke-width='7'/%3E%3Ccircle cx='24.2' cy='18.5' r='3.2' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10.56' fill='%230F172A'/%3E%3Cg transform='translate(7.68 7.68) scale(0.68)'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%23F8FAFC' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%2322D3EE' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%2314B8A6'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-  /* Tokens. Um acento só (azul-petróleo), cinzas frios, sombras tingidas com a tinta.
+  /* Tokens. Um acento só (teal), cinzas frios, sombras tingidas com a tinta.
      Raios: contêineres 12px, controles 8px, badges pílula. */
   :root {
     --bg: #e9edf1;
     --surface: #ffffff;
     --surface-2: #f3f5f8;
-    --ink: #16202b;
+    --ink: #0F172A;
     --muted: #5b6877;
     --line: #dde3e9;
-    --accent: #1d5c7a;
-    --accent-ink: #0f3a4f;
-    --accent-soft: #e3eef3;
+    --accent: #0F766E;
+    --accent-ink: #115E59;
+    --accent-soft: #E6F4F1;
     --n1: #3d9a6a; --n2: #e8c04a; --n3: #e8802f; --n4: #c8322b;
     --sem-dado: #c9d1d9;
     --r-box: 12px; --r-ctl: 8px; --r-pilula: 999px;
@@ -85,8 +85,8 @@
     border-bottom: 1px solid var(--line);
   }
   .marca { display: flex; align-items: center; gap: 10px; }
-  /* símbolo da Pathogen (img/marca/pathogen-simbolo.svg) */
-  .marca__logo { width: 28px; height: 28px; flex: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%2316202b' d='M10.3 5h7.2v33l-3.6 5.5-3.6-5.5z'/%3E%3Ccircle cx='24.2' cy='18.5' r='10.2' fill='none' stroke='%2316202b' stroke-width='7'/%3E%3Ccircle cx='24.2' cy='18.5' r='3.2' fill='%231d5c7a'/%3E%3C/svg%3E") center / contain no-repeat; }
+  /* símbolo da Pathogen (img/marca/pathogen-radar.svg) */
+  .marca__logo { width: 28px; height: 28px; flex: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%230F172A' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%230E7490' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%230F766E'/%3E%3C/svg%3E") center / contain no-repeat; }
   .marca h1 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; margin: 0; line-height: 1.1; }
   .marca span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
 
@@ -599,7 +599,7 @@
       <div class="dados">
         <div class="bloco__cab">
           <div><h2>São Paulo, município</h2><div class="sub" id="cid-semana">—</div></div>
-          <span id="cid-badge" class="badge" data-nivel="1" title="Nível de alerta semanal (InfoDengue)">—</span>
+          <span id="cid-badge" class="badge" data-nivel="1" title="Nível de alerta semanal do município inteiro (InfoDengue). Não existe nível de alerta por distrito.">—</span>
         </div>
         <div class="destaque">
           <span class="v" id="cid-casos">—</span>
@@ -639,9 +639,9 @@
           <p class="dica" id="dist-sem-dados" hidden>Sem dados por distrito para esta doença no boletim da COVISA.</p>
           <div class="stats" id="dist-stats">
             <div class="stat"><div class="v" id="dist-casos">—</div><div class="k" id="dist-casos-k">casos confirmados no ano</div></div>
-            <div class="stat"><div class="v delta" id="dist-novos">—</div><div class="k">novos desde o boletim anterior</div></div>
-            <div class="stat"><div class="v" id="dist-inc">—</div><div class="k">por 100 mil hab., no ano</div></div>
+            <div class="stat"><div class="v" id="dist-inc">—</div><div class="k">por 100 mil hab., acumulado no ano</div></div>
             <div class="stat"><div class="v" id="dist-rank">—</div><div class="k">entre os 96 distritos</div></div>
+            <div class="stat"><div class="v" id="dist-se">—</div><div class="k" id="dist-se-k">boletim da COVISA</div></div>
           </div>
         </div>
       </div>
@@ -670,7 +670,7 @@
 <section class="chat" id="chat" role="dialog" aria-labelledby="chat-titulo" hidden>
   <header class="chat__cab">
     <span class="robo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V6"/><circle cx="12" cy="2.6" r="1.1" fill="currentColor" stroke="none"/><rect x="4" y="6" width="16" height="12" rx="4"/><circle cx="9" cy="11.6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="11.6" r="1.4" fill="currentColor" stroke="none"/><path d="M9.5 15h5M2 10.5v3M22 10.5v3"/></svg></span>
-    <div><h2 id="chat-titulo">Epi, assistente do mapa</h2><div class="sub">Responde com os números do último boletim</div></div>
+    <div><h2 id="chat-titulo">Epi, assistente do mapa</h2><div class="sub">Assistente informativo: dados oficiais e prevenção</div></div>
     <button type="button" class="fechar" id="chat-fechar" aria-label="Fechar assistente">✕</button>
   </header>
   <div class="chat__msgs" id="chat-msgs" role="log" aria-live="polite"></div>
@@ -714,7 +714,7 @@
       <h3>O que dá para fazer</h3>
       <ul class="lista-texto">
         <li><strong>Meu distrito:</strong> com a sua permissão, o aparelho mostra em qual distrito você está.</li>
-        <li><strong>Lista dos 96 distritos:</strong> ordene por casos, incidência ou casos novos, filtre e baixe em CSV.</li>
+        <li><strong>Lista dos 96 distritos:</strong> ordene por casos ou incidência, filtre e baixe em CSV.</li>
         <li><strong>Epi, o assistente:</strong> pergunte do seu jeito, por exemplo "dengue em Itaquera" ou "sintomas de chikungunya".</li>
         <li><strong>Link do distrito:</strong> o endereço da página guarda a doença e o distrito abertos, pronto para compartilhar.</li>
       </ul>
@@ -787,7 +787,7 @@
       <div class="alerta"><strong>Teve febre com dor no corpo, atrás dos olhos ou nas articulações?</strong> Procure uma UBS e beba bastante líquido. Não tome remédio por conta própria; anti-inflamatórios e AAS podem piorar a dengue. Dor forte na barriga, vômitos que não param, sangramento, tontura ou sonolência são sinais de alarme: vá a um pronto-socorro.</div>
 
       <div class="contatos">
-        <div><div class="v">156</div><div class="k">Prefeitura de São Paulo: vistoria de foco do mosquito</div></div>
+        <div><div class="v">156</div><div class="k">Prefeitura de São Paulo: vistoria de foco do mosquito. <a href="https://sp156.prefeitura.sp.gov.br/portal/servicos/informacao?servico=810" target="_blank" rel="noopener">Comunicar possível foco de água parada — SP156</a></div></div>
         <div><div class="v">136</div><div class="k">Disque Saúde, Ministério da Saúde</div></div>
         <div><div class="v">192</div><div class="k">SAMU, em emergência</div></div>
       </div>
@@ -828,12 +828,11 @@
         <th scope="col" data-campo="nome" aria-sort="none"><button type="button">Distrito</button></th>
         <th scope="col" class="num" data-campo="casos" aria-sort="none"><button type="button" id="lista-casos-th">Casos</button></th>
         <th scope="col" class="num col-inc" data-campo="medida" aria-sort="descending"><button type="button">Por 100 mil</button></th>
-        <th scope="col" class="num" data-campo="novos" aria-sort="none"><button type="button">Novos</button></th>
       </tr></thead>
       <tbody id="lista-corpo"></tbody>
     </table>
     <p class="dica" id="lista-vazia" hidden>Nenhum distrito ou subprefeitura com esse nome.</p>
-    <p class="fonte" id="lista-nota">Toque em um distrito para vê-lo no mapa. "Novos" é a diferença do acumulado em relação ao boletim anterior; fica negativo quando a COVISA revisa casos.</p>
+    <p class="fonte" id="lista-nota">Toque em um distrito para vê-lo no mapa. Números acumulados desde janeiro, como publicados no boletim. "—" quer dizer sem dado no boletim, não zero.</p>
   </div>
 </dialog>
 
@@ -994,7 +993,7 @@
   }
 
   const dados = () => distritoDados.doencas[doenca] || {};
-  const dadoDe = (id) => dados()[id] || { casos_ano: null, inc100k_ano: null, novos_desde_boletim: null };
+  const dadoDe = (id) => dados()[id] || { casos_ano: null, inc100k_ano: null };
   const semDadosDistrito = () => (distritoDados.sem_dados_por_distrito || []).includes(doenca);
   const temIncidencia = () => Object.values(dados()).some(d => typeof d.inc100k_ano === "number");
   // Ordena por incidência quando o boletim traz; senão (chikungunya) por casos.
@@ -1026,7 +1025,7 @@
     return {
       className: "distrito",
       fillColor: corDe(d), fillOpacity: opac,
-      color: sel ? "#16202b" : "#ffffff", weight: sel ? 2.5 : 1, opacity: 1,
+      color: sel ? "#0F172A" : "#ffffff", weight: sel ? 2.5 : 1, opacity: 1,
     };
   }
 
@@ -1040,7 +1039,7 @@
         return `<b>${f.properties.nome}</b> · ${fmt.format(d.casos_ano)} casos no ano`;
       }, { className: "tip", sticky: true, direction: "top", offset: [0, -8] });
       layer.on({
-        mouseover: () => { if (f.properties.id !== selecionado) layer.setStyle({ weight: 2, color: "#16202b" }); },
+        mouseover: () => { if (f.properties.id !== selecionado) layer.setStyle({ weight: 2, color: "#0F172A" }); },
         mouseout: () => { if (f.properties.id !== selecionado) camada.resetStyle(layer); },
         click: () => selecionar(f.properties.id, { voar: false }),
       });
@@ -1102,18 +1101,6 @@
     reduzMovimento ? map.fitBounds(camada.getBounds(), opts) : map.flyToBounds(camada.getBounds(), { ...opts, duration: 0.8 });
   });
 
-  // Diferença de acumulado entre boletins. Pode ser negativa (revisão da COVISA);
-  // mostra como está, nunca como "casos na semana".
-  function novos(n, el) {
-    const rotulo = el.nextElementSibling;
-    el.classList.remove("up", "down", "flat");
-    if (n == null) { el.textContent = "—"; rotulo.textContent = "sem boletim anterior para comparar"; el.classList.add("flat"); return; }
-    const sinal = n > 0 ? "+" : n < 0 ? "−" : "";
-    el.textContent = `${sinal}${fmt.format(Math.abs(n))}`;
-    el.classList.add(n > 0 ? "up" : n < 0 ? "down" : "flat");
-    rotulo.textContent = n < 0 ? "revisado para baixo desde o boletim anterior" : "novos desde o boletim anterior";
-  }
-
   function delta(atual, anterior, el) {
     const rotulo = el.nextElementSibling;
     el.classList.remove("up", "down", "flat");
@@ -1126,7 +1113,10 @@
     rotulo.textContent = diff === 0 ? "igual à semana anterior" : `${sinal}${fmt.format(Math.abs(diff))} casos vs. semana anterior`;
   }
 
-  const refBoletim = () => `Boletim COVISA SE ${distritoDados.se}/${distritoDados.ano} · acumulado desde janeiro`;
+  // Data sem hora ("2026-10-23"): ao meio-dia, para o fuso de SP não voltar um dia.
+  const dia = (s) => s ? new Date(s + "T12:00:00").toLocaleDateString("pt-BR") : null;
+  const refBoletim = () => `Boletim COVISA SE ${distritoDados.se}/${distritoDados.ano}` +
+    `${distritoDados.dados_ate ? `, dados até ${dia(distritoDados.dados_ate)}` : ""} · acumulado desde janeiro`;
 
   function renderTop5() {
     const lista = $("top5"), titulo = $("top5-titulo"), semDados = $("dist-vazio-sem-dados");
@@ -1175,7 +1165,8 @@
 
     const pos = ranking().indexOf(selecionado) + 1;
     $("dist-casos").textContent = fmt.format(d.casos_ano);
-    novos(d.novos_desde_boletim, $("dist-novos"));
+    $("dist-se").textContent = `SE ${distritoDados.se}/${distritoDados.ano}`;
+    $("dist-se-k").textContent = distritoDados.dados_ate ? `boletim da COVISA, dados até ${dia(distritoDados.dados_ate)}` : "boletim da COVISA";
     $("dist-inc").textContent = typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "—";
     $("dist-rank").textContent = pos ? `${pos}º` : "—";
   }
@@ -1209,7 +1200,7 @@
       return;
     }
     $("cid-semana").textContent = `Semana ${atual.se}/${atual.ano} · InfoDengue`;
-    $("cid-badge").textContent = NIVEL_NOME[atual.nivel] || "—";
+    $("cid-badge").textContent = `alerta municipal: ${NIVEL_NOME[atual.nivel] || "—"}`;
     $("cid-badge").dataset.nivel = atual.nivel || 1;
     $("cid-casos").textContent = fmt.format(atual.casos);
     const sem = serie.semanas.slice(-26);
@@ -1253,12 +1244,13 @@
   // ---------- rodapé ----------
   function renderFonte() {
     const dt = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
-    const ant = distritoDados.boletim_anterior_se;
     // Com distrito selecionado a série municipal não está na tela, então a fonte dela também sai.
     $("fonte").innerHTML =
       (selecionado ? "" : `Série municipal: <a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue (Fiocruz/FGV)</a>, casos notificados, atualizada em ${dt(cidadeDados.atualizado_em)}. `) +
-      `Distritos: ${distritoDados.fonte} — acumulado desde janeiro; reflete o pico do primeiro semestre, não só as últimas semanas` +
-      `${ant ? ` (comparado com SE ${ant.se}/${ant.ano})` : ""}. ` +
+      `Distritos: ${distritoDados.url ? `<a href="${distritoDados.url}" target="_blank" rel="noopener">${distritoDados.fonte}</a>` : distritoDados.fonte}` +
+      `${distritoDados.publicado_em ? `, publicado em ${dia(distritoDados.publicado_em)}` : ""}` +
+      `${distritoDados.dados_ate ? `, dados provisórios do SINAN até ${dia(distritoDados.dados_ate)}` : ""}` +
+      ` — acumulado desde janeiro; reflete o pico do primeiro semestre, não só as últimas semanas. ` +
       `Malha: Prefeitura de São Paulo / GeoSampa.`;
   }
 
@@ -1397,7 +1389,7 @@
       if (!id) { aviso("Sua localização fica fora da cidade de São Paulo. Busque um distrito pelo nome."); return; }
       if (marcaLocal) marcaLocal.remove();
       marcaLocal = L.circleMarker([lat, lng], {
-        pane: "markerPane", radius: 6, color: "#ffffff", weight: 2, fillColor: "#1d5c7a", fillOpacity: 1, interactive: false,
+        pane: "markerPane", radius: 6, color: "#ffffff", weight: 2, fillColor: "#0F766E", fillOpacity: 1, interactive: false,
       }).addTo(map);
       selecionar(id);
       aviso(`Você está em ${props(id).nome}.`);
@@ -1475,7 +1467,6 @@
     const d = dadoDe(id);
     if (campo === "nome") return norm(props(id).nome);
     if (campo === "casos") return typeof d.casos_ano === "number" ? d.casos_ano : null;
-    if (campo === "novos") return typeof d.novos_desde_boletim === "number" ? d.novos_desde_boletim : null;
     return d.casos_ano == null ? null : medida(d);
   }
   function idsDaLista(filtrar = true) {
@@ -1491,7 +1482,6 @@
         return (va < vb ? -1 : 1) * (desc ? -1 : 1);
       });
   }
-  const sinalNovos = (n) => n == null ? "—" : `${n > 0 ? "+" : n < 0 ? "−" : ""}${fmt.format(Math.abs(n))}`;
   function renderLista() {
     const semDados = semDadosDistrito();
     $("lista-sub").textContent = `${NOME_DOENCA[doenca]} · ${refBoletim()}`;
@@ -1504,11 +1494,10 @@
       th.dataset.campo === ordemLista.campo ? (ordemLista.desc ? "descending" : "ascending") : "none"));
     const ids = idsDaLista();
     corpoLista.innerHTML = ids.map(id => {
-      const d = dadoDe(id), f = props(id), n = d.novos_desde_boletim;
+      const d = dadoDe(id), f = props(id);
       return `<tr data-id="${id}"><td><button type="button" class="lista__nome">${f.nome}<small>${f.subprefeitura}</small></button></td>` +
         `<td class="num">${d.casos_ano == null ? "—" : fmt.format(d.casos_ano)}</td>` +
-        `<td class="num col-inc">${typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "—"}</td>` +
-        `<td class="num delta ${n > 0 ? "up" : n < 0 ? "down" : "flat"}">${sinalNovos(n)}</td></tr>`;
+        `<td class="num col-inc">${typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "—"}</td></tr>`;
     }).join("");
     $("lista-vazia").hidden = ids.length > 0;
   }
@@ -1536,10 +1525,10 @@
     const txt = (s) => `"${String(s).replace(/"/g, '""')}"`;
     const num = (v) => typeof v === "number" ? String(v).replace(".", ",") : "";   // vírgula decimal: abre certo no Excel em português
     const linhas = [["distrito", "subprefeitura", doenca === "chikungunya" ? "casos_autoctones_no_ano" : "casos_no_ano",
-      "casos_por_100_mil_no_ano", "novos_desde_boletim_anterior", "fonte"].join(";")];
+      "casos_por_100_mil_no_ano", "fonte", "dados_ate"].join(";")];
     for (const id of idsDaLista(false)) {
       const d = dadoDe(id), f = props(id);
-      linhas.push([txt(f.nome), txt(f.subprefeitura), num(d.casos_ano), num(d.inc100k_ano), num(d.novos_desde_boletim), txt(distritoDados.fonte)].join(";"));
+      linhas.push([txt(f.nome), txt(f.subprefeitura), num(d.casos_ano), num(d.inc100k_ano), txt(distritoDados.fonte), txt(distritoDados.dados_ate || "")].join(";"));
     }
     // BOM no início: o Excel reconhece UTF-8 e mostra os acentos certos.
     const blob = new Blob(["\ufeff" + linhas.join("\r\n")], { type: "text/csv;charset=utf-8" });

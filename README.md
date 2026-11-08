@@ -9,6 +9,15 @@ O site tem duas páginas: a **página inicial** (`index.html`), que explica o pr
 mostra a situação da semana com os dados ao vivo, abre a ficha de qualquer distrito ali mesmo
 e leva ao **mapa** (`mapa.html`).
 
+O Epimapa SP é o produto gratuito da **Pathogen** para o cidadão. Duas páginas apresentam as
+outras frentes, ainda em protótipo:
+
+- `organizacoes.html`: **Pathogen Organizações**, com um painel demonstrativo em que se
+  configuram unidades (nome + distrito), comparam-se os indicadores oficiais dos distritos,
+  monta-se um plano de prevenção e gera-se um relatório executivo (imprimir ou salvar em PDF).
+  Tudo fica no navegador de quem usa, com botão para apagar.
+- `impacto.html`: **Pathogen Impacto**, como uma empresa pode patrocinar campanhas de prevenção.
+
 O que dá para fazer no site:
 
 - ver dengue, chikungunya e zika por distrito, com a fonte e a semana do boletim ao lado de cada número;
@@ -16,6 +25,7 @@ O que dá para fazer no site:
   que usa a localização do aparelho sem enviá-la a lugar nenhum;
 - abrir a **lista dos 96 distritos**, ordenar, filtrar e baixar em CSV;
 - compartilhar o link de um distrito (`…/Patogen/mapa.html#dengue/pinheiros` abre direto nele);
+- pedir vistoria de possível foco de água parada no serviço oficial **SP156** da Prefeitura;
 - perguntar ao **Epi**, o assistente do canto da tela;
 - ler o **Sobre**: como ler o mapa, fontes, prevenção e privacidade.
 
@@ -74,7 +84,10 @@ formato e da extração em [`docs/covisa-formato.md`](docs/covisa-formato.md).
 - **Zika**: o boletim não tem quadro por distrito desde 2018; o mapa fica
   vazio e só o resumo municipal aparece.
 - `novos_desde_boletim` é a diferença do acumulado entre o boletim atual e o
-  anterior. Pode ser negativo quando a COVISA revisa semanas passadas.
+  anterior. Fica no JSON, mas o site não o mostra: a COVISA revisa semanas passadas, e essa
+  diferença não equivale a casos novos.
+- `url`, `publicado_em`, `dados_ate` (data de corte), `extraido_em` e `validacao` dizem de
+  onde veio cada conjunto e que ele passou nas conferências.
 
 Cada boletim fica congelado em `data/covisa/SE-AAAA-SS.json`;
 `data/casos_distrito.json` é derivado dos dois mais recentes:
@@ -100,6 +113,17 @@ Não há dado sintético nem estimado no projeto: o resumo municipal mostra caso
 **notificados** (não o nowcast do InfoDengue) e, quando uma fonte não tem o dado,
 o site diz "sem dados".
 
+## Testes
+
+```bash
+pip install -r requirements.txt
+python -m unittest discover -s tests -v
+# também contra boletins reais baixados da página da COVISA:
+COVISA_PDFS=pasta/com/pdfs python -m unittest discover -s tests -v
+```
+
+O workflow de dados roda os mesmos testes antes de buscar qualquer coisa.
+
 ## Publicar no GitHub Pages
 
 1. Suba o repositório.
@@ -109,7 +133,7 @@ o site diz "sem dados".
 ## Roteiro
 
 - [x] **1.** Malha + choropleth + busca + série municipal do InfoDengue
-- [x] **2.** Scraper do boletim COVISA para dados por distrito (em validação; falta entrar no workflow)
+- [x] **2.** Scraper do boletim COVISA para dados por distrito (no workflow diário, com testes)
 - [ ] **3.** Login leve e relatos da comunidade (camada separada dos dados oficiais)
 - [ ] **4.** Chatbot sobre os agregados
 

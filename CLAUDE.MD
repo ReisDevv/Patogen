@@ -29,6 +29,10 @@ Site estático, sem backend. Publica no GitHub Pages.
 ```
 index.html                         # página inicial: busca com a ficha do distrito, a cidade agora, as três doenças, prevenção, privacidade, perguntas, notas
 mapa.html                          # o mapa: mapa + painel + "Sobre" + lista dos 96 distritos (Leaflet, CSS e JS inline)
+organizacoes.html                  # Pathogen Organizações: apresentação + painel demonstrativo (unidades, comparação, plano, relatório)
+impacto.html                       # Pathogen Impacto: página institucional de patrocínio de campanhas (estática, sem script)
+institucional.css                  # estilo comum de organizacoes.html e impacto.html (mesmos tokens da página inicial)
+tests/                             # testes (unittest, só stdlib) de fetch_covisa.py e fetch_infodengue.py
 chat.js                            # Epi, assistente do canto inferior direito (regras + dados já carregados, sem API)
 404.html                           # página de endereço inexistente (o GitHub Pages serve sozinho)
 manifest.webmanifest               # nome e ícones para "Adicionar à tela inicial"
@@ -80,8 +84,11 @@ Regras derivadas disso:
   distrito — o nível 1–4 é só municipal (InfoDengue). Não invente um.
 - Chikungunya por distrito é só de casos **autóctones** confirmados e sem incidência.
   Zika não tem quadro por distrito desde 2018: o mapa fica vazio com "sem dados por distrito".
-- A COVISA revisa o acumulado de semanas anteriores. `novos_desde_boletim` pode ser
-  negativo; mostre como está, com esse rótulo, nunca como "casos na semana".
+- A COVISA revisa o acumulado de semanas anteriores. `novos_desde_boletim` continua no JSON
+  (histórico técnico), mas **não aparece na interface** desde 2026-11-01: a diferença entre dois
+  boletins mistura casos novos com confirmações tardias, descartes e reclassificações, e não há
+  metodologia que permita lê-la como casos novos. No lugar, a UI mostra a semana do boletim e a
+  data de corte (`dados_ate`).
 
 ## Honestidade com dados
 
@@ -102,6 +109,9 @@ Formato de `casos_distrito.json`:
 {
   "fonte": "COVISA/SMS-SP, boletim SE NN/AAAA",
   "ano": 2026, "se": 33, "gerado_em": "ISO-8601",
+  "url": "PDF oficial", "publicado_em": "AAAA-MM-DD", "periodo": "DD/MM a DD/MM",
+  "dados_ate": "AAAA-MM-DD", "extraido_em": "ISO-8601",
+  "validacao": { "status": "aprovada", "distritos": { "dengue": 96, "chikungunya": 96 }, "conferencias": "..." },
   "boletim_anterior_se": { "ano": 2026, "se": 32 },
   "sem_dados_por_distrito": ["zika"],
   "doencas": {
@@ -113,6 +123,9 @@ Formato de `casos_distrito.json`:
 ```
 
 - `casos_ano` / `inc100k_ano`: acumulado desde janeiro do `ano`, como vem no boletim.
+- `url`, `publicado_em`, `periodo`, `dados_ate` (data de corte do SINAN) e `extraido_em` vêm do
+  snapshot atual. `validacao.status` é sempre `aprovada`: o script só grava o que passou em todas
+  as conferências. `0` é zero casos; ausência da chave ou `null` é "sem dados", nunca zero.
 - `novos_desde_boletim`: `casos_ano` deste boletim − `casos_ano` do boletim em
   `boletim_anterior_se`. `null` quando não há boletim anterior salvo. Pode ser negativo.
 - `boletim_anterior_se` é `null` só no primeiro boletim.
@@ -173,15 +186,21 @@ depois; define o que pode ser construído.
   O caminho inverso não vale: o visual do mapa (cores, modelo, formato) fica igual ao vídeo da
   banca, decisão do dono (2026-10). Não mude o mapa para acompanhar a página inicial. A única
   exceção aprovada foi o símbolo da marca no topo e o ícone da aba.
-- Marca (2026-10): a empresa é a **Pathogen**; o **Epimapa SP** é o produto ("Epimapa SP, da
-  Pathogen"). O símbolo é a "Lente": um P cuja barriga é uma lente com o caso no centro e a haste
-  em ponta de alfinete. Construção, cores e regras em `img/marca/pathogen-marca.png`; os SVGs em
-  `img/marca/` são a fonte (o `.marca__logo` das páginas e o ícone da aba usam o mesmo desenho
-  embutido). Cores só tinta `#16202b`, azul-petróleo `#1d5c7a`, petróleo claro `#7fb6cf` (ponto
-  sobre fundo escuro) e branco: a marca nunca usa as cores de nível do mapa. No topo das páginas
+- Marca (2026-11-08, escolhida pelo time; substitui a "Lente" de 2026-10): a empresa é a
+  **Pathogen**; o **Epimapa SP** é o produto ("Epimapa SP, da Pathogen"). O símbolo é o **Radar-O**
+  do Design System do time (`docs/design-system.pdf`): anel = território, arco de varredura ciano,
+  nó teal = o dado que vira decisão. Os SVGs em `img/marca/` são a fonte (o `.marca__logo` das
+  páginas e o ícone da aba usam o mesmo desenho embutido). Cores no tema claro: tinta `#0F172A`,
+  destaque (`--accent`) teal `#0F766E`, arco `#0E7490`; no escuro, anel `#F8FAFC`, arco `#22D3EE`,
+  nó `#14B8A6`. A marca nunca usa as cores de nível do mapa. O choropleth continua com as cores
+  do vídeo da banca (`--n1`…`--n4`); só o destaque e a tinta mudaram.
+  Do Design System, ficaram de fora por ora: as fontes Space Grotesk/Inter/JetBrains Mono (o site
+  segue em Geist), o tema escuro, a taxa suavizada e os mínimos de casos por nível. O DS fala em
+  "inteligência preditiva do Epi": o produto não prevê nada, o Epi é por regras. Não escreva isso
+  no site. No topo das páginas
   vai o símbolo com "Epimapa SP"; "da Pathogen" aparece no rodapé e na prévia de link.
   Visual da página inicial (2026-10, pedido do dono): sóbrio, com os mesmos tokens do mapa
-  (branco, cinzas frios, tinta `#16202b` e azul-petróleo só nas ações) e só a fonte Geist. A
+  (branco, cinzas frios, tinta `#0F172A` e teal só nas ações) e só a fonte Geist. A
   estrutura segue sites de produto bem organizados (referência: páginas do iPhone na Apple):
   título grande à esquerda, fileira de atalhos com ícone, painéis cinza-claros, botão "+" que abre
   detalhes num `<dialog>`, notas numeradas no fim com a fonte de cada número. Não copie layout
@@ -196,10 +215,31 @@ depois; define o que pode ser construído.
   distritos com CSV e "Meu distrito" (geolocalização calculada no aparelho, nunca enviada), em
   `<dialog>` nativo por cima do mapa. O endereço guarda a seleção como `#doença/distrito`
   (`history.replaceState`, não polui o histórico); `#doença/lista` abre a lista. Endereços
-  `#doença/...` na raiz são levados ao mapa. O site não grava nada no navegador (o mapa apaga
-  a sobra `epimapa:intro-vista` de uma versão anterior). Não grave nada sem perguntar.
+  `#doença/...` na raiz são levados ao mapa. O Epimapa não grava nada no navegador (o mapa apaga
+  a sobra `epimapa:intro-vista` de uma versão anterior). Não grave nada sem perguntar. Única
+  exceção aprovada (pedido do time, 2026-11-01): o painel demonstrativo de `organizacoes.html`
+  guarda unidades, plano e o último boletim visto em `localStorage["pathogen:organizacoes-demo"]`,
+  com aviso na página e botão "Limpar dados locais". Só grava depois que a pessoa muda algo.
 - `img/compartilhar.jpg` mostra só o contorno dos distritos, sem cor de incidência nem número:
   a prévia fica meses no cache do WhatsApp e não pode parecer dado. Se regenerar, mesma regra.
+- Produtos (2026-11-01, pedido do time): a **Pathogen** é a empresa; **Epimapa SP** (cidadão,
+  gratuito), **Pathogen Organizações** (painel por unidade para empresas, condomínios, escolas)
+  e **Pathogen Impacto** (patrocínio de campanhas) são módulos da mesma solução, não três sites.
+  O cidadão vem primeiro: a página inicial só ganhou uma linha sobre a Pathogen e o botão "Para
+  organizações". Organizações e Impacto são protótipo e apresentação: sem login, sem banco, sem
+  backend, sem e-mail/push. Unidades são só nome + distrito; o painel não pede endereço nem dado
+  de pessoas, não chama a incidência do distrito de risco da unidade e não cria índice próprio.
+  O relatório separa "Dados epidemiológicos oficiais" de "Informações de execução fornecidas
+  pela organização". Colaboradores (2026-11-08, opção escolhida pelo dono): a organização manda
+  o link `index.html?de=<nome>` (gerado em "Link para os colaboradores"); a página inicial só mostra
+  o nome com `textContent` e cada pessoa usa a busca ou "Meu distrito" no próprio aparelho. Nada
+  sobre a consulta volta para a organização: não há contagem de acessos, distrito de colaborador
+  nem cruzamento com localização de pessoas. Assinatura mensal (valor a definir) e Selo Pathogen
+  aparecem como proposta no piloto; o Selo atesta engajamento, não ausência de casos, e ainda
+  não é emitido. Não há canal comercial: o contato está marcado para a equipe preencher
+  (comentário `EQUIPE:` nas duas páginas). Fora do escopo por ora: IA preditiva, previsão de
+  demanda, índice de vulnerabilidade, marketplace, vacinas, denúncia própria (o site leva ao
+  SP156), cadastro de sintomas, FastAPI/PostGIS, login empresarial, app nativo, pets.
 - Scripts Python só com biblioteca padrão enquanto der. Se precisar de dependência, crie
   `requirements.txt` e justifique no commit. Única exceção aceita até agora: `pdfplumber`
   em `fetch_covisa.py` (tabela em PDF sem grade; não dá com stdlib).
@@ -214,7 +254,7 @@ depois; define o que pode ser construído.
 - Não formate o GeoJSON com indentação (tamanho importa). JSON de dados pode ter `indent=1`.
 - Tamanho de página: cada página (`index.html` ou `mapa.html`, mais `chat.js`) + dados abaixo de 500 KB no total.
 - Acessibilidade: foco visível, `aria-pressed`/`aria-expanded` mantidos, `prefers-reduced-motion` respeitado.
-- Visual (definido no redesign de 2026-09): fonte Geist; um acento só (`--accent`, azul-petróleo);
+- Visual (definido no redesign de 2026-09): fonte Geist; um acento só (`--accent`, teal desde 2026-11-08);
   cinzas frios; sombras tingidas com a tinta, nunca preto puro; raios fixos — contêineres 12px,
   controles 8px, badges pílula. Toda cor e medida vem dos tokens em `:root`; não crie valores soltos.
   Estados obrigatórios em tudo que é interativo: hover, ativo, foco; e o painel tem esqueleto de
@@ -234,8 +274,14 @@ depois; define o que pode ser construído.
   mapa" do Epi abrem `mapa.html` no lugar certo; os "+" abrem e fecham (Esc e toque fora); a
   zika mostra "sem dados" na ficha; nada estoura na horizontal de 320px ao desktop; sem dados,
   os avisos aparecem e o texto da página continua.
-- Depois de mudar scripts: roda `python scripts/fetch_infodengue.py` e valida o JSON com
+- Depois de mudar scripts: `python -m unittest discover -s tests -v` (o workflow roda isso antes
+  de buscar dados e para se falhar). Para testar contra boletins reais, baixe os PDFs numa pasta e
+  rode com `COVISA_PDFS=pasta`. Depois `python scripts/fetch_infodengue.py` e valide o JSON com
   `python -m json.tool`.
+- Depois de mudar `organizacoes.html`: as unidades de exemplo mostram os mesmos números do
+  `casos_distrito.json`; distrito sem número aparece "Sem dados" (nunca 0); nome de unidade com
+  `<tag>` aparece como texto; a comparação diz métrica e período; "Gerar relatório" imprime só o
+  relatório; "Limpar dados locais" apaga a chave do `localStorage`.
 - Depois de mudar `fetch_covisa.py`: roda `python scripts/fetch_covisa.py --pdf <boletim.pdf> --dry-run`
   num boletim salvo. O script só aceita o resultado se os 96 distritos casarem e a soma
   dos distritos (+ "em investigação") bater com a linha TOTAL do quadro. Se falhar, é
@@ -244,13 +290,16 @@ depois; define o que pode ser construído.
 
 ## Próximo passo concreto
 
-Fase 3 em validação. O scraper (`scripts/fetch_covisa.py`) existe e foi conferido contra o
-boletim da SE 33/2026. Falta:
+Fase 3 em operação desde 2026-09; quebrou na SE 40/2026 (ponto de milhar, ver
+`docs/covisa-formato.md`) e foi corrigida em 2026-11-01. O workflow agora roda os testes, grava
+InfoDengue e COVISA de forma independente (uma falha não trava a outra) e falha em vermelho
+dizendo qual fonte não atualizou. O site é republicado depois de cada atualização
+(`workflow_run` no `deploy-pages.yml`), porque push feito com `GITHUB_TOKEN` não dispara o
+deploy: foi por isso que o site ficou parado no commit de 2026-10-08.
 
-1. Colocar `fetch_covisa.py` no workflow `atualizar-dados.yml` (precisa de
-   `pip install -r requirements.txt`) e commitar snapshot + `casos_distrito.json` toda segunda.
-2. Acompanhar 2–3 boletins seguidos para ver se o layout se mantém e se
-   `novos_desde_boletim` faz sentido (revisões negativas são esperadas, não bug).
+1. Depois do merge, disparar manualmente *Atualizar dados* e conferir que o *Publicar site* roda em seguida.
+2. Acompanhar os próximos boletins: se a COVISA mudar o layout de novo, o script para e o
+   último conjunto válido continua no ar.
 3. Só depois disso abrir a fase 2 (Postgres/PostGIS + API). Os snapshots em `data/covisa/`
    já são o histórico que a rotina 2 vai carregar.
 

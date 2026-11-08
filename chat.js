@@ -257,7 +257,7 @@
     const medida = (x) => typeof x.inc100k_ano === "number" ? x.inc100k_ano : (x.casos_ano || 0);
     const temIncidencia = (d) => Object.values(dadosDe(d)).some(x => typeof x.inc100k_ano === "number");
     const ordem = (d) => Object.entries(dadosDe(d)).sort((a, b) => medida(b[1]) - medida(a[1])).map(e => e[0]);
-    const refCovisa = () => `COVISA/SMS-SP, boletim SE ${dd.se}/${dd.ano}`;
+    const refCovisa = () => `COVISA/SMS-SP, boletim SE ${dd.se}/${dd.ano}${dd.dados_ate ? `, dados até ${dataBR(dd.dados_ate)}` : ""}`;
     const pergunta = (rotulo, texto = rotulo) => ({ rotulo, pergunta: texto });
     const noMapa = (id, d) => ({ rotulo: `Ver ${porId[id].nome} no mapa`, mapa: { id, doenca: d } });
     const semCarga = () => ({ linhas: ["Não consegui carregar os dados do mapa agora, então estou sem os números. Tente recarregar a página. Sobre sintomas, prevenção e atendimento eu continuo respondendo."] });
@@ -279,16 +279,9 @@
           linhas.push(`O boletim da COVISA da SE ${dd.se}/${dd.ano} não traz número de ${NOME[d]} para ${nome}.`);
           return { linhas, acoes, fonte: refCovisa() };
         }
-        const ant = dd.boletim_anterior_se;
         linhas.push(`**${nome}** (subprefeitura ${porId[id].sub}), ${NOME[d]} em ${dd.ano}:`);
         linhas.push(x.casos_ano === 0 ? `• nenhum caso ${d === "chikungunya" ? "autóctone " : ""}confirmado desde janeiro` : `• **${fmt.format(x.casos_ano)}** ${casosRotulo(d)} desde janeiro`);
         if (typeof x.inc100k_ano === "number") linhas.push(`• **${fmt1.format(x.inc100k_ano)}** casos por 100 mil habitantes no ano`);
-        if (x.novos_desde_boletim != null && ant) {
-          const n = x.novos_desde_boletim;
-          linhas.push(n > 0 ? `• +${fmt.format(n)} desde o boletim anterior (SE ${ant.se})`
-            : n < 0 ? `• −${fmt.format(-n)} desde o boletim anterior: o acumulado foi revisado para baixo pela COVISA`
-            : `• nenhum caso novo desde o boletim anterior (SE ${ant.se})`);
-        }
         if (x.casos_ano > 0) {
           const pos = ordem(d).indexOf(id) + 1;
           const crit = temIncidencia(d) ? "ª maior incidência" : "º maior número de casos";
@@ -420,7 +413,7 @@
         return { linhas: l, acoes: [pergunta("Sintomas de zika"), pergunta("Zika na gravidez")] };
       },
       novos() {
-        return { linhas: ["“Novos desde o boletim anterior” é a diferença do acumulado do ano entre o boletim atual e o anterior da COVISA.", "Não é “casos da semana”: a COVISA revisa semanas passadas, então o número pode ser **negativo** quando casos são reclassificados ou descartados. Isso é esperado."] };
+        return { linhas: ["Por distrito, o boletim da COVISA traz só o **acumulado do ano**, por data de início dos sintomas. Cada edição revisa as anteriores: casos são confirmados, descartados ou reclassificados.", "Por isso a diferença entre dois boletins não é o número de casos novos da semana, e o site não a mostra. A evolução semana a semana existe só para a cidade inteira, no InfoDengue."], acoes: [pergunta("Como está a dengue em SP?")] };
       },
       incidencia() {
         return { linhas: ["**Incidência** é o número de casos por 100 mil habitantes. Ela permite comparar distritos de tamanhos diferentes: 50 casos num distrito pequeno pesam mais que 50 casos num distrito grande.", "No mapa, é a incidência acumulada desde janeiro."] };
@@ -445,7 +438,7 @@
         return { linhas: ["Eu funciono inteiro no seu navegador: o que você escreve aqui **não é enviado nem guardado** em lugar nenhum e some quando você fecha a página.", "O site não tem login e não coleta dados de saúde de quem usa."] };
       },
       sobre() {
-        return { linhas: ["O **Epimapa SP** mostra dengue, chikungunya e zika por distrito da cidade de São Paulo com dados públicos de vigilância (InfoDengue e COVISA).", "Eu sou o **Epi**, um assistente automático: respondo com os números do último boletim e com orientações gerais do Ministério da Saúde. Não sou médico nem substituo atendimento."], acoes: [pergunta("O que você sabe responder?")] };
+        return { linhas: ["O **Epimapa SP** mostra dengue, chikungunya e zika por distrito da cidade de São Paulo com dados públicos de vigilância (InfoDengue e COVISA).", "Eu sou o **Epi**, assistente informativo do Epimapa. Consulto os dados epidemiológicos carregados no site e apresento orientações de prevenção baseadas em fontes oficiais.", "Funciono por regras, no seu navegador, sem inteligência artificial generativa. Não sou médico: não faço diagnóstico, não indico tratamento e não faço previsão."], acoes: [pergunta("O que você sabe responder?")] };
       },
       usar() {
         return { linhas: ["Como usar o mapa:", "• escolha a doença nos botões do topo", "• toque ou clique num distrito para ver os números dele", "• use a busca para achar um distrito ou uma subprefeitura", "• para voltar ao resumo da cidade, use “Ver a cidade toda”", "Ou me pergunte direto, por exemplo “dengue em Itaquera”."] };

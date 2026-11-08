@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pathogen Organizações: planejamento preventivo por distrito</title>
+<meta name="description" content="Indicadores oficiais de dengue e chikungunya dos distritos das suas unidades em São Paulo, plano de prevenção e relatório gerencial. Protótipo demonstrativo da Pathogen.">
+<meta name="theme-color" content="#0F766E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10.56' fill='%230F172A'/%3E%3Cg transform='translate(7.68 7.68) scale(0.68)'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%23F8FAFC' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%2322D3EE' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%2314B8A6'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="institucional.css">
+</head>
+<body>
+
+<header class="site-topo">
+  <div class="wrap">
+    <a class="marca" href="index.html" aria-label="Pathogen, página inicial do Epimapa SP">
+      <span class="marca__logo" aria-hidden="true"></span>
+      <div><strong>Pathogen</strong><small>Organizações</small></div>
+    </a>
+    <nav class="site-nav" aria-label="Páginas">
+      <a href="index.html">Epimapa SP</a>
+      <a href="mapa.html">Mapa</a>
+      <a href="organizacoes.html" aria-current="page">Organizações</a>
+      <a href="impacto.html">Impacto</a>
+    </nav>
+  </div>
+</header>
+
+<main id="conteudo">
+  <section class="wrap heroi" aria-labelledby="titulo">
+    <span class="etiqueta">Em desenvolvimento: protótipo para projeto-piloto</span>
+    <h1 id="titulo">Transforme informações epidemiológicas territoriais em planejamento preventivo para suas unidades.</h1>
+    <p class="lead">O Pathogen Organizações reúne, para cada unidade, os indicadores oficiais de dengue e chikungunya do distrito onde ela fica, ajuda a organizar as ações preventivas e gera um relatório para acompanhamento gerencial.</p>
+    <div class="acoes">
+      <a class="btn btn--primario" href="#demonstracao">Abrir a demonstração</a>
+      <a class="btn btn--secundario" href="#piloto">Como funciona um piloto</a>
+    </div>
+  </section>
+
+  <section class="secao secao--cinza" id="problema" aria-labelledby="problema-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="problema-titulo">O problema que queremos resolver.</h2>
+      <p class="lead">Quem cuida de várias unidades em São Paulo não tem um lugar simples para ver os números oficiais de arboviroses de cada território e para organizar e registrar as ações preventivas de cada unidade.</p>
+      <div class="grade">
+        <article class="painel"><h3>Dados espalhados</h3><p>Os números por distrito saem num boletim semanal em PDF da COVISA; a série da cidade, no InfoDengue. Acompanhar várias unidades exige abrir e cruzar documentos toda semana.</p></article>
+        <article class="painel"><h3>Ações sem registro comum</h3><p>Inspeções, verificação de reservatórios e campanhas educativas ficam em planilhas e mensagens separadas, difíceis de reunir num relatório.</p></article>
+        <article class="painel"><h3>Números que pedem cuidado</h3><p>Acumulado do ano, incidência por 100 mil habitantes, nível de alerta só municipal: cada indicador tem um significado e um limite, e o painel mostra os dois.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" id="como-funciona" aria-labelledby="como-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="como-titulo">Como funciona.</h2>
+      <ol class="passos">
+        <li><strong>Identifique as unidades</strong><span>Um nome de referência para cada uma. Não é preciso endereço.</span></li>
+        <li><strong>Associe ao distrito</strong><span>Cada unidade fica ligada a um dos 96 distritos administrativos da cidade.</span></li>
+        <li><strong>Consulte os indicadores oficiais</strong><span>Dengue e chikungunya do boletim da COVISA, com a semana e a data de corte.</span></li>
+        <li><strong>Compare os territórios</strong><span>Lado a lado, com a métrica e o período escritos em cada tabela.</span></li>
+        <li><strong>Avise os colaboradores</strong><span>Um link para cada pessoa ver o próprio distrito no celular. Nada do que ela consulta volta para a organização.</span></li>
+        <li><strong>Organize as ações preventivas</strong><span>Atividades por unidade, com período planejado e status.</span></li>
+        <li><strong>Gere o relatório</strong><span>Dados oficiais separados do que a organização registrou, pronto para imprimir ou salvar em PDF.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="secao secao--cinza" id="publico" aria-labelledby="publico-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="publico-titulo">Quem pode usar.</h2>
+      <div class="grade">
+        <article class="painel">
+          <h3>Quem gere unidades</h3>
+          <ul class="lista-texto">
+            <li>Empresas com várias unidades na cidade</li>
+            <li>Administradoras de condomínios</li>
+            <li>Instituições de ensino</li>
+          </ul>
+        </article>
+        <article class="painel">
+          <h3>Quem cuida do espaço</h3>
+          <ul class="lista-texto">
+            <li>Gestores de facilities</li>
+            <li>Gestores de operações e manutenção</li>
+            <li>Profissionais de saúde e segurança ocupacional</li>
+          </ul>
+        </article>
+        <article class="painel">
+          <h3>O benefício para o gestor</h3>
+          <p>Um lugar só para ver o território de todas as unidades, com fonte e data de cada número; um plano de prevenção por unidade; e um relatório para levar à reunião de gestão sem montar planilhas.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" id="informacoes" aria-labelledby="info-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="info-titulo">Quais informações aparecem.</h2>
+      <div class="grade">
+        <article class="painel">
+          <span class="rotulo">Do distrito de cada unidade</span>
+          <h3>Boletim da COVISA</h3>
+          <ul class="lista-texto">
+            <li>Dengue: casos confirmados e incidência por 100 mil habitantes, acumulados no ano</li>
+            <li>Chikungunya: casos autóctones confirmados, acumulados no ano</li>
+            <li>Semana epidemiológica, data de publicação e data de corte dos registros</li>
+          </ul>
+        </article>
+        <article class="painel">
+          <span class="rotulo">Da cidade inteira</span>
+          <h3>InfoDengue</h3>
+          <ul class="lista-texto">
+            <li>Casos notificados por semana</li>
+            <li>Nível de alerta, que é municipal: não existe nível por distrito</li>
+          </ul>
+        </article>
+        <article class="painel painel--tinta">
+          <span class="rotulo">O que o painel não faz</span>
+          <h3>Limites assumidos</h3>
+          <ul class="lista-texto">
+            <li>Não calcula risco de uma unidade, imóvel ou pessoa</li>
+            <li>Não faz previsão nem cria índice próprio</li>
+            <li>Não recebe dados de saúde de funcionários ou moradores</li>
+            <li>Zika: a COVISA não publica por distrito desde 2018, então aparece "Sem dados"</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao secao--cinza" id="piloto" aria-labelledby="piloto-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="piloto-titulo">Como funcionaria um projeto-piloto.</h2>
+      <p class="lead">O produto ainda não está em operação com nenhuma organização. O piloto é a etapa em que ele seria testado com uma organização interessada, por um período combinado.</p>
+      <div class="grade">
+        <article class="painel"><span class="rotulo">1. Combinar</span><h3>Escopo</h3><p>Quais unidades entram, em quais distritos, por quanto tempo, e quem na organização acompanha.</p></article>
+        <article class="painel"><span class="rotulo">2. Acompanhar</span><h3>Boletins e plano</h3><p>A cada boletim da COVISA, os indicadores das unidades são atualizados. A organização registra as atividades preventivas no plano.</p></article>
+        <article class="painel"><span class="rotulo">3. Avaliar</span><h3>Relatório e conversa</h3><p>Relatórios periódicos com dados oficiais e atividades registradas, e uma avaliação do que foi útil para o gestor.</p></article>
+      </div>
+      <p class="fonte">O piloto não inclui dados de saúde de pessoas nem promete redução de casos: avaliar efeito epidemiológico exigiria um estudo específico.</p>
+      <div class="grade">
+        <article class="painel"><span class="rotulo">Depois do piloto</span><h3>Assinatura mensal</h3><p>A proposta é uma assinatura mensal por organização, de valor baixo, com o painel das unidades, o link dos colaboradores e um relatório a cada boletim da COVISA. O valor ainda não foi definido.</p></article>
+        <article class="painel"><span class="rotulo">Proposta, ainda não emitido</span><h3>Selo Pathogen</h3><p>Para a organização que mantém a prevenção em dia: comunicação de prevenção a cada 3 meses, com as regiões mais afetadas; ações registradas no plano de cada unidade; e afastamento sem punição nem perda de bônus. O Selo atesta engajamento em prevenção, não ausência de casos.</p></article>
+      </div>
+      <!-- EQUIPE: o projeto não tem canal de contato comercial configurado. Preencha aqui o canal oficial (e-mail ou formulário) quando ele existir. -->
+      <p class="aviso-demo" id="contato"><span>Contato para piloto: canal ainda não configurado pela equipe Pathogen.</span></p>
+    </div>
+  </section>
+
+  <section class="secao" id="demonstracao" aria-labelledby="demo-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="demo-titulo">Demonstração do painel.</h2>
+      <p class="lead">Configure unidades e veja os indicadores oficiais do distrito de cada uma. Os números vêm dos mesmos arquivos do Epimapa SP; nenhum é criado pelo painel.</p>
+      <p class="aviso-demo" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>Ambiente demonstrativo. Unidades de exemplo não representam clientes ou instalações reais.</span></p>
+      <p class="aviso-demo" id="demo-erro" role="alert" hidden></p>
+
+      <div class="bloco" id="b-visao">
+        <h3>Visão geral</h3>
+        <div class="numeros">
+          <div><div class="v" id="v-unidades">—</div><div class="k">unidades configuradas</div></div>
+          <div><div class="v" id="v-distritos">—</div><div class="k">distritos acompanhados</div></div>
+          <div><div class="v" id="v-boletim">—</div><div class="k" id="v-boletim-k">último boletim da COVISA</div></div>
+          <div><div class="v" id="v-atualizacao">—</div><div class="k" id="v-atualizacao-k">última atualização válida</div></div>
+        </div>
+        <p class="fonte" id="v-novo" role="status"></p>
+        <ul class="lista-texto" id="v-indicadores"></ul>
+      </div>
+
+      <div class="bloco" id="b-unidades">
+        <h3>Unidades monitoradas</h3>
+        <div class="form">
+          <label class="campo campo--largo">Nome da organização <small>opcional, aparece no relatório e no link dos colaboradores</small><input id="org-nome" maxlength="80" autocomplete="off"></label>
+        </div>
+        <form class="form" id="f-unidade">
+          <label class="campo">Nome identificador da unidade<input id="u-nome" required maxlength="60" autocomplete="off" placeholder="Ex.: Unidade Centro"></label>
+          <label class="campo">Distrito administrativo<select id="u-distrito" required><option value="">Escolha o distrito</option></select></label>
+          <button class="btn btn--primario" type="submit">Adicionar unidade</button>
+        </form>
+        <p class="fonte">Só um nome de referência e o distrito. O painel não pede endereço nem localização.</p>
+        <div class="rolagem">
+          <table class="tabela" id="t-unidades">
+            <caption class="sr">Unidades configuradas e indicadores oficiais do distrito de cada uma</caption>
+            <thead><tr>
+              <th scope="col">Comparar</th><th scope="col">Unidade</th><th scope="col">Distrito</th>
+              <th scope="col" class="num">Dengue: casos no ano</th><th scope="col" class="num">Dengue: por 100 mil hab. no ano</th>
+              <th scope="col" class="num">Chikungunya: casos autóctones no ano</th><th scope="col">Boletim</th><th scope="col"><span class="sr">Remover</span></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="vazio" id="u-vazio" hidden>Nenhuma unidade configurada. Adicione uma acima ou carregue as unidades de exemplo no fim desta seção.</p>
+      </div>
+
+      <div class="bloco" id="b-comparacao">
+        <h3>Comparação territorial</h3>
+        <p class="fonte" id="c-dica">Marque duas ou mais unidades na coluna "Comparar".</p>
+        <div id="comparacao"></div>
+      </div>
+
+      <div class="bloco" id="b-plano">
+        <h3>Plano de prevenção</h3>
+        <p class="aviso-demo" role="note"><span>Registre atividades, não pessoas: sem nomes de funcionários, sintomas, diagnósticos, CPF, data de nascimento ou fotos.</span></p>
+        <form class="form" id="f-acao">
+          <label class="campo">Atividade<select id="a-tipo" required>
+            <option>Inspeção de áreas externas</option>
+            <option>Verificação de reservatórios</option>
+            <option>Eliminação de possíveis recipientes com água parada</option>
+            <option>Comunicação educativa</option>
+            <option>Campanha de conscientização</option>
+            <option>Distribuição de material informativo</option>
+          </select></label>
+          <label class="campo">Unidade<select id="a-unidade" required></select></label>
+          <label class="campo">Início planejado<input id="a-inicio" type="date" required></label>
+          <label class="campo">Fim planejado<input id="a-fim" type="date" required></label>
+          <label class="campo">Status<select id="a-status"><option value="pendente">Pendente</option><option value="concluida">Concluída</option></select></label>
+          <label class="campo campo--largo">Descrição<input id="a-descricao" maxlength="140" autocomplete="off" placeholder="Ex.: conferir calhas e ralos do pátio"></label>
+          <label class="campo campo--largo">Observações <small>opcional, sem dados pessoais ou de saúde</small><input id="a-obs" maxlength="200" autocomplete="off"></label>
+          <button class="btn btn--primario" type="submit">Adicionar atividade</button>
+        </form>
+        <p class="fonte" id="a-erro" role="alert"></p>
+        <div class="rolagem">
+          <table class="tabela" id="t-acoes">
+            <caption class="sr">Atividades preventivas registradas</caption>
+            <thead><tr><th scope="col">Atividade</th><th scope="col">Unidade</th><th scope="col">Período</th><th scope="col">Status</th><th scope="col">Observações</th><th scope="col"><span class="sr">Remover</span></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="vazio" id="a-vazio">Nenhuma atividade registrada.</p>
+      </div>
+
+      <div class="bloco" id="b-colaboradores">
+        <h3>Link para os colaboradores</h3>
+        <p>Mande este link pelo canal interno (e-mail, intranet ou cartaz com QR code). Cada pessoa vê, no próprio celular, os números oficiais do distrito onde mora ou trabalha, com a fonte e a semana do boletim, e as orientações de prevenção. O distrito consultado não volta para a organização nem para o Pathogen: a página não guarda nem envia nada.</p>
+        <label class="campo campo--largo">Link para enviar<input id="link-colab" readonly></label>
+        <div class="acoes"><button type="button" class="btn btn--secundario" id="copiar-link">Copiar link</button></div>
+        <p class="fonte" id="link-status" role="status"></p>
+      </div>
+
+      <div class="bloco" id="b-relatorio">
+        <h3>Relatório executivo</h3>
+        <p>Abre a janela de impressão do navegador. Para guardar o arquivo, escolha "Salvar como PDF".</p>
+        <div class="acoes"><button type="button" class="btn btn--primario" id="imprimir">Gerar relatório</button></div>
+      </div>
+
+      <div class="bloco" id="b-local">
+        <h3>Onde ficam estas informações</h3>
+        <p>O nome da organização, as unidades e o plano ficam só neste navegador, no armazenamento local do aparelho. Nada é enviado ao Pathogen nem sincronizado com outras pessoas: outro navegador ou aparelho não vê o que está aqui. As unidades de exemplo só são gravadas se você mudar alguma coisa.</p>
+        <div class="acoes">
+          <button type="button" class="btn btn--secundario" id="limpar">Limpar dados locais</button>
+          <button type="button" class="btn btn--secundario" id="exemplos">Carregar unidades de exemplo</button>
+        </div>
+        <p class="fonte" id="local-status" role="status"></p>
+      </div>
+
+      <article class="relatorio" id="relatorio"></article>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="wrap">
+    <div class="rodape__trilha"><span class="marca__logo" aria-hidden="true"></span><span>Pathogen. Informação que te previne.</span></div>
+    <nav aria-label="Rodapé">
+      <a href="index.html">Epimapa SP</a>
+      <a href="mapa.html">Mapa</a>
+      <a href="organizacoes.html">Pathogen Organizações</a>
+      <a href="impacto.html">Pathogen Impacto</a>
+    </nav>
+    <p>Projeto independente, sem vínculo com a Prefeitura, o Ministério da Saúde ou a Fiocruz. Dados: boletim de arboviroses da COVISA/SMS-SP (distritos) e InfoDengue (cidade). Não substitui orientação médica nem a vigilância em saúde.</p>
+  </div>
+</footer>
+
+<script>
+(async function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const fmt = new Intl.NumberFormat("pt-BR");
+  const fmt1 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  // Data sem hora ("2026-10-23"): ao meio-dia, para o fuso de SP não voltar um dia.
+  const dia = (s) => s ? new Date(s.length === 10 ? s + "T12:00:00" : s).toLocaleDateString("pt-BR") : "—";
+  const SEM = '<span class="sem-dados">Sem dados</span>';
+  const CHAVE = "pathogen:organizacoes-demo";
+  const SP156 = "https://sp156.prefeitura.sp.gov.br/portal/servicos/informacao?servico=810";
+  const MS = "https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue/faq/dengue/como-se-prevenir-da-dengue";
+  const NIVEL = { 1: "verde", 2: "amarelo", 3: "laranja", 4: "vermelho" };
+  // Unidades hipotéticas, só nome e distrito. Os números ao lado delas são os do boletim real.
+  const EXEMPLOS = [
+    { nome: "Exemplo A (escritório)", distrito: "se" },
+    { nome: "Exemplo B (escola)", distrito: "itaquera" },
+    { nome: "Exemplo C (loja)", distrito: "pinheiros" },
+    { nome: "Exemplo D (condomínio)", distrito: "cidade-tiradentes" },
+  ];
+
+  let cov, cid, geo;
+  try {
+    const pegar = (u) => fetch(u).then(r => { if (!r.ok) throw new Error(`${u}: ${r.status}`); return r.json(); });
+    [cov, cid, geo] = await Promise.all([pegar("data/casos_distrito.json"), pegar("data/infodengue.json"), pegar("data/distritos.geojson")]);
+  } catch (e) {
+    $("demo-erro").hidden = false;
+    $("demo-erro").textContent = "Não foi possível carregar os dados oficiais agora. A demonstração precisa deles e não mostra números de outra origem. Tente recarregar a página.";
+    document.querySelectorAll("#demonstracao .bloco").forEach(b => b.hidden = true);
+    return;
+  }
+
+  const distritos = Object.fromEntries(geo.features.map(f => [f.properties.id, f.properties]));
+  const dengue = cov.doencas.dengue || {}, chik = cov.doencas.chikungunya || {};
+  const num = (v) => typeof v === "number" ? v : null;
+  const casosDengue = (id) => num(dengue[id] && dengue[id].casos_ano);
+  const incDengue = (id) => num(dengue[id] && dengue[id].inc100k_ano);
+  const casosChik = (id) => num(chik[id] && chik[id].casos_ano);
+  const celula = (v, f = fmt) => v === null ? SEM : f.format(v);
+  // posição entre os 96 pela incidência de dengue; empates dividem a posição
+  const incs = Object.keys(distritos).map(incDengue).filter(v => v !== null);
+  const posicao = (id) => { const v = incDengue(id); return v === null ? null : 1 + incs.filter(x => x > v).length; };
+  const boletim = `SE ${cov.se}/${cov.ano}`;
+  const periodo = `acumulado em ${cov.ano}, boletim COVISA ${boletim}${cov.dados_ate ? `, dados até ${dia(cov.dados_ate)}` : ""}`;
+
+  // ---------- estado: só neste navegador ----------
+  let gravado = null;
+  try { gravado = JSON.parse(localStorage.getItem(CHAVE)); } catch { /* sem armazenamento ou conteúdo inválido */ }
+  const valido = gravado && Array.isArray(gravado.unidades) && Array.isArray(gravado.acoes);
+  let estado = valido ? gravado : { organizacao: "", unidades: novasDeExemplo(), acoes: [], boletimVisto: null };
+  estado.unidades = estado.unidades.filter(u => u && typeof u.nome === "string" && distritos[u.distrito]);   // o que não é unidade válida sai
+  const visto = valido ? gravado.boletimVisto : null;
+  const boletimNovo = !!visto && (visto.se !== cov.se || visto.ano !== cov.ano);
+  const comparar = new Set();
+
+  function novasDeExemplo() { return EXEMPLOS.map((u, i) => ({ id: `ex${i}`, exemplo: true, ...u })); }
+  function persistir() {
+    estado.boletimVisto = { ano: cov.ano, se: cov.se };
+    try { localStorage.setItem(CHAVE, JSON.stringify(estado)); return true; } catch { return false; }
+  }
+  function gravar(msg) {
+    $("local-status").textContent = persistir() ? msg : "Este navegador não permite gravar: as mudanças valem só enquanto a página estiver aberta.";
+  }
+  const novoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  // ---------- visão geral ----------
+  function renderVisao() {
+    $("v-unidades").textContent = fmt.format(estado.unidades.length);
+    $("v-distritos").textContent = fmt.format(new Set(estado.unidades.map(u => u.distrito)).size);
+    $("v-boletim").textContent = boletim;
+    $("v-boletim-k").textContent = `último boletim da COVISA${cov.publicado_em ? `, publicado em ${dia(cov.publicado_em)}` : ""}${cov.dados_ate ? `; dados até ${dia(cov.dados_ate)}` : ""}`;
+    $("v-atualizacao").textContent = cov.extraido_em ? dia(cov.extraido_em) : "—";
+    $("v-atualizacao-k").textContent = cov.validacao && cov.validacao.status === "aprovada"
+      ? `última leitura válida do boletim (${Object.values(cov.validacao.distritos)[0]} distritos conferidos)` : "última leitura do boletim";
+    $("v-novo").textContent = boletimNovo
+      ? `Novo boletim oficial desde a sua última visita: ${boletim}. Na visita anterior era a SE ${visto.se}/${visto.ano}.`
+      : `O painel mostra o boletim mais recente lido pelo Epimapa SP (${boletim}).`;
+    const d = cid.doencas && cid.doencas.dengue && cid.doencas.dengue.atual;
+    $("v-indicadores").innerHTML = [
+      `<li><strong>Dengue por distrito:</strong> casos confirmados e incidência por 100 mil habitantes, ${esc(periodo)}.</li>`,
+      `<li><strong>Chikungunya por distrito:</strong> casos autóctones confirmados, ${esc(periodo)}. O boletim não traz incidência.</li>`,
+      `<li><strong>Zika por distrito:</strong> sem dados. A COVISA não publica zika por distrito desde 2018.</li>`,
+      d ? `<li><strong>Cidade inteira (InfoDengue):</strong> ${fmt.format(d.casos)} casos de dengue notificados na SE ${d.se}/${d.ano}; nível de alerta municipal ${NIVEL[d.nivel] || "—"}. Não existe nível de alerta por distrito.</li>`
+        : `<li><strong>Cidade inteira (InfoDengue):</strong> sem dados no momento.</li>`,
+    ].join("");
+  }
+
+  // ---------- unidades ----------
+  const sel = $("u-distrito");
+  Object.values(distritos).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")).forEach(p => {
+    sel.add(new Option(`${p.nome} (subprefeitura ${p.subprefeitura})`, p.id));
+  });
+  const nomeDistrito = (id) => distritos[id] ? distritos[id].nome : "—";
+
+  function renderUnidades() {
+    const corpo = $("t-unidades").tBodies[0];
+    corpo.innerHTML = estado.unidades.map(u => `<tr>
+      <td><input type="checkbox" data-comparar="${esc(u.id)}" ${comparar.has(u.id) ? "checked" : ""} aria-label="Comparar ${esc(u.nome)}"></td>
+      <td>${esc(u.nome)}${u.exemplo ? "<small>unidade de exemplo</small>" : ""}</td>
+      <td>${esc(nomeDistrito(u.distrito))}<small>${esc(distritos[u.distrito].subprefeitura)}</small></td>
+      <td class="num">${celula(casosDengue(u.distrito))}</td>
+      <td class="num">${celula(incDengue(u.distrito), fmt1)}</td>
+      <td class="num">${celula(casosChik(u.distrito))}</td>
+      <td>${boletim}</td>
+      <td><button type="button" class="link" data-remover="${esc(u.id)}">Remover<span class="sr"> ${esc(u.nome)}</span></button></td>
+    </tr>`).join("");
+    $("t-unidades").hidden = !estado.unidades.length;
+    $("u-vazio").hidden = !!estado.unidades.length;
+    $("a-unidade").innerHTML = estado.unidades.map(u => `<option value="${esc(u.id)}">${esc(u.nome)} (${esc(nomeDistrito(u.distrito))})</option>`).join("");
+  }
+
+  $("f-unidade").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nome = $("u-nome").value.trim(), distrito = sel.value;
+    if (!nome || !distritos[distrito]) return;
+    estado.unidades.push({ id: novoId(), nome, distrito });
+    $("u-nome").value = ""; sel.value = "";
+    gravar(`Unidade "${nome}" adicionada e gravada neste navegador.`);
+    tudo();
+    $("u-nome").focus();
+  });
+  $("t-unidades").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-remover]");
+    if (!b) return;
+    const id = b.dataset.remover;
+    estado.unidades = estado.unidades.filter(u => u.id !== id);
+    estado.acoes = estado.acoes.filter(a => a.unidade !== id);
+    comparar.delete(id);
+    gravar("Unidade removida, com as atividades ligadas a ela.");
+    tudo();
+  });
+  $("t-unidades").addEventListener("change", (e) => {
+    const c = e.target.closest("[data-comparar]");
+    if (!c) return;
+    c.checked ? comparar.add(c.dataset.comparar) : comparar.delete(c.dataset.comparar);
+    renderComparacao();
+  });
+  $("org-nome").addEventListener("change", () => { estado.organizacao = $("org-nome").value.trim(); gravar("Nome da organização gravado neste navegador."); renderLink(); });
+
+  // Link dos colaboradores: index.html?de=<nome>. A página inicial só exibe o nome (textContent).
+  function renderLink() {
+    const u = new URL("index.html", location.href);
+    if (estado.organizacao) u.searchParams.set("de", estado.organizacao);
+    $("link-colab").value = u.href;
+  }
+  $("copiar-link").addEventListener("click", () => {
+    const ok = () => { $("link-status").textContent = "Link copiado."; };
+    const falhou = () => { $("link-colab").select(); $("link-status").textContent = "Não deu para copiar sozinho: o link está selecionado, use Ctrl+C."; };
+    navigator.clipboard ? navigator.clipboard.writeText($("link-colab").value).then(ok, falhou) : falhou();
+  });
+
+  // ---------- comparação: ordenada pela métrica, com a métrica e o período escritos ----------
+  function tabelasComparacao(unidades) {
+    const ordenar = (f) => [...unidades].sort((a, b) => {
+      const va = f(a.distrito), vb = f(b.distrito);
+      if (va === vb) return a.nome.localeCompare(b.nome, "pt-BR");
+      if (va === null) return 1;                 // sem dado vai para o fim, não vira zero
+      if (vb === null) return -1;
+      return vb - va;
+    });
+    const linhaDist = (u) => `<td>${esc(u.nome)}</td><td>${esc(nomeDistrito(u.distrito))}</td>`;
+    const den = ordenar(incDengue).map(u => {
+      const p = posicao(u.distrito);
+      return `<tr>${linhaDist(u)}<td class="num">${celula(casosDengue(u.distrito))}</td><td class="num">${celula(incDengue(u.distrito), fmt1)}</td><td class="num">${p === null ? SEM : `${p}º de ${incs.length}`}</td></tr>`;
+    }).join("");
+    const chi = ordenar(casosChik).map(u => `<tr>${linhaDist(u)}<td class="num">${celula(casosChik(u.distrito))}</td></tr>`).join("");
+    return `<div class="rolagem"><table class="tabela">
+        <caption>Dengue: incidência por 100 mil habitantes, ${esc(periodo)}. Da maior para a menor.</caption>
+        <thead><tr><th scope="col">Unidade</th><th scope="col">Distrito</th><th scope="col" class="num">Casos confirmados no ano</th><th scope="col" class="num">Por 100 mil hab. no ano</th><th scope="col" class="num">Posição entre os distritos, por incidência</th></tr></thead>
+        <tbody>${den}</tbody></table></div>
+      <div class="rolagem"><table class="tabela">
+        <caption>Chikungunya: casos autóctones confirmados, ${esc(periodo)}. Do maior para o menor. O boletim não traz incidência por distrito.</caption>
+        <thead><tr><th scope="col">Unidade</th><th scope="col">Distrito</th><th scope="col" class="num">Casos autóctones no ano</th></tr></thead>
+        <tbody>${chi}</tbody></table></div>
+      <p class="fonte">A incidência descreve o distrito inteiro, não a unidade: não é risco da unidade, do imóvel nem das pessoas. "Sem dados" quer dizer que o boletim não traz o número, e não que ele é zero.</p>`;
+  }
+  function renderComparacao() {
+    const unidades = estado.unidades.filter(u => comparar.has(u.id));
+    $("c-dica").hidden = unidades.length >= 2;
+    $("comparacao").innerHTML = unidades.length >= 2 ? tabelasComparacao(unidades) : "";
+  }
+
+  // ---------- plano de prevenção ----------
+  const unidadeDe = (id) => estado.unidades.find(u => u.id === id);
+  function renderAcoes() {
+    const corpo = $("t-acoes").tBodies[0];
+    corpo.innerHTML = estado.acoes.map(a => {
+      const u = unidadeDe(a.unidade);
+      return `<tr>
+        <td>${esc(a.tipo)}${a.descricao ? `<small>${esc(a.descricao)}</small>` : ""}</td>
+        <td>${u ? esc(u.nome) : "—"}${u ? `<small>${esc(nomeDistrito(u.distrito))}</small>` : ""}</td>
+        <td>${dia(a.inicio)} a ${dia(a.fim)}</td>
+        <td><button type="button" class="link" data-status="${esc(a.id)}" aria-label="Status: ${a.status === "concluida" ? "concluída" : "pendente"}. Trocar">${a.status === "concluida" ? '<span class="status-concluida">Concluída</span>' : "Pendente"}</button></td>
+        <td>${a.obs ? esc(a.obs) : "—"}</td>
+        <td><button type="button" class="link" data-remover-acao="${esc(a.id)}">Remover</button></td>
+      </tr>`;
+    }).join("");
+    $("t-acoes").hidden = !estado.acoes.length;
+    $("a-vazio").hidden = !!estado.acoes.length;
+    $("f-acao").querySelector("button[type=submit]").disabled = !estado.unidades.length;
+    $("a-erro").textContent = estado.unidades.length ? "" : "Adicione uma unidade antes de planejar atividades.";
+  }
+  $("f-acao").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const inicio = $("a-inicio").value, fim = $("a-fim").value;
+    if (!unidadeDe($("a-unidade").value)) return;
+    if (fim < inicio) { $("a-erro").textContent = "O fim planejado não pode ser antes do início."; return; }
+    estado.acoes.push({
+      id: novoId(), tipo: $("a-tipo").value, unidade: $("a-unidade").value, inicio, fim,
+      status: $("a-status").value === "concluida" ? "concluida" : "pendente",
+      descricao: $("a-descricao").value.trim(), obs: $("a-obs").value.trim(),
+    });
+    $("a-descricao").value = ""; $("a-obs").value = ""; $("a-erro").textContent = "";
+    gravar("Atividade adicionada e gravada neste navegador.");
+    renderAcoes();
+  });
+  $("t-acoes").addEventListener("click", (e) => {
+    const s = e.target.closest("[data-status]"), r = e.target.closest("[data-remover-acao]");
+    if (s) { const a = estado.acoes.find(x => x.id === s.dataset.status); a.status = a.status === "concluida" ? "pendente" : "concluida"; gravar("Status atualizado."); }
+    else if (r) { estado.acoes = estado.acoes.filter(x => x.id !== r.dataset.removerAcao); gravar("Atividade removida."); }
+    else return;
+    renderAcoes();
+  });
+
+  // ---------- dados locais ----------
+  $("limpar").addEventListener("click", () => {
+    try { localStorage.removeItem(CHAVE); } catch { /* nada gravado */ }
+    estado = { organizacao: "", unidades: [], acoes: [], boletimVisto: null };
+    comparar.clear(); $("org-nome").value = "";
+    tudo();
+    $("local-status").textContent = "Dados locais apagados deste navegador.";
+  });
+  $("exemplos").addEventListener("click", () => {
+    const ids = new Set(estado.unidades.map(u => u.id));
+    estado.unidades.push(...novasDeExemplo().filter(u => !ids.has(u.id)));
+    gravar("Unidades de exemplo carregadas e gravadas neste navegador.");
+    tudo();
+  });
+
+  // ---------- relatório: dados oficiais separados do que a organização registrou ----------
+  function renderRelatorio() {
+    const us = estado.unidades, ids = [...new Set(us.map(u => u.distrito))];
+    const sem = ids.filter(id => casosDengue(id) === null || casosChik(id) === null).map(nomeDistrito);
+    const d = cid.doencas && cid.doencas.dengue && cid.doencas.dengue.atual;
+    $("relatorio").innerHTML = `
+      <h1>Relatório executivo${estado.organizacao ? `: ${esc(estado.organizacao)}` : ""}</h1>
+      <p>Gerado em ${new Date().toLocaleDateString("pt-BR")} pelo protótipo Pathogen Organizações. <strong>Ambiente demonstrativo. Unidades de exemplo não representam clientes ou instalações reais.</strong></p>
+
+      <h2>Parte 1. Dados epidemiológicos oficiais</h2>
+      <p>Fonte: <a href="${esc(cov.url || "")}">${esc(cov.fonte)}</a>${cov.url ? ` (${esc(cov.url)})` : ""}. Semana epidemiológica ${cov.se}/${cov.ano}${cov.publicado_em ? `, publicado em ${dia(cov.publicado_em)}` : ""}${cov.dados_ate ? `; dados provisórios do SINAN até ${dia(cov.dados_ate)}` : ""}. Valores acumulados desde janeiro, por ano de início dos sintomas, como publicados no boletim.</p>
+      <h3>Unidades configuradas e distritos</h3>
+      ${us.length ? `<table class="tabela"><thead><tr><th>Unidade</th><th>Distrito</th><th>Subprefeitura</th></tr></thead><tbody>${us.map(u => `<tr><td>${esc(u.nome)}${u.exemplo ? " (exemplo)" : ""}</td><td>${esc(nomeDistrito(u.distrito))}</td><td>${esc(distritos[u.distrito].subprefeitura)}</td></tr>`).join("")}</tbody></table>` : "<p>Nenhuma unidade configurada.</p>"}
+      <h3>Indicadores e comparação territorial</h3>
+      ${us.length ? tabelasComparacao(us) : "<p>Sem unidades, sem indicadores.</p>"}
+      ${d ? `<h3>Cidade de São Paulo (InfoDengue, Fiocruz/FGV)</h3><p>${fmt.format(d.casos)} casos de dengue notificados na SE ${d.se}/${d.ano}; nível de alerta municipal ${NIVEL[d.nivel] || "—"}. O nível de alerta vale para a cidade inteira; não existe nível por distrito.</p>` : ""}
+      <h3>Dados ausentes e limitações</h3>
+      <ul>
+        <li>Zika: a COVISA não publica casos por distrito desde 2018. Sem dados por distrito.</li>
+        ${sem.length ? `<li>Sem dados no boletim para: ${esc(sem.join(", "))}.</li>` : "<li>Todos os distritos das unidades têm dengue e chikungunya no boletim.</li>"}
+        <li>Os números são acumulados do ano e provisórios: a COVISA revisa as semanas anteriores a cada edição. A diferença entre dois boletins não equivale a casos novos.</li>
+        <li>A incidência descreve o distrito, não a unidade. Este relatório não estima risco de unidades, imóveis ou pessoas e não faz previsão.</li>
+      </ul>
+      <h3>Recomendações gerais de prevenção (Ministério da Saúde)</h3>
+      <ul>
+        <li>Eliminar criadouros sempre que possível.</li>
+        <li>Manter reservatórios e qualquer local que acumule água totalmente cobertos com telas, capas ou tampas.</li>
+        <li>Telas em portas e janelas; nos períodos de maior exposição, roupas compridas e repelente registrado, conforme o fabricante.</li>
+        <li>Possíveis focos em imóveis de terceiros: solicitar vistoria no serviço oficial SP156 (${esc(SP156)}).</li>
+      </ul>
+      <p>Referência: ${esc(MS)}</p>
+
+      <h2>Parte 2. Informações de execução fornecidas pela organização</h2>
+      <p>Registradas pela própria organização neste navegador. Não foram verificadas pela COVISA nem pelo Pathogen.</p>
+      ${estado.acoes.length ? `<table class="tabela"><thead><tr><th>Atividade</th><th>Unidade</th><th>Período planejado</th><th>Status</th><th>Observações</th></tr></thead><tbody>${estado.acoes.map(a => { const u = unidadeDe(a.unidade); return `<tr><td>${esc(a.tipo)}${a.descricao ? `: ${esc(a.descricao)}` : ""}</td><td>${u ? esc(u.nome) : "—"}</td><td>${dia(a.inicio)} a ${dia(a.fim)}</td><td>${a.status === "concluida" ? "Concluída" : "Pendente"}</td><td>${a.obs ? esc(a.obs) : "—"}</td></tr>`; }).join("")}</tbody></table>
+        <p>${estado.acoes.filter(a => a.status === "concluida").length} de ${estado.acoes.length} atividades marcadas como concluídas pela organização.</p>` : "<p>Nenhuma ação preventiva registrada.</p>"}`;
+  }
+  $("imprimir").addEventListener("click", () => { renderRelatorio(); print(); });
+  addEventListener("beforeprint", renderRelatorio);   // Ctrl+P também sai com o relatório atualizado
+
+  function tudo() { renderVisao(); renderUnidades(); renderComparacao(); renderAcoes(); renderLink(); }
+  $("org-nome").value = estado.organizacao || "";
+  const local = (d) => d.toLocaleDateString("sv-SE");   // AAAA-MM-DD no fuso do aparelho
+  $("a-inicio").value = local(new Date());
+  $("a-fim").value = local(new Date(Date.now() + 7 * 864e5));
+  tudo();
+  if (boletimNovo) persistir();   // quem já tinha dados gravados: registra que este boletim já foi visto
+})();
+</script>
+</body>
+</html>
