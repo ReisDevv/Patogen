@@ -52,7 +52,11 @@ requirements.txt                   # pdfplumber, só para fetch_covisa.py
 
 O projeto ocupa a raiz do repositório (`Patogen/`). Isso é requisito do GitHub
 Pages: ele publica a raiz da branch, então `index.html` precisa estar ali para
-que `https://reisdevv.github.io/Patogen/` abra o site em vez de um 404. Não mova
+que `https://reisdevv.github.io/Patogen/` abra o site em vez de um 404. Desde 2026-11-08 o
+endereço oficial é `https://pathogen-sp.vercel.app/` (projeto `patogen` na Vercel, publica a
+cada push na `main`, inclusive os commits diários de dados; `vercel.json` sem build e
+`.vercelignore` sem scripts/testes, porque o `requirements.txt` fazia a Vercel tentar um app
+Python). `pathogen.vercel.app` já era de outro projeto. O GitHub Pages continua como espelho. Não mova
 o site para uma subpasta. A página inicial (`index.html`) e o mapa (`mapa.html`)
 ficam os dois na raiz.
 
