@@ -273,6 +273,11 @@ ivel.js, 	ema.js, empresas.js, chat.js) entram com `?v=<commit>`: ao mudar um de
 - Não formate o GeoJSON com indentação (tamanho importa). JSON de dados pode ter `indent=1`.
 - Tamanho de página: cada página (`index.html` ou `mapa.html`, mais `chat.js`) + dados abaixo de 500 KB no total.
 - Acessibilidade: foco visível, `aria-pressed`/`aria-expanded` mantidos, `prefers-reduced-motion` respeitado.
+- Direção editorial (2026-11-08, aprovada pelo dono a partir de um protótipo): jornalismo de dados, com o mapa
+  dos 96 como protagonista na abertura (título em 2 linhas, busca, ficha ao lado) e a seção "Os 96" em barras
+  ligadas à ficha. Sem cartões: blocos separados por linha fina; um tema por página (nada de faixa escura
+  em página clara); só o cartão de sintomas e o "não faz" ficam em bloco tingido. Regras da skill Taste
+  (`.claude/skills/design-taste-frontend`): sem grade de 3 cartões iguais, sem etiqueta em cima de todo título.
 - Visual (redesign de 2026-09, Design System em 2026-11-08): fontes por papel (`--f-titulo`, `--f-texto`,
   `--f-num`); um acento só (`--accent`, teal); tema escuro redefine os mesmos tokens;
   cinzas frios; sombras tingidas com a tinta, nunca preto puro; raios fixos — contêineres 12px,

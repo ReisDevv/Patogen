@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<script src="tema.js?v=b516d70"></script>
+<script src="tema.js?v=eaba778"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
   // Endereços do mapa na raiz (#doença/distrito, usados antes de existir esta página) continuam abrindo o mapa.
@@ -673,6 +673,76 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 :root[data-tema="escuro"] .leaflet-bar a { background: var(--surface); color: var(--ink); border-color: var(--line); }
 :root[data-tema="escuro"] .leaflet-bar a:hover { background: var(--surface-2); }
 :root[data-tema="escuro"] .painel--tinta { background: #020617; box-shadow: 0 0 0 1px var(--line); }
+
+/* ---------- Direção editorial aprovada (2026-11-08): dados como protagonista, sem cartões ---------- */
+body { background: var(--surface); }
+.secao { padding-block: clamp(72px, 9vw, 120px); }
+.secao + .secao, .heroi + .secao { border-top: 1px solid var(--line); }
+.secao--cinza { background: var(--surface); }
+.secao__cab { display: block; }
+.secao__cab .lead { max-width: 60ch; }
+h2.titulo { font-size: clamp(32px, 3.6vw, 52px); line-height: 1.04; letter-spacing: -.035em; max-width: 20ch; }
+.heroi { padding-block: 24px 56px; }
+.heroi__grade { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: 48px; align-items: start; }
+.heroi__texto { padding-top: clamp(16px, 6vh, 72px); }
+.heroi h1 { font: 600 clamp(36px, 3.9vw, 56px)/1.02 var(--f-titulo); letter-spacing: -.04em; max-width: 18ch; margin: 0; }
+.heroi .lead { font-size: 19px; max-width: 40ch; margin: 16px 0 24px; }
+.heroi .busca { width: 100%; max-width: 540px; }
+.heroi .busca input { width: 100%; padding: 15px 18px 15px 46px; font-size: 17px; border: 1px solid var(--line-forte); border-radius: 999px; box-shadow: none; background: var(--surface); }
+.heroi .busca input:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+.heroi .busca svg { left: 18px; top: 50%; transform: translateY(-50%); }
+.heroi .mini-d { fill-opacity: .95; stroke: var(--surface); }
+.heroi .mini__mapa.foco .mini-d { fill-opacity: .35; }
+.heroi .mini__mapa.foco .mini-d.sel { fill-opacity: 1; }
+.heroi__acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 12px; }
+.heroi__acoes .seg { margin: 0; }
+.heroi .convite { margin-top: 0; }
+.consulta__mapa { margin: 0; position: sticky; top: calc(var(--topo) + 12px); }
+.heroi .mini__area { height: min(calc(100vh - 190px), 700px); }
+.ficha { margin-top: 28px; padding: 22px 0 0; border-top: 1px solid var(--line); background: none; box-shadow: none; border-radius: 0; }
+.painel { background: none; box-shadow: none; border-radius: 0; padding: 18px 0 0; border-top: 1px solid var(--ink); }
+.painel--tinta { background: var(--surface-2); color: var(--ink); border-top: 0; border-radius: 16px; padding: 28px; }
+.painel--tinta p, .painel--tinta li, .painel--tinta .rotulo, .painel--tinta strong { color: inherit; }
+.painel--tinta .alarme { background: var(--surface); }
+:root[data-tema="escuro"] .painel--tinta { background: #020617; box-shadow: none; }
+.painel--tinta .rotulo, .painel--tinta p, .painel--tinta .telefones span, .painel--tinta .fonte { color: var(--muted); }
+.painel--tinta .alarme p { color: var(--ink); }
+.painel--tinta a, .painel--tinta .telefones a { color: var(--ink); }
+.painel--tinta .telefones a { background: var(--surface); }
+.painel--tinta .telefones a:hover { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-forte); }
+.painel--tinta .telefones b { font-family: var(--f-num); font-weight: 500; color: var(--ink); }
+:root[data-tema="escuro"] .painel--tinta .telefones a, :root[data-tema="escuro"] .painel--tinta .alarme { background: #0F172A; }
+.grade-cidade { gap: 48px; }
+.doencas { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid var(--ink); margin-top: 36px; }
+.doencas .painel { position: relative; display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 2fr) minmax(0, 2fr) 44px; gap: 8px 36px; align-items: start; padding: 26px 0; border-top: 0; border-bottom: 1px solid var(--line); }
+.doencas .painel h3 { font: 600 clamp(24px, 2.2vw, 30px)/1.1 var(--f-titulo); letter-spacing: -.02em; margin: 0; }
+.doencas .painel p { margin: 0; }
+.doencas .painel .mais { position: static; }
+.doencas .painel { min-height: 0; }
+.doencas .cobertura { margin-top: 0; padding-top: 0; }
+.grade-cidade .painel, .grade-cidade .painel--largo { padding: 20px 0 8px; }
+.prevencao { gap: 48px; }
+.prevencao .painel { padding: 20px 0 0; }
+.prevencao .painel--tinta { padding: 32px; }
+.painel .mais { bottom: auto; right: 0; top: 20px; }
+.os96 .lead { max-width: 60ch; }
+.barras96 { display: block; width: 100%; height: 300px; margin-top: 36px; overflow: visible; }
+.barras96 rect { cursor: pointer; transition: opacity .15s; }
+.barras96 rect:hover { opacity: .75; }
+.barras96 rect.sel { stroke: var(--ink); stroke-width: 2; }
+.barras96 .media { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 4 4; }
+.barras96 text { font: 12px var(--f-texto); fill: var(--muted); }
+.barras96 text.forte { font: 500 13px var(--f-num); fill: var(--ink); }
+@media (max-width: 900px) {
+  .heroi__grade { grid-template-columns: 1fr; gap: 24px; }
+  .consulta__mapa { position: static; }
+  .heroi .mini__area { height: 420px; }
+  .doencas .painel { grid-template-columns: 1fr 44px; }
+  .doencas .painel p { grid-column: 1; }
+  .painel, .grade-cidade .painel, .grade-cidade .painel:not(.painel--largo), .prevencao .painel, .doencas .painel { padding-inline: 0; padding-bottom: 16px; }
+  .prevencao .painel--tinta { padding: 24px 20px; }
+  .barras96 { height: 200px; }
+}
 </style>
 </head>
 <body class="carregando">
@@ -704,38 +774,25 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 </header>
 
 <main id="conteudo">
-  <section class="wrap heroi" aria-labelledby="titulo">
+  <section class="heroi" aria-labelledby="titulo">
+    <div class="wrap heroi__grade" id="consulta">
+      <div class="heroi__texto consulta__lado">
     <p class="convite" id="convite" hidden><strong id="convite-org"></strong> enviou este link para você acompanhar o distrito onde mora ou trabalha. Ninguém fica sabendo qual distrito você consulta, nem quem enviou.</p>
-    <h1 id="titulo">A dengue está alta no meu bairro?</h1>
-    <p class="lead">Dengue, chikungunya e zika nos 96 distritos de São Paulo, com os números oficiais da semana e a fonte de cada um.</p>
-    <p class="pathogen-linha"><strong>Pathogen. Informação que te previne.</strong> Transformamos dados epidemiológicos públicos em informação acessível para quem mora na cidade, no Epimapa SP, e em planejamento preventivo para organizações com unidades em São Paulo.</p>
-    <div class="caminhos">
-      <a class="btn btn--primario btn--pilula" href="mapa.html" data-mapa>Consultar mapa</a>
-      <a class="btn btn--secundario btn--pilula" href="organizacoes.html">Para empresas</a>
-    </div>
-
-    <ul class="atalhos" aria-label="Atalhos">
-      <li><button type="button" data-ir-busca><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar distrito</button></li>
-      <li><button type="button" id="localizar"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>Meu distrito</span></button></li>
-      <li><a href="mapa.html" data-mapa><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4z"/><path d="M9 4v13M15 6.5v13"/></svg>Mapa completo</a></li>
-      <li><a href="mapa.html#dengue/lista" id="ver-lista"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>Os 96 distritos</a></li>
-      <li><a href="#prevencao"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>Prevenção</a></li>
-      <li><button type="button" data-epi><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4A8 8 0 1 1 20 12z"/></svg>Perguntar ao Epi</button></li>
-    </ul>
-
-    <div class="painel consulta" id="consulta">
-      <div class="consulta__lado">
-        <div class="seg" role="group" aria-label="Doença">
-          <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
-          <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
-          <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
-        </div>
+        <h1 id="titulo">A dengue está alta no seu bairro?</h1>
+        <p class="lead">Os números oficiais da COVISA para os 96 distritos de São Paulo, a cada boletim.</p>
         <div class="busca">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input id="busca" type="search" placeholder="Digite seu distrito ou bairro" autocomplete="off" aria-label="Buscar distrito, bairro ou subprefeitura" aria-controls="busca-lista" aria-expanded="false" enterkeyhint="go">
           <ul id="busca-lista" class="busca__lista" role="listbox"></ul>
         </div>
-
+        <div class="heroi__acoes">
+          <button type="button" class="btn btn--secundario btn--pilula" id="localizar"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>Meu distrito</span></button>
+        <div class="seg" role="group" aria-label="Doença">
+          <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
+          <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
+          <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
+        </div>
+        </div>
         <div class="ficha" id="ficha" aria-live="polite">
           <div class="esq" aria-hidden="true"><i class="media"></i><i class="curta"></i><i class="grande"></i><i></i></div>
           <div class="ficha__vazia dados" id="ficha-vazia">
@@ -770,7 +827,6 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
           </div>
         </div>
       </div>
-
       <figure class="consulta__mapa">
         <div class="mini__area">
           <div class="esq" aria-hidden="true"><i></i></div>
@@ -783,6 +839,15 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
         </div>
         <figcaption class="dados"><span id="mini-legenda">Incidência acumulada no ano, por distrito.</span><sup class="nota-ref"><a href="#nota-1" aria-label="Nota 1">1</a></sup></figcaption>
       </figure>
+    </div>
+  </section>
+
+  <section class="secao os96" id="os96" aria-labelledby="os96-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="os96-titulo">Os 96 distritos, do maior para o menor.</h2>
+      <p class="lead" id="os96-lead">Cada barra é um distrito. Toque para ver o seu.</p>
+      <svg class="barras96" id="barras96" role="img" aria-labelledby="os96-titulo"></svg>
+      <p class="fonte"><span id="os96-fonte">Dengue, incidência acumulada no ano por 100 mil habitantes. COVISA/SMS-SP.</span> <a href="mapa.html#dengue/lista" id="ver-lista">Ver os 96 em lista</a></p>
     </div>
   </section>
 
@@ -1084,8 +1149,8 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
   <p class="chat__aviso">Não substitui atendimento médico. Suas perguntas não saem do seu navegador.</p>
 </section>
 
-<script src="nivel.js?v=b516d70"></script>
-<script src="chat.js?v=b516d70"></script>
+<script src="nivel.js?v=eaba778"></script>
+<script src="chat.js?v=eaba778"></script>
 <script>
 // Link que a organização manda aos colaboradores (?de=Nome, gerado em organizacoes.html).
 // Só mostra o nome: nada sobre a consulta volta para a organização.
@@ -1653,6 +1718,49 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     const QUANDO = ["todo domingo", "toda segunda-feira", "toda terça-feira", "toda quarta-feira", "toda quinta-feira", "toda sexta-feira", "todo sábado"];
     $("lembrete-ok").textContent = `Arquivo criado: ${QUANDO[dia]}, às ${p(h)}h${p(m)}. Abra o arquivo para adicionar ao calendário.`;
+  });
+})();
+</script>
+
+<script>
+// "Os 96": barras de todos os distritos (dengue), ligadas à ficha da abertura pelo clique no minimapa.
+(async function () {
+  const svg = document.getElementById("barras96");
+  if (!svg || !window.PathogenNivel) return;
+  let dd, geo;
+  try { [dd, geo] = await Promise.all(["data/casos_distrito.json", "data/distritos.geojson"].map((u) => fetch(u).then((r) => r.json()))); }
+  catch (e) { svg.closest("section").hidden = true; return; }
+  const N = PathogenNivel, den = dd.doencas.dengue || {}, aj = N.ajustar(den);
+  const nomes = {}; geo.features.forEach((f) => (nomes[f.properties.id] = f.properties.nome));
+  const fmt = (v, c = 0) => v.toLocaleString("pt-BR", { maximumFractionDigits: c });
+  const ordem = Object.keys(den).filter((id) => typeof den[id].inc100k_ano === "number").sort((a, b) => den[b].inc100k_ano - den[a].inc100k_ano);
+  if (ordem.length < 2) { svg.closest("section").hidden = true; return; }
+  const W = 1200, H = 260, bw = W / ordem.length, max = den[ordem[0]].inc100k_ano, ult = ordem[ordem.length - 1];
+  const pop = Object.values(aj).reduce((s, a) => s + a.pop, 0);
+  const media = Object.keys(aj).reduce((s, id) => s + den[id].casos_ano, 0) / pop * 1e5;
+  const y = (v) => (H - (v / max) * H).toFixed(1);
+  svg.setAttribute("viewBox", `0 -24 ${W} ${H + 30}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.innerHTML = ordem.map((id, i) => {
+    const v = den[id].inc100k_ano, cor = N.cor(aj[id] ? aj[id].inc : v);
+    return `<rect data-id="${id}" x="${(i * bw + .6).toFixed(1)}" y="${y(v)}" width="${(bw - 1.2).toFixed(1)}" height="${(H - y(v)).toFixed(1)}" fill="${cor}"><title>${nomes[id] || id}: ${fmt(v, 1)} por 100 mil</title></rect>`;
+  }).join("") +
+    `<line class="media" x1="0" x2="${W}" y1="${y(media)}" y2="${y(media)}"/>` +
+    `<text x="${W}" y="${(y(media) - 8)}" text-anchor="end">média da cidade: ${fmt(media)}</text>` +
+    `<text class="forte" x="0" y="-8">${nomes[ordem[0]]} ${fmt(max)}</text>` +
+    `<text class="forte" x="${W}" y="${(y(den[ult].inc100k_ano) - 8)}" text-anchor="end">${nomes[ult]} ${fmt(den[ult].inc100k_ano)}</text>`;
+  const razao = max / den[ult].inc100k_ano;
+  document.getElementById("os96-titulo").textContent = `No mesmo boletim, ${fmt(razao)} vezes de diferença.`;
+  document.getElementById("os96-lead").textContent = `${nomes[ordem[0]]} tem ${fmt(max)} casos de dengue por 100 mil habitantes; ${nomes[ult]}, ${fmt(den[ult].inc100k_ano)}. Cada barra é um distrito. Toque para ver o seu.`;
+  document.getElementById("os96-fonte").textContent = `Dengue, incidência acumulada em ${dd.ano} por 100 mil habitantes. COVISA/SMS-SP, boletim SE ${dd.se}/${dd.ano}. Cor: faixa da Pathogen, com ajuste para distrito pequeno.`;
+  svg.addEventListener("click", (e) => {
+    const id = e.target.dataset && e.target.dataset.id;
+    const alvo = id && document.querySelector(`#mini-mapa [data-id="${id}"]`);
+    if (!alvo) return;
+    svg.querySelectorAll(".sel").forEach((r) => r.classList.remove("sel"));
+    e.target.classList.add("sel");
+    alvo.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    document.getElementById("consulta").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   });
 })();
 </script>

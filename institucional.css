@@ -233,3 +233,31 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
   .abertura__grade { grid-template-columns: 1fr; gap: 36px; padding-block: 48px 40px; }
   .mosaico svg { max-height: 420px; }
 }
+
+/* ---------- Direção editorial (2026-11-08): um tema por página, sem cartões ---------- */
+body { background: var(--surface); }
+.secao--cinza { background: var(--surface); }
+.secao + .secao, .abertura + .secao { border-top: 1px solid var(--line); }
+.abertura, :root[data-tema="escuro"] .abertura { background: var(--surface); color: var(--ink); --accent: inherit; --accent-ink: inherit; --on-accent: inherit; --sem-dado: inherit; }
+.abertura__estado { color: var(--accent-ink); }
+.abertura h1 { font-size: clamp(32px, 3.5vw, 50px); max-width: 21ch; }
+.abertura__lead { color: var(--muted); }
+.abertura .btn--fantasma { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.abertura .btn--fantasma:hover { border-color: var(--line-forte); background: var(--surface-2); }
+.mosaico path, :root[data-tema="escuro"] .mosaico path { fill: var(--line); stroke: var(--surface); }
+.mosaico svg.revelado path { fill: var(--cor); }
+.mosaico .pino circle { fill: var(--ink); stroke: var(--surface); }
+.mosaico .pino text { fill: var(--surface); }
+.mosaico figcaption { color: var(--muted); }
+.painel, .secao--cinza .painel { background: none; border-radius: 0; padding: 20px 0 0; border-top: 1px solid var(--ink); }
+.painel--tinta, :root[data-tema="escuro"] .painel--tinta { background: var(--surface-2); color: var(--ink); border: 0; border-radius: 16px; padding: 28px; box-shadow: none; }
+.painel--tinta p, .painel--tinta li, .painel--tinta .rotulo { color: var(--muted); }
+:root[data-tema="escuro"] .painel--tinta { background: #020617; }
+.passos { gap: 36px; }
+.passos li { background: none; border-radius: 0; padding: 18px 0 0; border-top: 2px solid var(--accent); }
+.passos li::before { background: none; color: var(--accent); width: auto; height: auto; display: block; font: 500 14px var(--f-num); margin-bottom: 10px; content: "0" counter(passo); }
+.passos strong { font: 600 20px/1.2 var(--f-titulo); letter-spacing: -.01em; }
+.tela { background: none; border-radius: 0; padding: 20px 0 0; border-top: 1px solid var(--ink); }
+.telas { gap: 48px; }
+.grade { gap: 36px 48px; }
+:root[data-tema="escuro"] .mosaico svg.revelado path, .mosaico svg.revelado path { fill: var(--cor); }
