@@ -268,6 +268,8 @@ depois; define o que pode ser construído.
 - Python: 3.12, type hints, `pathlib`, sem `print` de debug esquecido. Scripts têm docstring
   no topo explicando uso.
 - JS: sem transpilação; funciona no navegador direto. Nomes em português.
+- CSS/JS compartilhados (institucional.css, 
+ivel.js, 	ema.js, empresas.js, chat.js) entram com `?v=<commit>`: ao mudar um deles, troque o `v` em todas as páginas, senão o navegador (GitHub Pages guarda 10 min) mostra a página nova com o CSS velho.
 - Não formate o GeoJSON com indentação (tamanho importa). JSON de dados pode ter `indent=1`.
 - Tamanho de página: cada página (`index.html` ou `mapa.html`, mais `chat.js`) + dados abaixo de 500 KB no total.
 - Acessibilidade: foco visível, `aria-pressed`/`aria-expanded` mantidos, `prefers-reduced-motion` respeitado.
