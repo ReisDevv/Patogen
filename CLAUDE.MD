@@ -45,9 +45,12 @@ data/distritos.geojson             # 96 distritos, simplificado (~230 KB), NÃO 
 data/infodengue.json               # série semanal municipal (InfoDengue)
 data/casos_distrito.json           # casos por distrito, por doença — derivado dos 2 últimos snapshots da COVISA
 data/covisa/SE-AAAA-SS.json        # snapshot imutável de cada boletim COVISA já extraído (um por semana)
+data/tabnet_distrito.json          # SRAG, covid-19, tuberculose, meningite e sarampo por distrito (TabNet municipal)
 scripts/fetch_infodengue.py        # rotina 1: busca InfoDengue e grava data/infodengue.json
 scripts/fetch_covisa.py            # rotina 1: baixa o boletim COVISA (PDF), extrai por distrito, grava snapshot + casos_distrito.json
+scripts/fetch_tabnet.py            # rotina 1: consulta o TabNet da SMS-SP por distrito de residência, grava tabnet_distrito.json
 docs/covisa-formato.md             # como o boletim COVISA é por dentro e como o scraper o lê
+docs/tabnet-formato.md             # como o TabNet municipal é consultado, bases usadas e o formato do JSON
 requirements.txt                   # pdfplumber, só para fetch_covisa.py
 .github/workflows/atualizar-dados.yml  # roda os dois fetch toda madrugada e commita
 .github/workflows/deploy-pages.yml     # publica o site no GitHub Pages a cada push na main
@@ -74,6 +77,7 @@ Isso é o que mais confunde. Não invente APIs.
 |---|---|---|---|---|
 | InfoDengue (Fiocruz/FGV) `info.dengue.mat.br/api/alertcity` | município (geocode 3550308) | semanal, com nowcast | JSON/CSV, sem chave | integrado |
 | Boletim COVISA/SMS-SP (arboviroses urbanas) | **distrito administrativo** | semanal | PDF de 13 págs., link direto (ver `docs/covisa-formato.md`) | integrado (fase 3): dengue e chikungunya, **acumulado do ano** |
+| TabNet da SMS-SP (SIVEP-Gripe, e-SUS VE, TBWEB, SINAN) | **distrito administrativo de residência** | atualizado em dias, sem cadência fixa | formulário CGI, resposta em texto `;` (ver `docs/tabnet-formato.md`) | integrado (2026-11-09): SRAG, covid-19, tuberculose, meningite, sarampo, **acumulado do ano**, só casos |
 | OpenDataSUS / SINAN | município | atraso de semanas ou meses | CSV grandes, API Elasticsearch p/ síndrome gripal | avaliar depois |
 | GeoSampa (Prefeitura) | polígonos de distritos, subprefeituras, logradouros | estática | shapefile/GeoJSON | integrado (distritos) |
 | Pets (CCZ, CVE) | boletins esparsos | irregular | PDF | fase 6, sem API pública |
@@ -96,6 +100,12 @@ Regras derivadas disso:
   oficial ao lado; a cor do mapa usa a taxa ajustada. Não chame de nível de alerta nem de risco.
 - Chikungunya por distrito é só de casos **autóctones** confirmados e sem incidência.
   Zika não tem quadro por distrito desde 2018: o mapa fica vazio com "sem dados por distrito".
+- Outras doenças (2026-11-09, pedido do dono: "mais doenças, algo bem completo"): SRAG, covid-19, tuberculose,
+  meningite e sarampo vêm do TabNet municipal, por distrito de residência, acumulado do ano, **sem incidência**
+  (o TabNet não traz população e o site não estima): a cor segue o número de casos, como na chikungunya, e a UI
+  avisa que distrito populoso tende a ficar mais escuro. A gripe aparece como **SRAG** (internações, todas as
+  causas): por distrito a Prefeitura não separa influenza. Sem faixa da Pathogen para essas doenças (os limiares
+  de `nivel.js` são de dengue). O Epi (`chat.js`) continua só nas arboviroses.
 - A COVISA revisa o acumulado de semanas anteriores. `novos_desde_boletim` continua no JSON
   (histórico técnico), mas **não aparece na interface** desde 2026-11-01: a diferença entre dois
   boletins mistura casos novos com confirmações tardias, descartes e reclassificações, e não há
@@ -326,7 +336,9 @@ dizendo qual fonte não atualizou. O site é republicado depois de cada atualiza
 (`workflow_run` no `deploy-pages.yml`), porque push feito com `GITHUB_TOKEN` não dispara o
 deploy: foi por isso que o site ficou parado no commit de 2026-10-08.
 
-1. Depois do merge, disparar manualmente *Atualizar dados* e conferir que o *Publicar site* roda em seguida.
+1. Depois do merge, disparar manualmente *Atualizar dados* e conferir que o *Publicar site* roda em seguida
+   e que o passo *Buscar TabNet* alcança `tabnet.saude.prefeitura.sp.gov.br` a partir do GitHub Actions.
+   Pendente: a página inicial (`index.html`) e o Epi ainda mostram só as três arboviroses.
 2. Acompanhar os próximos boletins: se a COVISA mudar o layout de novo, o script para e o
    último conjunto válido continua no ar.
 3. Só depois disso abrir a fase 2 (Postgres/PostGIS + API). Os snapshots em `data/covisa/`

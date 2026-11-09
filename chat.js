@@ -487,7 +487,8 @@
       // A doença da pergunta anterior vale para a seguinte ("dengue em Itaquera" → "e na Penha?"),
       // menos zika, que não tem número em lugar nenhum e deixaria as próximas respostas vazias.
       const lembrada = estado.doenca && estado.doenca !== "zika" ? estado.doenca : null;
-      const doencaDados = doencaCitada || lembrada || (ctx ? ctx.doenca() : "dengue");
+      // O Epi só conhece as arboviroses: com SRAG, covid etc. no mapa, ele responde sobre dengue.
+      const doencaDados = doencaCitada || lembrada || (ctx && DOENCAS.includes(ctx.doenca()) ? ctx.doenca() : "dengue");
       const lugares = acharLugares(t, original);
       const lugar = lugares.find(l => l.tipo !== "ambiguo");
       const ambiguo = lugares.find(l => l.tipo === "ambiguo");

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <script src="tema.js?v=727388d"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Epimapa SP — arboviroses por distrito</title>
-<meta name="description" content="Dengue, chikungunya e zika por distrito da cidade de São Paulo, com dados do InfoDengue e do boletim da vigilância municipal (COVISA).">
-<meta property="og:title" content="Epimapa SP — arboviroses por distrito">
+<title>Epimapa SP — doenças por distrito</title>
+<meta name="description" content="Dengue, chikungunya, zika, SRAG, covid-19, tuberculose, meningite e sarampo por distrito da cidade de São Paulo, com dados oficiais do InfoDengue e da Secretaria Municipal da Saúde (COVISA e TabNet).">
+<meta property="og:title" content="Epimapa SP — doenças por distrito">
 <meta property="og:description" content="A dengue está alta no meu bairro? Mapa por distrito de São Paulo com dados públicos de vigilância.">
 <meta name="theme-color" content="#0F766E">
 <link rel="canonical" href="https://pathogen-sp.vercel.app/mapa.html">
@@ -93,11 +93,14 @@
   .marca span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
 
   .seg {
-    display: inline-flex; justify-self: center; gap: 2px; padding: 3px;
+    display: inline-flex; justify-self: center; gap: 2px; padding: 3px; max-width: 100%;
     background: var(--surface-2); border-radius: var(--r-ctl);
+    overflow-x: auto; scrollbar-width: none;   /* 8 doenças: rola na horizontal em vez de quebrar a barra */
   }
+  .seg::-webkit-scrollbar { display: none; }
   .seg button {
-    border: 0; background: transparent; padding: 7px 14px; border-radius: 6px;
+    flex: none; white-space: nowrap;
+    border: 0; background: transparent; padding: 7px 12px; border-radius: 6px;
     font-weight: 500; color: var(--muted);
     transition: background var(--dur), color var(--dur), transform var(--dur);
   }
@@ -234,6 +237,7 @@
 
   /* legenda: escala contínua */
   .escala { margin-top: 12px; }
+  #cidade.so-total .destaque--compacto, #cidade.so-total .spark, #cidade.so-total .spark__legenda { display: none; }
   .escala__barra {
     height: 10px; border-radius: 999px;
     background: linear-gradient(90deg, var(--n1) 0 6.7%, var(--n2) 20%, var(--n3) 50%, var(--n4) 100%);
@@ -511,8 +515,8 @@
     .busca input { font-size: 16px; padding: 7px 10px 7px 34px; }
     .busca svg { top: 10px; }
     .busca__lista { position: fixed; left: 12px; right: 12px; top: calc(var(--topo) + 4px); max-height: 50vh; }
-    .seg { grid-row: 2; grid-column: 1 / -1; justify-self: stretch; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .seg button { padding: 6px 4px; font-size: 13.5px; }
+    .seg { grid-row: 2; grid-column: 1 / -1; justify-self: stretch; display: flex; }
+    .seg button { padding: 6px 10px; font-size: 13.5px; }
     .leaflet-top.leaflet-right { top: calc(var(--topo) + 8px); }
     .leaflet-control-attribution { display: none; }
 
@@ -603,13 +607,18 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 <header class="topo">
   <a class="marca" href="./" title="Página inicial do Epimapa SP">
     <span class="marca__logo" aria-hidden="true"></span>
-    <div><h1>Epimapa SP</h1><span>arboviroses por distrito</span></div>
+    <div><h1>Epimapa SP</h1><span>doenças por distrito</span></div>
   </a>
 
   <div class="seg" role="group" aria-label="Doença">
     <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
     <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
     <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
+    <button type="button" data-doenca="srag" aria-pressed="false" title="Síndrome respiratória aguda grave: internações por gripe, covid-19 e outros vírus">SRAG</button>
+    <button type="button" data-doenca="covid" aria-pressed="false">Covid-19</button>
+    <button type="button" data-doenca="tuberculose" aria-pressed="false">Tuberculose</button>
+    <button type="button" data-doenca="meningite" aria-pressed="false">Meningite</button>
+    <button type="button" data-doenca="sarampo" aria-pressed="false">Sarampo</button>
   </div>
 
   <div class="busca">
@@ -644,7 +653,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
         </div>
         <div class="destaque">
           <span class="v" id="cid-casos">—</span>
-          <span class="k">casos notificados na semana</span>
+          <span class="k" id="cid-casos-k">casos notificados na semana</span>
         </div>
         <div class="destaque destaque--compacto">
           <span class="delta" id="cid-delta">—</span>
@@ -652,7 +661,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
         </div>
         <svg id="spark" class="spark" viewBox="0 0 340 56" preserveAspectRatio="none" aria-hidden="true"></svg>
         <div class="spark__legenda"><span id="spark-ini">—</span><span>últimas 26 semanas</span><span id="spark-fim">—</span></div>
-        <p class="nota">Notificações ainda entram por algumas semanas; as últimas semanas tendem a subir na próxima atualização.</p>
+        <p class="nota" id="cid-nota">Notificações ainda entram por algumas semanas; as últimas semanas tendem a subir na próxima atualização.</p>
       </div>
     </section>
 
@@ -665,7 +674,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
           <h3 id="top5-titulo" hidden>Maior incidência acumulada no ano</h3>
           <ol class="top5" id="top5" hidden></ol>
           <p class="dica" id="ver-todos-p" hidden><button type="button" class="link" data-lista>Ver os 96 distritos</button></p>
-          <p class="dica" id="dist-vazio-sem-dados" hidden>O boletim da COVISA não traz esta doença por distrito. Veja o resumo municipal acima.</p>
+          <p class="dica" id="dist-vazio-sem-dados" hidden>A fonte oficial não traz esta doença por distrito. Veja o resumo municipal acima.</p>
         </div>
         <div id="dist-conteudo" hidden>
           <button type="button" class="voltar" id="dist-voltar">
@@ -677,7 +686,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
             <div><h2 id="dist-nome">—</h2><div class="sub" id="dist-sub">—</div></div>
             <span class="etiqueta" id="dist-doenca">—</span>
           </div>
-          <p class="dica" id="dist-sem-dados" hidden>Sem dados por distrito para esta doença no boletim da COVISA.</p>
+          <p class="dica" id="dist-sem-dados" hidden>Sem dados por distrito para esta doença na fonte oficial.</p>
           <div class="stats" id="dist-stats">
             <div class="stat"><div class="v" id="dist-casos">—</div><div class="k" id="dist-casos-k">casos confirmados no ano</div></div>
             <div class="stat"><div class="v" id="dist-inc">—</div><div class="k">por 100 mil hab., acumulado no ano</div></div>
@@ -742,8 +751,8 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 
   <div class="modal__corpo" id="sobre-corpo">
     <section class="aba" id="aba-projeto" role="tabpanel" aria-labelledby="tab-projeto" tabindex="0">
-      <p>O Epimapa SP mostra onde a dengue, a chikungunya e a zika estão concentradas na cidade de São Paulo, distrito por distrito. É feito para quem mora aqui e quer uma resposta rápida, sem precisar abrir um boletim em PDF.</p>
-      <p>Os números vêm de duas fontes oficiais: o InfoDengue, para a cidade inteira semana a semana, e o boletim de arboviroses da Prefeitura (COVISA), a única fonte pública com dados por distrito.</p>
+      <p>O Epimapa SP mostra onde a dengue, a chikungunya, a zika, a SRAG (síndrome respiratória grave, que inclui a gripe), a covid-19, a tuberculose, a meningite e o sarampo estão concentrados na cidade de São Paulo, distrito por distrito. É feito para quem mora aqui e quer uma resposta rápida, sem precisar abrir um boletim em PDF.</p>
+      <p>Os números vêm de fontes oficiais: o InfoDengue, para a dengue e as outras arboviroses na cidade inteira semana a semana; o boletim de arboviroses da Prefeitura (COVISA), com dengue e chikungunya por distrito; e o TabNet da Secretaria Municipal da Saúde, com as outras doenças por distrito de residência.</p>
 
       <h3>O que guia o projeto</h3>
       <ul class="principios">
@@ -796,6 +805,10 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
           <p>O boletim da Prefeitura não traz a zika por distrito desde 2018. O resumo da cidade continua disponível no painel.</p></details>
         <details><summary>Por que a chikungunya não tem incidência?</summary>
           <p>Para a chikungunya, o boletim publica só a contagem de casos autóctones (contraídos na própria cidade). Nesse caso a cor do mapa segue o número de casos.</p></details>
+        <details><summary>Por que SRAG, covid-19, tuberculose, meningite e sarampo não têm incidência?</summary>
+          <p>O TabNet da Prefeitura publica só o número de casos por distrito de residência. A cor do mapa segue esse número, então distritos mais populosos tendem a aparecer mais escuros. Casos sem distrito informado entram no total da cidade, mas não no mapa.</p></details>
+        <details><summary>A gripe está no mapa?</summary>
+          <p>Por distrito, a Prefeitura separa só a SRAG, a forma grave que leva à internação, sem dizer qual vírus causou cada caso (gripe, covid-19, VSR e outros). Gripe leve não é notificada caso a caso. Por isso o mapa mostra "SRAG", e não "gripe".</p></details>
         <details><summary>Meu bairro não aparece na busca. E agora?</summary>
           <p>Os dados oficiais são por distrito, e muitos bairros ficam dentro de um distrito com outro nome. Use "Meu distrito" para achar o seu pela localização, ou toque no mapa.</p></details>
         <details><summary>Com que frequência o site atualiza?</summary>
@@ -810,6 +823,8 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
           <span class="meta">Cidade inteira, semanal, a partir do SINAN/Ministério da Saúde. Usado no resumo da cidade e no nível de alerta.</span></li>
         <li><strong><a href="https://www.prefeitura.sp.gov.br/web/saude/w/vigilancia_em_saude/boletim_covisa/arboviroses" target="_blank" rel="noopener">Boletim de arboviroses da COVISA</a></strong>, Secretaria Municipal da Saúde
           <span class="meta">Por distrito, semanal, em PDF. Usado no mapa, no detalhe e na lista de distritos. O PDF é lido automaticamente e só é aceito se a soma dos distritos bater com o total do boletim.</span></li>
+        <li><strong><a href="https://prefeitura.sp.gov.br/web/saude/tabnet/" target="_blank" rel="noopener">TabNet da Secretaria Municipal da Saúde</a></strong>, Prefeitura de São Paulo
+          <span class="meta">Por distrito de residência, acumulado do ano: SRAG (SIVEP-Gripe), covid-19 (e-SUS VE), tuberculose (TBWEB), meningite e sarampo (SINAN). Consultado toda madrugada; só é aceito se os 96 distritos casarem e a soma bater com o total do TabNet. Dados preliminares, sujeitos a alteração.</span></li>
         <li><strong>GeoSampa</strong>, Prefeitura de São Paulo
           <span class="meta">Contorno dos 96 distritos e das 32 subprefeituras.</span></li>
         <li><strong>Mapa-base</strong>: Esri, HERE, Garmin e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores do OpenStreetMap</a>
@@ -863,7 +878,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     <button type="button" class="btn btn--secundario" id="lista-csv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>Baixar CSV</button>
   </div>
   <div class="modal__corpo">
-    <p class="dica" id="lista-sem-dados" hidden>O boletim da COVISA não traz esta doença por distrito. Escolha dengue ou chikungunya no alto da página.</p>
+    <p class="dica" id="lista-sem-dados" hidden>A fonte oficial não traz esta doença por distrito. Escolha outra doença no alto da página.</p>
     <table class="tabela" id="lista-tabela">
       <caption class="sr">Distritos de São Paulo, ordenáveis pelos cabeçalhos das colunas</caption>
       <thead><tr>
@@ -880,7 +895,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="nivel.js?v=727388d"></script>
-<script src="chat.js?v=727388d"></script>
+<script src="chat.js?v=f74b5c2"></script>
 <script>
 (async function () {
   const $ = (id) => document.getElementById(id);
@@ -891,7 +906,9 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
   const reduzMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mobile = () => matchMedia("(max-width: 900px) and (min-height: 500px), (max-width: 560px)").matches; // mesma consulta do CSS
   const temHover = matchMedia("(hover: hover)").matches;
-  const NOME_DOENCA = { dengue: "Dengue", chikungunya: "Chikungunya", zika: "Zika" };
+  const NOME_DOENCA = { dengue: "Dengue", chikungunya: "Chikungunya", zika: "Zika",
+    srag: "SRAG", covid: "Covid-19", tuberculose: "Tuberculose", meningite: "Meningite", sarampo: "Sarampo" };
+  const DOENCAS_TABNET = ["srag", "covid", "tuberculose", "meningite", "sarampo"];   // data/tabnet_distrito.json
 
   // ---------- aviso curto (toast) ----------
   let avisoTimer;
@@ -977,12 +994,14 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
   }
 
   // ---------- carregar dados ----------
-  let geo, distritoDados, cidadeDados;
+  let geo, distritoDados, cidadeDados, tabnetDados;
   try {
-    [geo, distritoDados, cidadeDados] = await Promise.all([
+    [geo, distritoDados, cidadeDados, tabnetDados] = await Promise.all([
       fetch("data/distritos.geojson").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
       fetch("data/casos_distrito.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
       fetch("data/infodengue.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      // Sem o TabNet, só essas doenças ficam "sem dados"; as arboviroses seguem normais.
+      fetch("data/tabnet_distrito.json").then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
     if (!window.L) throw new Error("Leaflet não carregou");
   } catch (e) {
@@ -1035,12 +1054,17 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     return NIVEL_COR[4];
   }
 
-  const dados = () => distritoDados.doencas[doenca] || {};
+  const doTabnet = () => DOENCAS_TABNET.includes(doenca);
+  // Bloco da doença no TabNet ({ fonte, url, ano, atualizado_em, medida, total, distritos }) ou null.
+  const tab = () => (doTabnet() && tabnetDados && tabnetDados.doencas[doenca]) || null;
+  const dados = () => doTabnet() ? (tab() ? tab().distritos : {}) : distritoDados.doencas[doenca] || {};
   // Ajuste para distrito pequeno (nivel.js), calculado uma vez por doença.
   const ajustes = {};
   const ajusteDe = (id) => (ajustes[doenca] ||= PathogenNivel.ajustar(dados()))[id];
   const dadoDe = (id) => Object.assign({ casos_ano: null, inc100k_ano: null }, dados()[id], { aj: ajusteDe(id) });
-  const semDadosDistrito = () => (distritoDados.sem_dados_por_distrito || []).includes(doenca);
+  const semDadosDistrito = () => doTabnet() ? !tab() : (distritoDados.sem_dados_por_distrito || []).includes(doenca);
+  const rotuloCasos = () => doTabnet() ? (tab() ? tab().medida : "casos no ano")
+    : doenca === "chikungunya" ? "casos autóctones confirmados no ano" : "casos confirmados no ano";
   const temIncidencia = () => Object.values(dados()).some(d => typeof d.inc100k_ano === "number");
   // Ordena por incidência quando o boletim traz; senão (chikungunya) por casos.
   const medida = (d) => typeof d.inc100k_ano === "number" ? d.inc100k_ano : (d.casos_ano || 0);
@@ -1176,8 +1200,10 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 
   // Data sem hora ("2026-10-23"): ao meio-dia, para o fuso de SP não voltar um dia.
   const dia = (s) => s ? new Date(s + "T12:00:00").toLocaleDateString("pt-BR") : null;
-  const refBoletim = () => `Boletim COVISA SE ${distritoDados.se}/${distritoDados.ano}` +
-    `${distritoDados.dados_ate ? `, dados até ${dia(distritoDados.dados_ate)}` : ""} · acumulado desde janeiro`;
+  const refBoletim = () => doTabnet()
+    ? (tab() ? `TabNet da Prefeitura, atualizado em ${dia(tab().atualizado_em)} · acumulado de ${tab().ano}` : "TabNet da Prefeitura: sem dados carregados")
+    : `Boletim COVISA SE ${distritoDados.se}/${distritoDados.ano}` +
+      `${distritoDados.dados_ate ? `, dados até ${dia(distritoDados.dados_ate)}` : ""} · acumulado desde janeiro`;
 
   function renderTop5() {
     const lista = $("top5"), titulo = $("top5-titulo"), semDados = $("dist-vazio-sem-dados");
@@ -1186,7 +1212,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     lista.hidden = titulo.hidden = vazio;
     $("ver-todos-p").hidden = vazio;
     if (vazio) { lista.innerHTML = ""; return; }
-    titulo.textContent = temIncidencia() ? "Maior incidência acumulada no ano" : "Mais casos autóctones no ano";
+    titulo.textContent = temIncidencia() ? "Maior incidência acumulada no ano" : doTabnet() ? "Mais casos no ano" : "Mais casos autóctones no ano";
     const top = ranking().slice(0, 5);
     lista.innerHTML = top.map(id => {
       const d = dadoDe(id);
@@ -1215,7 +1241,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     $("dist-nome").textContent = f.nome;
     $("dist-sub").textContent = `Subprefeitura ${f.subprefeitura} · ${refBoletim()}`;
     $("dist-doenca").textContent = NOME_DOENCA[doenca];
-    $("dist-casos-k").textContent = doenca === "chikungunya" ? "casos autóctones confirmados no ano" : "casos confirmados no ano";
+    $("dist-casos-k").textContent = rotuloCasos();
     vazio.hidden = true; cont.hidden = false;
 
     const semDados = semDadosDistrito() || d.casos_ano == null;
@@ -1226,8 +1252,13 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 
     const pos = ranking().indexOf(selecionado) + 1;
     $("dist-casos").textContent = fmt.format(d.casos_ano);
-    $("dist-se").textContent = `SE ${distritoDados.se}/${distritoDados.ano}`;
-    $("dist-se-k").textContent = distritoDados.dados_ate ? `boletim da COVISA, dados até ${dia(distritoDados.dados_ate)}` : "boletim da COVISA";
+    if (doTabnet()) {
+      $("dist-se").textContent = String(tab().ano);
+      $("dist-se-k").textContent = `TabNet da Prefeitura, atualizado em ${dia(tab().atualizado_em)}`;
+    } else {
+      $("dist-se").textContent = `SE ${distritoDados.se}/${distritoDados.ano}`;
+      $("dist-se-k").textContent = distritoDados.dados_ate ? `boletim da COVISA, dados até ${dia(distritoDados.dados_ate)}` : "boletim da COVISA";
+    }
     $("dist-inc").textContent = typeof d.inc100k_ano === "number" ? fmt.format(d.inc100k_ano) : "—";
     $("dist-rank").textContent = pos ? `${pos}º` : "—";
     PathogenNivel.renderFaixa($("dist-nivel"), d);
@@ -1240,6 +1271,10 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
       const d = dadoDe(selecionado);
       $("alca-titulo").textContent = props(selecionado).nome;
       $("alca-sub").textContent = d.casos_ano == null ? "sem dados por distrito" : `${fmt.format(d.casos_ano)} casos no ano · ${painel.classList.contains("aberto") ? "toque para recolher" : "toque para detalhes"}`;
+      $("alca-badge").hidden = true;
+    } else if (doTabnet()) {
+      $("alca-titulo").textContent = "São Paulo, município";
+      $("alca-sub").textContent = tab() ? `${fmt.format(tab().total)} ${tab().medida} · ${tab().ano}` : "sem dados";
       $("alca-badge").hidden = true;
     } else {
       $("alca-titulo").textContent = "São Paulo, município";
@@ -1254,6 +1289,19 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     const serie = cidadeDados.doencas[doenca];
     const atual = serie && serie.atual;
     $("cid-badge").hidden = !atual;
+    // TabNet: só o total do ano dos moradores da capital, sem série semanal nem nível de alerta.
+    $("cidade").classList.toggle("so-total", doTabnet());
+    if (doTabnet()) {
+      const o = tab();
+      $("cid-semana").textContent = o ? `${o.ano}, até ${dia(o.atualizado_em)} · TabNet da Prefeitura` : "Sem dados do TabNet carregados";
+      $("cid-casos").textContent = o ? fmt.format(o.total) : "—";
+      $("cid-casos-k").textContent = o ? o.medida : "casos no ano";
+      $("cid-nota").textContent = o ? `Moradores da capital${o.sem_distrito ? `, inclusive ${fmt.format(o.sem_distrito)} sem distrito informado (fora do mapa)` : ""}. ` +
+        `${o.observacao[0].toUpperCase() + o.observacao.slice(1)}. Dados preliminares, sujeitos a alteração.` : "";
+      return;
+    }
+    $("cid-casos-k").textContent = "casos notificados na semana";
+    $("cid-nota").textContent = "Notificações ainda entram por algumas semanas; as últimas semanas tendem a subir na próxima atualização.";
     if (!atual) {
       $("cid-semana").textContent = "Sem dados no InfoDengue para esta doença";
       $("cid-casos").textContent = "—"; $("cid-delta").textContent = "—"; $("cid-delta").className = "delta flat";
@@ -1297,15 +1345,25 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
       $("escala-nota").textContent = "Casos por 100 mil habitantes desde janeiro; em distritos pequenos a taxa é puxada para a média da cidade. As faixas 1 a 4 de cada distrito são uma convenção da Pathogen; o nível de alerta do InfoDengue vale só para o município.";
     } else {
       const max = maxCasos();
-      $("escala-titulo").textContent = "Cor no mapa: casos autóctones no ano";
+      $("escala-titulo").textContent = doTabnet() ? `Cor no mapa: ${tab().medida}` : "Cor no mapa: casos autóctones no ano";
       ticks.innerHTML = `<span style="left:0">0</span><span style="left:50%">${fmt.format(Math.round(max / 2))}</span><span style="left:100%">${fmt.format(max)}</span>`;
-      $("escala-nota").textContent = "O boletim não traz incidência por distrito para chikungunya; a cor é proporcional ao número de casos autóctones desde janeiro.";
+      $("escala-nota").textContent = doTabnet()
+        ? "O TabNet não traz incidência por distrito; a cor é proporcional ao número de casos desde janeiro, então distritos mais populosos tendem a aparecer mais escuros."
+        : "O boletim não traz incidência por distrito para chikungunya; a cor é proporcional ao número de casos autóctones desde janeiro.";
     }
   }
 
   // ---------- rodapé ----------
   function renderFonte() {
     const dt = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+    if (doTabnet()) {
+      const o = tab();
+      $("fonte").innerHTML = (o
+        ? `Dados: <a href="${o.url}" target="_blank" rel="noopener">TabNet da Secretaria Municipal da Saúde</a> (${o.fonte}), atualizado em ${dia(o.atualizado_em)}; ` +
+          `${o.observacao}; por distrito de residência, acumulado de ${o.ano}. Dados preliminares, sujeitos a alteração. `
+        : "Os dados do TabNet não carregaram. ") + "Malha: Prefeitura de São Paulo / GeoSampa.";
+      return;
+    }
     // Com distrito selecionado a série municipal não está na tela, então a fonte dela também sai.
     $("fonte").innerHTML =
       (selecionado ? "" : `Série municipal: <a href="https://info.dengue.mat.br" target="_blank" rel="noopener">InfoDengue (Fiocruz/FGV)</a>, casos notificados, atualizada em ${dt(cidadeDados.atualizado_em)}. `) +
@@ -1321,6 +1379,8 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     if (!NOME_DOENCA[nova]) return;
     doenca = nova;
     document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.doenca === nova));
+    // Link para uma doença no fim da fileira: rola o seletor até ela (só o seletor, não a página).
+    document.querySelector(`.seg button[data-doenca="${nova}"]`).scrollIntoView({ block: "nearest", inline: "nearest" });
     camada.setStyle(estilo);
     renderCidade(); renderDistrito(); renderLegenda();
     aoMudarSelecao();
@@ -1586,17 +1646,20 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
   $("lista-csv").addEventListener("click", () => {
     const txt = (s) => `"${String(s).replace(/"/g, '""')}"`;
     const num = (v) => typeof v === "number" ? String(v).replace(".", ",") : "";   // vírgula decimal: abre certo no Excel em português
+    const fonteCsv = doTabnet() ? `${tab().fonte} via TabNet SMS-SP` : distritoDados.fonte;
+    const ateCsv = doTabnet() ? tab().atualizado_em : distritoDados.dados_ate || "";
     const linhas = [["distrito", "subprefeitura", doenca === "chikungunya" ? "casos_autoctones_no_ano" : "casos_no_ano",
       "casos_por_100_mil_no_ano", "fonte", "dados_ate"].join(";")];
     for (const id of idsDaLista(false)) {
       const d = dadoDe(id), f = props(id);
-      linhas.push([txt(f.nome), txt(f.subprefeitura), num(d.casos_ano), num(d.inc100k_ano), txt(distritoDados.fonte), txt(distritoDados.dados_ate || "")].join(";"));
+      linhas.push([txt(f.nome), txt(f.subprefeitura), num(d.casos_ano), num(d.inc100k_ano), txt(fonteCsv), txt(ateCsv)].join(";"));
     }
     // BOM no início: o Excel reconhece UTF-8 e mostra os acentos certos.
     const blob = new Blob(["\ufeff" + linhas.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `epimapa-sp_${doenca}_SE${String(distritoDados.se).padStart(2, "0")}-${distritoDados.ano}.csv`;
+    a.download = doTabnet() ? `epimapa-sp_${doenca}_${tab().ano}_ate-${tab().atualizado_em}.csv`
+      : `epimapa-sp_${doenca}_SE${String(distritoDados.se).padStart(2, "0")}-${distritoDados.ano}.csv`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     aviso(`CSV com os ${linhas.length - 1} distritos baixado.`);
@@ -1615,7 +1678,8 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     const dt = (s) => s ? new Date(s).toLocaleDateString("pt-BR") : "data desconhecida";
     $("sobre-atualizacao").textContent =
       `Dados no site agora: boletim da COVISA da semana ${distritoDados.se}/${distritoDados.ano} para os distritos ` +
-      `e série do InfoDengue atualizada em ${dt(cidadeDados.atualizado_em)}.`;
+      `e série do InfoDengue atualizada em ${dt(cidadeDados.atualizado_em)}` +
+      (tabnetDados ? `; TabNet consultado em ${dt(tabnetDados.gerado_em)}.` : ".");
   }
 
   renderCidade(); renderDistrito(); renderLegenda(); renderFonte(); renderTextosDialogos();
