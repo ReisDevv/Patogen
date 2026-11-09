@@ -92,21 +92,20 @@
   .marca h1 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; margin: 0; line-height: 1.1; }
   .marca span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
 
-  .seg {
-    display: inline-flex; justify-self: center; gap: 2px; padding: 3px; max-width: 100%;
-    background: var(--surface-2); border-radius: var(--r-ctl);
-    overflow-x: auto; scrollbar-width: none;   /* 8 doenças: rola na horizontal em vez de quebrar a barra */
+  /* seletor de doença: <select> nativo (8 doenças não cabem numa fileira de botões) */
+  .sel-doenca {
+    justify-self: center; max-width: 100%;
+    appearance: none; -webkit-appearance: none; cursor: pointer;
+    font: inherit; font-weight: 500; color: var(--accent-ink);
+    padding: 7px 34px 7px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl);
+    background-color: var(--surface-2);
+    /* seta desenhada com currentColor: acompanha o tema escuro sem imagem extra */
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: right 16px center, right 11px center; background-size: 5px 5px; background-repeat: no-repeat;
+    transition: background-color var(--dur);
   }
-  .seg::-webkit-scrollbar { display: none; }
-  .seg button {
-    flex: none; white-space: nowrap;
-    border: 0; background: transparent; padding: 7px 12px; border-radius: 6px;
-    font-weight: 500; color: var(--muted);
-    transition: background var(--dur), color var(--dur), transform var(--dur);
-  }
-  .seg button:hover { color: var(--ink); background: var(--hover); }
-  .seg button:active { transform: scale(.98); }
-  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent-ink); box-shadow: var(--sombra-leve); }
+  .sel-doenca:hover { background-color: var(--hover); }
+  .sel-doenca option, .sel-doenca optgroup { color: var(--ink); background: var(--surface); }
 
   .busca { position: relative; width: 300px; }
   .busca input {
@@ -515,8 +514,8 @@
     .busca input { font-size: 16px; padding: 7px 10px 7px 34px; }
     .busca svg { top: 10px; }
     .busca__lista { position: fixed; left: 12px; right: 12px; top: calc(var(--topo) + 4px); max-height: 50vh; }
-    .seg { grid-row: 2; grid-column: 1 / -1; justify-self: stretch; display: flex; }
-    .seg button { padding: 6px 10px; font-size: 13.5px; }
+    /* 16px evita o zoom automático do iOS ao abrir */
+    .sel-doenca { grid-row: 2; grid-column: 1 / -1; justify-self: stretch; font-size: 16px; padding-top: 6px; padding-bottom: 6px; }
     .leaflet-top.leaflet-right { top: calc(var(--topo) + 8px); }
     .leaflet-control-attribution { display: none; }
 
@@ -610,16 +609,20 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
     <div><h1>Epimapa SP</h1><span>doenças por distrito</span></div>
   </a>
 
-  <div class="seg" role="group" aria-label="Doença">
-    <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
-    <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
-    <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
-    <button type="button" data-doenca="srag" aria-pressed="false" title="Síndrome respiratória aguda grave: internações por gripe, covid-19 e outros vírus">SRAG</button>
-    <button type="button" data-doenca="covid" aria-pressed="false">Covid-19</button>
-    <button type="button" data-doenca="tuberculose" aria-pressed="false">Tuberculose</button>
-    <button type="button" data-doenca="meningite" aria-pressed="false">Meningite</button>
-    <button type="button" data-doenca="sarampo" aria-pressed="false">Sarampo</button>
-  </div>
+  <select class="sel-doenca" id="sel-doenca" aria-label="Doença">
+    <optgroup label="Transmitidas pelo mosquito">
+      <option value="dengue" selected>Dengue</option>
+      <option value="chikungunya">Chikungunya</option>
+      <option value="zika">Zika</option>
+    </optgroup>
+    <optgroup label="Outras doenças">
+      <option value="srag">SRAG (síndrome respiratória grave)</option>
+      <option value="covid">Covid-19</option>
+      <option value="tuberculose">Tuberculose</option>
+      <option value="meningite">Meningite</option>
+      <option value="sarampo">Sarampo</option>
+    </optgroup>
+  </select>
 
   <div class="busca">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -1378,14 +1381,13 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
   function trocarDoenca(nova) {
     if (!NOME_DOENCA[nova]) return;
     doenca = nova;
-    document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.doenca === nova));
-    // Link para uma doença no fim da fileira: rola o seletor até ela (só o seletor, não a página).
-    document.querySelector(`.seg button[data-doenca="${nova}"]`).scrollIntoView({ block: "nearest", inline: "nearest" });
+    selDoenca.value = nova;
     camada.setStyle(estilo);
     renderCidade(); renderDistrito(); renderLegenda();
     aoMudarSelecao();
   }
-  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => trocarDoenca(b.dataset.doenca)));
+  const selDoenca = document.getElementById("sel-doenca");
+  selDoenca.addEventListener("change", () => trocarDoenca(selDoenca.value));
 
   // ---------- busca ----------
   const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();

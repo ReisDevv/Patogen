@@ -99,21 +99,20 @@
   .marca { display: flex; align-items: center; gap: 10px; }
   /* símbolo da Pathogen (img/marca/pathogen-radar.svg) */
   .marca__logo { width: 28px; height: 28px; flex: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%230F172A' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%230E7490' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%230F766E'/%3E%3C/svg%3E") center / contain no-repeat; }
-  .seg {
-    display: inline-flex; justify-self: center; gap: 2px; padding: 3px; max-width: 100%;
-    background: var(--surface-2); border-radius: var(--r-ctl);
-    overflow-x: auto; scrollbar-width: none;   /* 8 doenças: rola na horizontal em vez de quebrar */
+  /* seletor de doença: <select> nativo (8 doenças não cabem numa fileira de botões) */
+  .sel-doenca {
+    justify-self: center; max-width: 100%;
+    appearance: none; -webkit-appearance: none; cursor: pointer;
+    font: inherit; font-weight: 500; color: var(--accent-ink);
+    padding: 7px 34px 7px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl);
+    background-color: var(--surface-2);
+    /* seta desenhada com currentColor: acompanha o tema escuro sem imagem extra */
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: right 16px center, right 11px center; background-size: 5px 5px; background-repeat: no-repeat;
+    transition: background-color var(--dur);
   }
-  .seg::-webkit-scrollbar { display: none; }
-  .seg button {
-    flex: none; white-space: nowrap;
-    border: 0; background: transparent; padding: 7px 12px; border-radius: 6px;
-    font-weight: 500; color: var(--muted);
-    transition: background var(--dur), color var(--dur), transform var(--dur);
-  }
-  .seg button:hover { color: var(--ink); background: var(--hover); }
-  .seg button:active { transform: scale(.98); }
-  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent-ink); box-shadow: var(--sombra-leve); }
+  .sel-doenca:hover { background-color: var(--hover); }
+  .sel-doenca option, .sel-doenca optgroup { color: var(--ink); background: var(--surface); }
 
   .busca { position: relative; width: 300px; }
   .busca input {
@@ -421,8 +420,8 @@
   /* o painel principal: busca, ficha do distrito e a prévia dos 96 */
   .consulta { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 40px 56px; margin-top: 32px; padding: 32px 40px 32px 32px; }
   .consulta__lado { display: flex; flex-direction: column; min-width: 0; }
-  .consulta .seg { justify-self: start; align-self: flex-start; background: var(--bg); }
-  body.carregando .consulta .seg { pointer-events: none; opacity: .6; }
+  .consulta .sel-doenca { justify-self: start; align-self: flex-start; background: var(--bg); }
+  body.carregando .consulta .sel-doenca { pointer-events: none; opacity: .6; }
   .consulta .busca { width: 100%; margin-top: 20px; }
   .consulta .busca input { padding: 14px 16px 14px 44px; font-size: 16px; border-color: transparent; box-shadow: var(--sombra-leve); }
   .consulta .busca input:disabled { cursor: not-allowed; }
@@ -473,7 +472,7 @@
   /* sem os dados: o texto da página continua; números e prévia dão lugar ao aviso */
   .so-sem-dados { display: none; }
   body.sem-dados .so-sem-dados { display: block; }
-  body.sem-dados .so-com-dados, body.sem-dados .dados, body.sem-dados .consulta .seg { display: none; }
+  body.sem-dados .so-com-dados, body.sem-dados .dados, body.sem-dados .consulta .sel-doenca { display: none; }
   body.sem-dados .mini__area { height: auto; }
   body.sem-dados .mini__area .erro { position: static; }
 
@@ -698,7 +697,7 @@ h2.titulo { font-size: clamp(32px, 3.6vw, 52px); line-height: 1.04; letter-spaci
 .heroi .mini__mapa.foco .mini-d { fill-opacity: .35; }
 .heroi .mini__mapa.foco .mini-d.sel { fill-opacity: 1; }
 .heroi__acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 12px; }
-.heroi__acoes .seg { margin: 0; }
+.heroi__acoes .sel-doenca { margin: 0; }
 .heroi .convite { margin-top: 0; }
 .consulta__mapa { margin: 0; position: sticky; top: calc(var(--topo) + 12px); }
 .heroi .mini__area { height: min(calc(100vh - 190px), 700px); }
@@ -809,16 +808,20 @@ h2.titulo { font-size: clamp(32px, 3.6vw, 52px); line-height: 1.04; letter-spaci
         </div>
         <div class="heroi__acoes">
           <button type="button" class="btn btn--secundario btn--pilula" id="localizar"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>Meu distrito</span></button>
-        <div class="seg" role="group" aria-label="Doença">
-          <button type="button" data-doenca="dengue" aria-pressed="true">Dengue</button>
-          <button type="button" data-doenca="chikungunya" aria-pressed="false">Chikungunya</button>
-          <button type="button" data-doenca="zika" aria-pressed="false">Zika</button>
-          <button type="button" data-doenca="srag" aria-pressed="false" title="Síndrome respiratória aguda grave: internações por gripe, covid-19 e outros vírus">SRAG</button>
-          <button type="button" data-doenca="covid" aria-pressed="false">Covid-19</button>
-          <button type="button" data-doenca="tuberculose" aria-pressed="false">Tuberculose</button>
-          <button type="button" data-doenca="meningite" aria-pressed="false">Meningite</button>
-          <button type="button" data-doenca="sarampo" aria-pressed="false">Sarampo</button>
-        </div>
+        <select class="sel-doenca" id="sel-doenca" aria-label="Doença">
+          <optgroup label="Transmitidas pelo mosquito">
+            <option value="dengue" selected>Dengue</option>
+            <option value="chikungunya">Chikungunya</option>
+            <option value="zika">Zika</option>
+          </optgroup>
+          <optgroup label="Outras doenças">
+            <option value="srag">SRAG (síndrome respiratória grave)</option>
+            <option value="covid">Covid-19</option>
+            <option value="tuberculose">Tuberculose</option>
+            <option value="meningite">Meningite</option>
+            <option value="sarampo">Sarampo</option>
+          </optgroup>
+        </select>
         </div>
         <div class="ficha" id="ficha" aria-live="polite">
           <div class="esq" aria-hidden="true"><i class="media"></i><i class="curta"></i><i class="grande"></i><i></i></div>
@@ -1594,17 +1597,14 @@ h2.titulo { font-size: clamp(32px, 3.6vw, 52px); line-height: 1.04; letter-spaci
   }
 
   // ---------- doença ----------
-  const botoesDoenca = [...document.querySelectorAll("#consulta .seg button")];   // id: o hero perdeu a classe .consulta na reforma editorial
+  const selDoenca = document.getElementById("sel-doenca");
   function trocarDoenca(d) {
     if (!NOME_DOENCA[d]) return;
     doenca = d;
-    botoesDoenca.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.doenca === d)));
-    const b = botoesDoenca.find(x => x.dataset.doenca === d), seg = b.parentElement;
-    const rb = b.getBoundingClientRect(), rs = seg.getBoundingClientRect();
-    if (rb.left < rs.left || rb.right > rs.right) seg.scrollLeft += rb.left - rs.left - 8;   // sem mexer na rolagem da página
+    selDoenca.value = d;
     pintarMini(); renderLegenda(); renderFicha(); renderCidade(); renderRanking(); renderDistribuicao(); atualizarLinks();
   }
-  botoesDoenca.forEach(b => b.addEventListener("click", () => trocarDoenca(b.dataset.doenca)));
+  selDoenca.addEventListener("change", () => trocarDoenca(selDoenca.value));
 
   // ---------- busca: distrito, subprefeitura ou bairro conhecido abre a ficha ----------
   const indice = geo.features.map(f => ({ id: f.properties.id, nome: f.properties.nome, sub: f.properties.subprefeitura, tipo: "distrito" }));
