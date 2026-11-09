@@ -895,7 +895,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="nivel.js?v=727388d"></script>
-<script src="chat.js?v=f74b5c2"></script>
+<script src="chat.js?v=a20ced0"></script>
 <script>
 (async function () {
   const $ = (id) => document.getElementById(id);
@@ -1688,7 +1688,7 @@ h1, h2, h3, .marca strong, .marca h1 { font-family: var(--f-titulo); letter-spac
   // O Epi lê os mesmos dados já carregados e só age na página por estas funções.
   if (window.EpiChat) EpiChat.iniciar({
     distritos: indice.map(r => ({ id: r.id, nome: r.nome, sub: r.sub })),
-    distritoDados, cidadeDados,
+    distritoDados, cidadeDados, tabnetDados,
     doenca: () => doenca,
     selecionado: () => selecionado,
     trocarDoenca,

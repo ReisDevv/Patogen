@@ -105,7 +105,12 @@ Regras derivadas disso:
   (o TabNet não traz população e o site não estima): a cor segue o número de casos, como na chikungunya, e a UI
   avisa que distrito populoso tende a ficar mais escuro. A gripe aparece como **SRAG** (internações, todas as
   causas): por distrito a Prefeitura não separa influenza. Sem faixa da Pathogen para essas doenças (os limiares
-  de `nivel.js` são de dengue). O Epi (`chat.js`) continua só nas arboviroses.
+  de `nivel.js` são de dengue). O Epi (`chat.js`) responde sobre as oito doenças; os textos de saúde das cinco
+  novas (o que é, sintomas, alarme, prevenção, transmissão, vacina) são resumo do Ministério da Saúde e também
+  aparecem no "+" da seção "Outras doenças no mapa" da página inicial. Tema sem texto próprio para uma
+  doença nova manda à UBS, nunca ao texto do mosquito.
+- O TabNet (firewall Zenedge) devolve **403 para o GitHub Actions** e 200 para endereço no Brasil: o passo
+  *Buscar TabNet* do workflow falha lá. Ver "Próximo passo concreto".
 - A COVISA revisa o acumulado de semanas anteriores. `novos_desde_boletim` continua no JSON
   (histórico técnico), mas **não aparece na interface** desde 2026-11-01: a diferença entre dois
   boletins mistura casos novos com confirmações tardias, descartes e reclassificações, e não há
@@ -337,8 +342,8 @@ dizendo qual fonte não atualizou. O site é republicado depois de cada atualiza
 deploy: foi por isso que o site ficou parado no commit de 2026-10-08.
 
 1. Depois do merge, disparar manualmente *Atualizar dados* e conferir que o *Publicar site* roda em seguida
-   e que o passo *Buscar TabNet* alcança `tabnet.saude.prefeitura.sp.gov.br` a partir do GitHub Actions.
-   Pendente: a página inicial (`index.html`) e o Epi ainda mostram só as três arboviroses.
+   O passo *Buscar TabNet* recebe 403 do GitHub Actions (2026-11-09): a atualização do TabNet precisa rodar
+   de uma máquina no Brasil (`python scripts/fetch_tabnet.py`, commit e push de `data/tabnet_distrito.json`).
 2. Acompanhar os próximos boletins: se a COVISA mudar o layout de novo, o script para e o
    último conjunto válido continua no ar.
 3. Só depois disso abrir a fase 2 (Postgres/PostGIS + API). Os snapshots em `data/covisa/`

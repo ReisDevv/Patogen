@@ -2,7 +2,7 @@
  * Epi — assistente do Epimapa SP (balão no canto inferior direito).
  *
  * Roda inteiro no navegador: entende a pergunta por palavras-chave e responde com os
- * mesmos JSONs que o mapa já carregou (InfoDengue e COVISA) ou com textos fixos sobre
+ * mesmos JSONs que o mapa já carregou (InfoDengue, COVISA e TabNet) ou com textos fixos sobre
  * as doenças. Não chama API, não guarda e não envia o que a pessoa digita (LGPD):
  * a conversa vive só na memória da página e some ao fechar.
  *
@@ -13,7 +13,7 @@
  * Uso: mapa.html e a página inicial (index.html) chamam EpiChat.iniciar(ctx) depois de
  * carregar os dados, ou EpiChat.iniciar(null) se o carregamento falhou (aí só os textos
  * fixos funcionam). Na página inicial, selecionar(id) abre o mapa no distrito.
- *   ctx = { distritos: [{id, nome, sub}], distritoDados, cidadeDados,
+ *   ctx = { distritos: [{id, nome, sub}], distritoDados, cidadeDados, tabnetDados (pode ser null),
  *           doenca(), selecionado(), trocarDoenca(d), selecionar(id) }
  */
 (function () {
@@ -21,8 +21,11 @@
 
   const fmt = new Intl.NumberFormat("pt-BR");
   const fmt1 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
-  const DOENCAS = ["dengue", "chikungunya", "zika"];
-  const NOME = { dengue: "dengue", chikungunya: "chikungunya", zika: "zika" };
+  const ARBO = ["dengue", "chikungunya", "zika"];
+  const TABNET = ["srag", "covid", "tuberculose", "meningite", "sarampo"];   // data/tabnet_distrito.json
+  const DOENCAS = [...ARBO, ...TABNET];
+  const NOME = { dengue: "dengue", chikungunya: "chikungunya", zika: "zika",
+    srag: "SRAG", covid: "covid-19", tuberculose: "tuberculose", meningite: "meningite", sarampo: "sarampo" };
   const NIVEL_NOME = { 1: "verde", 2: "amarelo", 3: "laranja", 4: "vermelho" };
   const reduzMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mobile = () => matchMedia("(max-width: 900px) and (min-height: 500px), (max-width: 560px)").matches; // mesma consulta do CSS do mapa.html e do index.html
@@ -35,6 +38,12 @@
     dengue: /\bdengue\b/,
     chikungunya: /\bchi[ck]+u?n?gu|\bchik\b/,
     zika: /\bzi[kc]a\b/,
+    // gripe vira SRAG: por distrito a Prefeitura só publica as internações por síndrome respiratória grave
+    srag: /\bsrag\b|\bsindrome respiratoria\b|\bgripe\b|\binfluenza\b|\bh[13]n[12]\b/,
+    covid: /\bcovid\w*|\bcorona ?virus\b/,
+    tuberculose: /\btuberculos\w*/,
+    meningite: /\bmeningit\w*|\bmeningococ\w*/,
+    sarampo: /\bsarampo\b/,
   };
 
   // Bairros conhecidos que não são distritos e grafias comuns. Só os casos sem dúvida
@@ -91,7 +100,7 @@
     sinaisAlarme: /\bsina(l|is) de (alarme|alerta|gravidade|perigo)\b/,
     rua: /\b(rua|ruas|cep|endereco|quadra|quarteirao|meu predio|minha casa|minha rua|condominio|vizinhanca)\b/,
     zona: /\bzona (leste|norte|sul|oeste|central|centro)\b/,
-    outras: /\b(covid\w*|coronavirus|gripe|influenza|sarampo|febre amarela|leptospirose|tuberculose|meningite|hepatite\w*|mpox|variola|oropouche|malaria|raiva|esporotricose|leishmaniose|pets?|cachorro|caes|gato|gatos|animal|animais)\b/,
+    outras: /\b(febre amarela|leptospirose|hepatite\w*|mpox|variola|catapora|varicela|coqueluche|oropouche|malaria|raiva|esporotricose|leishmaniose|pets?|cachorro|caes|gato|gatos|animal|animais)\b/,
     oque: /\b(o que e|o que significa|que doenca e|defin\w*|explica\w*|me fala sobre|fale sobre)\b/,
     alarme: /\b(grave|graves|gravidade|perig\w*|quando (devo )?(procurar|ir)|hospital|pronto socorro|intern\w*|morre\w*|mata|matar|morte|obito\w*|fatal|hemorragic\w*)\b/,
     vacina: /\b(vacin\w*|imuniz\w*|qdenga|butantan)\b/,
@@ -110,28 +119,53 @@
 
   // ---------- textos fixos ----------
   // Orientação geral do Ministério da Saúde, em linguagem simples. Não é diagnóstico.
+  // SRAG e covid-19 dividem os sinais de alarme, a prevenção e a transmissão.
+  const RESP_ALARME = ["Procure atendimento **imediatamente** se, com gripe ou covid-19, aparecer:", "• falta de ar ou respiração difícil", "• aperto ou dor no peito que não passa", "• lábios ou rosto arroxeados", "• oxigenação abaixo de 95%, se tiver oxímetro", "• confusão, sonolência ou piora depois de alguns dias de doença", "Bebês, idosos, gestantes e pessoas com doenças crônicas têm mais risco. Em emergência, ligue **192 (SAMU)**."];
+  const RESP_PREVENCAO = ["Para evitar gripe, covid-19 e outros vírus respiratórios:", "• vacina da gripe todo ano e vacina da covid-19 conforme o calendário", "• lave as mãos com frequência ou use álcool em gel", "• cubra a boca e o nariz ao tossir ou espirrar, com o cotovelo ou um lenço", "• com sintomas, evite contato próximo e use máscara", "• deixe os ambientes ventilados"];
+  const RESP_TRANSMISSAO = ["Gripe, covid-19 e VSR passam de pessoa para pessoa por gotículas e aerossóis da tosse, do espirro e da fala, e pelas mãos que tocam superfícies contaminadas e depois os olhos, o nariz ou a boca."];
   const TEXTOS = {
     oque: {
+      srag: ["**SRAG** (síndrome respiratória aguda grave) é a forma grave de uma infecção respiratória, a que leva à internação. As causas mais comuns são o vírus da **gripe** (influenza), o da **covid-19** e o **VSR** (vírus sincicial respiratório).", "A gripe leve não é notificada caso a caso. Por isso o mapa mostra as internações por SRAG, de todas as causas, e não “gripe”."],
+      covid: ["A **covid-19** é causada pelo coronavírus SARS-CoV-2. Na maioria das vezes é leve, mas pode virar SRAG, principalmente em idosos, pessoas com doenças crônicas e quem está com a vacina atrasada."],
+      tuberculose: ["A **tuberculose** é causada por uma bactéria (o bacilo de Koch) e atinge principalmente os pulmões. **Tem cura**: o tratamento é gratuito no SUS e dura no mínimo 6 meses, sem interromper."],
+      meningite: ["**Meningite** é a inflamação das membranas que envolvem o cérebro e a medula. Pode ser causada por vírus (em geral mais leve) ou por bactérias (mais grave, e pode matar em poucas horas). A **doença meningocócica** também pode aparecer como infecção no sangue (meningococcemia)."],
+      sarampo: ["O **sarampo** é uma doença causada por vírus, **muito contagiosa**, que pode ter complicações graves, como pneumonia e encefalite, principalmente em crianças pequenas. É evitável com vacina."],
       dengue: ["A **dengue** é uma doença causada por um vírus transmitido pela picada do mosquito *Aedes aegypti*. Na maioria das vezes passa em uma ou duas semanas, mas pode ficar grave, principalmente quando a febre começa a baixar.", "Existem 4 tipos do vírus, por isso dá para ter dengue mais de uma vez."],
       chikungunya: ["A **chikungunya** é causada por um vírus transmitido pelo mesmo mosquito da dengue, o *Aedes aegypti*. A marca dela é a dor forte nas articulações, que pode durar meses depois que a febre passa."],
       zika: ["A **zika** é causada por um vírus transmitido pelo *Aedes aegypti* e também por relação sexual. Costuma ser leve, mas na gravidez pode causar microcefalia e outras alterações no bebê."],
       geral: ["Dengue, chikungunya e zika são **arboviroses**: doenças causadas por vírus e transmitidas pelo mosquito *Aedes aegypti*. Os sintomas se parecem, e só o exame confirma qual é."],
     },
     sintomas: {
+      srag: ["A **gripe** começa de repente, com:", "• febre", "• tosse ou dor de garganta", "• dor de cabeça, dores no corpo e cansaço", "Vira **SRAG** quando aparece falta de ar ou outro sinal de gravidade: veja os sinais de alarme."],
+      covid: ["Sintomas mais comuns da **covid-19**:", "• febre ou calafrio", "• tosse, dor de garganta e coriza", "• cansaço, dor de cabeça e dores no corpo", "• perda ou mudança do olfato e do paladar", "Os sintomas se parecem com os da gripe: só o teste confirma."],
+      tuberculose: ["O principal sinal da **tuberculose** é **tosse por 3 semanas ou mais**, seca ou com catarro. Também podem aparecer:", "• febre baixa, mais no fim da tarde", "• suor à noite", "• emagrecimento sem motivo", "• cansaço", "Com tosse há 3 semanas ou mais, procure a UBS para fazer o exame de escarro, que é gratuito."],
+      meningite: ["Sinais de **meningite**:", "• febre alta de repente", "• dor de cabeça forte", "• **rigidez na nuca** (dificuldade de encostar o queixo no peito)", "• vômitos", "• manchas vermelhas ou roxas na pele", "• confusão, sonolência ou convulsão", "Em bebês: moleira estufada, irritação, choro difícil de acalmar, sonolência e recusa de mamar. Com esses sinais, **vá a um pronto-socorro na hora**."],
+      sarampo: ["Sintomas do **sarampo**:", "• febre alta", "• **manchas vermelhas** que começam no rosto e atrás das orelhas e descem pelo corpo", "• tosse e coriza", "• olhos vermelhos (conjuntivite)", "Com febre e manchas, procure a UBS e **avise logo na chegada** que pode ser sarampo: assim não contamina quem está na sala de espera."],
       dengue: ["Sintomas mais comuns da **dengue**:", "• febre alta (39 °C ou mais) que começa de repente e dura de 2 a 7 dias", "• dor de cabeça e dor atrás dos olhos", "• dores no corpo e nas articulações", "• manchas vermelhas na pele, às vezes com coceira", "• cansaço, falta de apetite e enjoo", "O momento de mais atenção é quando a febre baixa (por volta do 3º ao 7º dia): é aí que podem surgir os sinais de alarme."],
       chikungunya: ["Sintomas mais comuns da **chikungunya**:", "• febre alta que começa de repente", "• **dor forte nas articulações** (mãos, pés, punhos, tornozelos), muitas vezes com inchaço", "• dor de cabeça, dores musculares e manchas vermelhas", "A dor nas articulações pode durar semanas ou meses depois que a febre passa."],
       zika: ["Sintomas mais comuns da **zika**:", "• febre baixa ou nenhuma febre", "• manchas vermelhas na pele, com coceira", "• olhos vermelhos, sem secreção", "• dor leve nas articulações", "Muita gente tem sintomas leves ou nenhum. O maior risco é na gravidez."],
       geral: ["As três se parecem no começo:", "• **Dengue**: febre alta, dor atrás dos olhos e dores no corpo", "• **Chikungunya**: febre alta e dor muito forte nas articulações", "• **Zika**: febre baixa ou nenhuma, manchas com coceira e olhos vermelhos", "Só o exame confirma qual é. Na dúvida, procure uma UBS."],
     },
     alarme: {
+      srag: RESP_ALARME,
+      covid: RESP_ALARME,
+      tuberculose: ["Na **tuberculose**, procure atendimento logo se houver:", "• tosse com sangue", "• falta de ar ou dor no peito", "• febre alta que não passa ou perda de peso rápida", "Em emergência, ligue **192 (SAMU)**."],
+      meningite: ["Meningite é **emergência**. Vá a um pronto-socorro na hora ou ligue **192 (SAMU)** se houver febre com qualquer um destes:", "• dor de cabeça forte ou rigidez na nuca", "• manchas vermelhas ou roxas na pele", "• confusão, sonolência ou convulsão", "• em bebê, moleira estufada ou sonolência fora do normal"],
+      sarampo: ["No **sarampo**, procure atendimento logo se houver:", "• falta de ar ou respiração rápida", "• sonolência, confusão ou convulsão", "• sinais de desidratação (bebe pouco, urina pouco)", "Bebês, gestantes e pessoas com imunidade baixa devem ser avaliados mesmo com sintomas leves. Em emergência, ligue **192 (SAMU)**."],
       dengue: ["Procure atendimento **imediatamente** se aparecer qualquer um destes sinais de alarme da dengue:", "• dor forte e contínua na barriga", "• vômitos que não param", "• sangramento (gengiva, nariz, urina, fezes) ou manchas roxas", "• tontura, desmaio ou pressão baixa ao levantar", "• sonolência, confusão ou irritação fora do normal", "• falta de ar", "• urina muito pouca", "Eles costumam aparecer quando a febre baixa. Em emergência, ligue **192 (SAMU)**."],
       chikungunya: ["Na **chikungunya**, procure atendimento logo se houver:", "• febre por mais de 5 dias", "• confusão, convulsão ou fraqueza nas pernas", "• sangramento ou falta de ar", "• dor que impede de andar ou de se cuidar", "Bebês, idosos, gestantes e pessoas com doenças crônicas devem ser avaliados mesmo com sintomas leves. Em emergência, ligue **192 (SAMU)**."],
       zika: ["Na **zika**, procure atendimento se houver:", "• fraqueza que começa nas pernas e vai subindo, ou formigamento forte (pode ser síndrome de Guillain-Barré, que é emergência)", "• qualquer sintoma na **gravidez**: vá ao pré-natal ou à UBS logo", "Em emergência, ligue **192 (SAMU)**."],
     },
     tratamento: {
+      tuberculose: ["O tratamento da **tuberculose** é **gratuito no SUS**, com remédios por no mínimo 6 meses. Os sintomas melhoram nas primeiras semanas, mas é preciso tomar **até o fim**: parar antes faz a doença voltar e o bacilo ficar resistente."],
       geral: ["Não existe remédio que mate o vírus; o tratamento alivia os sintomas e evita complicações:", "• **beba muita água** e líquidos (soro de reidratação, sucos, água de coco)", "• repouso", "• para febre e dor, use só o que um profissional indicar, em geral paracetamol ou dipirona", "• **não tome AAS (aspirina) nem anti-inflamatórios** (ibuprofeno, diclofenaco, nimesulida) enquanto não descartar dengue: aumentam o risco de sangramento", "Mesmo com sintomas leves, vale passar numa UBS para ser avaliado."],
     },
     prevencao: {
+      srag: RESP_PREVENCAO,
+      covid: RESP_PREVENCAO,
+      tuberculose: ["O que mais previne a **tuberculose** é diagnosticar e tratar cedo, até o fim, quem está doente:", "• com tosse há 3 semanas ou mais, faça o exame na UBS", "• quem mora com alguém com tuberculose deve ser avaliado na UBS", "• ambientes ventilados e com sol", "• a vacina **BCG**, dada ao nascer, protege as crianças das formas graves"],
+      meningite: ["A melhor proteção contra a **meningite** é a **vacina** (pergunte “vacina da meningite”). Além dela:", "• lave as mãos com frequência", "• deixe os ambientes ventilados", "• não compartilhe copos e talheres", "• quem teve contato próximo com um caso deve seguir a orientação da vigilância de saúde"],
+      sarampo: ["A proteção contra o **sarampo** é a **vacina tríplice viral** (sarampo, caxumba e rubéola), gratuita no SUS. Confira a caderneta: pergunte “vacina do sarampo”."],
       geral: ["O mosquito nasce em água parada, então o que mais funciona é acabar com os criadouros. Dez minutos por semana dão conta:", "• garrafas, baldes e potes de boca para baixo", "• pratinhos de vaso com areia até a borda, ou lavados toda semana", "• caixa-d'água, tonéis e cisternas sempre tampados", "• calhas limpas, sem folhas entupindo", "• pneus guardados secos e cobertos; lixo tampado", "• ralos fechados ou com tela", "Para se proteger da picada: repelente (siga o rótulo), roupa comprida e tela nas janelas. O mosquito pica mais **de dia**, de manhã e no fim da tarde."],
     },
     mosquito: {
@@ -141,9 +175,19 @@
       geral: ["Para pedir vistoria de um possível foco do mosquito (terreno baldio, imóvel abandonado, piscina sem cuidado, entulho), use a **Central SP156** da Prefeitura: ligue **156** ou use o portal ou o app SP156.", "A vistoria é feita pelos agentes da vigilância em saúde da sua região (UVIS)."],
     },
     transmissao: {
+      srag: RESP_TRANSMISSAO,
+      covid: RESP_TRANSMISSAO,
+      tuberculose: ["A **tuberculose** pulmonar passa pelo ar: a pessoa doente sem tratamento solta o bacilo ao tossir, espirrar ou falar. Não passa por objetos, talheres ou roupas.", "Com cerca de 15 dias de tratamento correto, a pessoa em geral deixa de transmitir."],
+      meningite: ["As **meningites** virais e bacterianas passam de pessoa para pessoa por gotículas e secreções do nariz e da garganta, em contato próximo e prolongado, como entre moradores da mesma casa.", "Quem teve contato próximo com um caso de meningite bacteriana pode precisar de remédio preventivo: a vigilância de saúde orienta."],
+      sarampo: ["O **sarampo** passa pelo ar, de pessoa para pessoa, ao tossir, espirrar, falar ou respirar. É uma das doenças mais contagiosas que existem: a pessoa transmite de 6 dias antes até 4 dias depois de aparecerem as manchas."],
       geral: ["As três são transmitidas pela picada da fêmea do mosquito ***Aedes aegypti*** infectada. Não passam de pessoa para pessoa por contato, abraço, tosse ou objetos.", "A **zika** é a exceção: também passa por relação sexual e da gestante para o bebê."],
     },
     vacina: {
+      srag: ["A **vacina da gripe** é oferecida pelo SUS todo ano, na campanha de outono, primeiro para os grupos com mais risco (idosos, crianças pequenas, gestantes, pessoas com doenças crônicas, entre outros); em alguns anos ela é aberta a todos. Ela não protege contra covid-19 nem VSR.", "Pergunte na sua UBS quem pode se vacinar agora."],
+      covid: ["A **vacina da covid-19** está no SUS: faz parte do calendário das crianças pequenas e é recomendada de tempos em tempos para idosos, gestantes e outros grupos com mais risco.", "Pergunte na sua UBS se está na hora da sua dose."],
+      tuberculose: ["A **BCG** é dada ao nascer, no SUS, e protege as crianças das formas graves da tuberculose, como a meningite tuberculosa. Ela não impede a tuberculose pulmonar em adultos."],
+      meningite: ["O SUS tem vacinas contra as principais meningites bacterianas, no calendário de rotina:", "• **meningocócica C** e **meningocócica ACWY** (bebês e adolescentes)", "• **pneumocócica** (bebês)", "• **pentavalente**, que inclui o *Haemophilus* (bebês)", "• **BCG**, contra a forma tuberculosa", "Confira a caderneta na UBS."],
+      sarampo: ["A vacina contra o **sarampo** é a **tríplice viral**, gratuita no SUS:", "• crianças: uma dose aos 12 meses e outra aos 15 meses", "• de 5 a 29 anos: duas doses ao longo da vida", "• de 30 a 59 anos: uma dose", "Sem a caderneta, procure a UBS: na dúvida, a pessoa é vacinada."],
       dengue: ["Existe vacina contra a **dengue** no SUS, mas por enquanto só para públicos específicos (faixas etárias e grupos definidos pelo Ministério da Saúde, que vêm sendo ampliados).", "Pergunte na sua UBS se você está no público atual. A vacina não substitui a eliminação de criadouros."],
       chikungunya: ["Até a última revisão deste texto, não havia vacina contra **chikungunya** na rede pública. Confirme na sua UBS: o calendário muda."],
       zika: ["Não existe vacina contra a **zika**. A proteção é evitar a picada e usar preservativo se o parceiro teve zika."],
@@ -181,7 +225,7 @@
     const form = $("chat-form"), campo = $("chat-input"), sugestoes = $("chat-sugestoes");
     if (!botao || !janela) return;
 
-    const dd = ctx && ctx.distritoDados, cd = ctx && ctx.cidadeDados;
+    const dd = ctx && ctx.distritoDados, cd = ctx && ctx.cidadeDados, tb = ctx && ctx.tabnetDados;
     const distritos = ctx ? ctx.distritos : [];
     const porId = Object.fromEntries(distritos.map(d => [d.id, d]));
     const subs = [...new Set(distritos.map(d => d.sub))];
@@ -252,16 +296,24 @@
     }
 
     // ---------- consultas aos dados ----------
-    const semDadosDistrito = (d) => !dd || (dd.sem_dados_por_distrito || []).includes(d);
-    const dadosDe = (d) => (dd && dd.doencas[d]) || {};
+    const doTabnet = (d) => TABNET.includes(d);
+    const tab = (d) => (tb && tb.doencas[d]) || null;   // { fonte, ano, atualizado_em, medida, total, distritos }
+    const semDadosDistrito = (d) => doTabnet(d) ? !tab(d) : !dd || (dd.sem_dados_por_distrito || []).includes(d);
+    const dadosDe = (d) => doTabnet(d) ? (tab(d) ? tab(d).distritos : {}) : (dd && dd.doencas[d]) || {};
+    const anoDe = (d) => doTabnet(d) ? (tab(d) || {}).ano : dd.ano;
+    const quemNaoTraz = (d) => doTabnet(d) ? "O TabNet da Prefeitura não carregou e não traz" : "O boletim da COVISA não traz";
+    // SRAG não é "gripe": lembra o que o número conta sempre que ele aparece.
+    const notaSrag = (d) => d === "srag" ? ["SRAG são as internações por síndrome respiratória aguda grave: incluem gripe, covid-19 e outros vírus. Por distrito não há número só de gripe."] : [];
     const medida = (x) => typeof x.inc100k_ano === "number" ? x.inc100k_ano : (x.casos_ano || 0);
     const temIncidencia = (d) => Object.values(dadosDe(d)).some(x => typeof x.inc100k_ano === "number");
     const ordem = (d) => Object.entries(dadosDe(d)).sort((a, b) => medida(b[1]) - medida(a[1])).map(e => e[0]);
-    const refCovisa = () => `COVISA/SMS-SP, boletim SE ${dd.se}/${dd.ano}${dd.dados_ate ? `, dados até ${dataBR(dd.dados_ate)}` : ""}`;
+    const ref = (d) => doTabnet(d)
+      ? (tab(d) ? `${tab(d).fonte} via TabNet da Prefeitura, atualizado em ${dataBR(tab(d).atualizado_em)}; dados preliminares` : "TabNet da Prefeitura")
+      : `COVISA/SMS-SP, boletim SE ${dd.se}/${dd.ano}${dd.dados_ate ? `, dados até ${dataBR(dd.dados_ate)}` : ""}`;
     const pergunta = (rotulo, texto = rotulo) => ({ rotulo, pergunta: texto });
     const noMapa = (id, d) => ({ rotulo: `Ver ${porId[id].nome} no mapa`, mapa: { id, doenca: d } });
     const semCarga = () => ({ linhas: ["Não consegui carregar os dados do mapa agora, então estou sem os números. Tente recarregar a página. Sobre sintomas, prevenção e atendimento eu continuo respondendo."] });
-    const casosRotulo = (d) => d === "chikungunya" ? "casos autóctones confirmados" : "casos confirmados";
+    const casosRotulo = (d) => doTabnet(d) && tab(d) ? tab(d).medida.replace(/ no ano$/, "") : d === "chikungunya" ? "casos autóctones confirmados" : "casos confirmados";
 
     const CONSULTAS = {
       distrito(id, d, extras = {}) {
@@ -271,51 +323,53 @@
         if (ctx.selecionado() !== id || ctx.doenca() !== d) acoes.push(noMapa(id, d));
         const linhas = extras.bairro ? [`${extras.bairro} fica no distrito **${nome}**. Os dados oficiais são por distrito.`] : [];
         if (semDadosDistrito(d)) {
-          linhas.push(`O boletim da COVISA não traz **${NOME[d]}** por distrito (desde 2018), então não tenho esse número para ${nome}.`);
+          linhas.push(`${quemNaoTraz(d)} **${NOME[d]}** por distrito${d === "zika" ? " (desde 2018)" : ""}, então não tenho esse número para ${nome}.`);
           return { linhas, acoes: DOENCAS.filter(x => !semDadosDistrito(x)).map(x => pergunta(`${cap(x)} em ${nome}`)) };
         }
         const x = dadosDe(d)[id];
         if (!x || x.casos_ano == null) {
-          linhas.push(`O boletim da COVISA da SE ${dd.se}/${dd.ano} não traz número de ${NOME[d]} para ${nome}.`);
-          return { linhas, acoes, fonte: refCovisa() };
+          linhas.push(`A fonte oficial não traz número de ${NOME[d]} para ${nome}.`);
+          return { linhas, acoes, fonte: ref(d) };
         }
-        linhas.push(`**${nome}** (subprefeitura ${porId[id].sub}), ${NOME[d]} em ${dd.ano}:`);
-        linhas.push(x.casos_ano === 0 ? `• nenhum caso ${d === "chikungunya" ? "autóctone " : ""}confirmado desde janeiro` : `• **${fmt.format(x.casos_ano)}** ${casosRotulo(d)} desde janeiro`);
+        linhas.push(`**${nome}** (subprefeitura ${porId[id].sub}), ${NOME[d]} em ${anoDe(d)}:`);
+        linhas.push(x.casos_ano === 0 ? `• nenhum registro de ${NOME[d]} ${d === "chikungunya" ? "autóctone " : ""}desde janeiro` : `• **${fmt.format(x.casos_ano)}** ${casosRotulo(d)} desde janeiro`);
         if (typeof x.inc100k_ano === "number") linhas.push(`• **${fmt1.format(x.inc100k_ano)}** casos por 100 mil habitantes no ano`);
         if (x.casos_ano > 0) {
           const pos = ordem(d).indexOf(id) + 1;
           const crit = temIncidencia(d) ? "ª maior incidência" : "º maior número de casos";
           linhas.push(`• ${pos}${crit} entre os 96 distritos${pos <= 10 ? " (entre os 10 mais altos da cidade)" : ""}`);
         }
+        linhas.push(...notaSrag(d));
         if (extras.nivel) linhas.push("Por distrito a COVISA publica só o acumulado do ano, e não existe nível de alerta por distrito: o nível 1 a 4 vale para a cidade toda.");
-        return { linhas, acoes, fonte: refCovisa() };
+        return { linhas, acoes, fonte: ref(d) };
       },
 
       subprefeitura(sub, d) {
         if (!dd) return semCarga();
         const ids = distritos.filter(x => x.sub === sub).map(x => x.id);
-        if (semDadosDistrito(d)) return { linhas: [`O boletim da COVISA não traz **${NOME[d]}** por distrito, então não tenho números da subprefeitura ${sub}.`] };
+        if (semDadosDistrito(d)) return { linhas: [`${quemNaoTraz(d)} **${NOME[d]}** por distrito, então não tenho números da subprefeitura ${sub}.`] };
         const dados = dadosDe(d);
         const com = ids.filter(id => dados[id] && dados[id].casos_ano != null).sort((a, b) => medida(dados[b]) - medida(dados[a]));
-        if (!com.length) return { linhas: [`O boletim não traz ${NOME[d]} para os distritos da subprefeitura ${sub}.`], fonte: refCovisa() };
+        if (!com.length) return { linhas: [`A fonte oficial não traz ${NOME[d]} para os distritos da subprefeitura ${sub}.`], fonte: ref(d) };
         const soma = com.reduce((s, id) => s + dados[id].casos_ano, 0);
-        const linhas = [`Subprefeitura **${sub}**, ${NOME[d]} em ${dd.ano}, por distrito:`];
+        const linhas = [`Subprefeitura **${sub}**, ${NOME[d]} em ${anoDe(d)}, por distrito:`];
         for (const id of com) {
           const x = dados[id];
           linhas.push(`• ${porId[id].nome}: **${fmt.format(x.casos_ano)}** casos${typeof x.inc100k_ano === "number" ? ` (${fmt1.format(x.inc100k_ano)} por 100 mil)` : ""}`);
         }
         if (com.length > 1) linhas.push(`Somando os ${com.length} distritos: ${fmt.format(soma)} ${casosRotulo(d)} desde janeiro.`);
-        return { linhas, acoes: com.slice(0, 3).map(id => noMapa(id, d)), fonte: refCovisa() };
+        linhas.push(...notaSrag(d));
+        return { linhas, acoes: com.slice(0, 3).map(id => noMapa(id, d)), fonte: ref(d) };
       },
 
       comparar(ids, d) {
         if (!dd) return semCarga();
-        if (semDadosDistrito(d)) return { linhas: [`O boletim da COVISA não traz **${NOME[d]}** por distrito, então não dá para comparar.`] };
+        if (semDadosDistrito(d)) return { linhas: [`${quemNaoTraz(d)} **${NOME[d]}** por distrito, então não dá para comparar.`] };
         const dados = dadosDe(d), inc = temIncidencia(d), ord = ordem(d);
-        const linhas = [`Comparando ${NOME[d]} em ${dd.ano}:`];
+        const linhas = [`Comparando ${NOME[d]} em ${anoDe(d)}:`];
         for (const id of ids) {
           const x = dados[id];
-          if (!x || x.casos_ano == null) { linhas.push(`• **${porId[id].nome}**: sem número no boletim`); continue; }
+          if (!x || x.casos_ano == null) { linhas.push(`• **${porId[id].nome}**: sem número na fonte`); continue; }
           linhas.push(`• **${porId[id].nome}**: ${fmt.format(x.casos_ano)} casos${inc && typeof x.inc100k_ano === "number" ? `, ${fmt1.format(x.inc100k_ano)} por 100 mil` : ""} (${ord.indexOf(id) + 1}º de 96)`);
         }
         const [a, b] = ids.map(id => dados[id]);
@@ -324,32 +378,41 @@
           linhas.push(inc ? `${porId[maior].nome} tem incidência maior: proporcionalmente à população, teve mais casos que ${porId[menor].nome}.`
             : `${porId[maior].nome} teve mais casos que ${porId[menor].nome}.`);
         }
-        return { linhas, acoes: ids.map(id => noMapa(id, d)), fonte: refCovisa() };
+        return { linhas, acoes: ids.map(id => noMapa(id, d)), fonte: ref(d) };
       },
 
       ranking(d, { menores = false } = {}) {
         if (!dd) return semCarga();
-        if (semDadosDistrito(d)) return { linhas: [`O boletim da COVISA não traz **${NOME[d]}** por distrito, então não tenho ranking de distritos para ela.`], acoes: [pergunta("Distritos com mais dengue")] };
+        if (semDadosDistrito(d)) return { linhas: [`${quemNaoTraz(d)} **${NOME[d]}** por distrito, então não tenho ranking de distritos para ela.`], acoes: [pergunta("Distritos com mais dengue")] };
         const dados = dadosDe(d), inc = temIncidencia(d);
         let ids = ordem(d);
         if (menores) {
           const zerados = ids.filter(id => dados[id].casos_ano === 0);
           if (zerados.length >= 5) {
-            return { linhas: [`${zerados.length} dos 96 distritos não têm nenhum caso de ${NOME[d]} ${d === "chikungunya" ? "autóctone " : ""}confirmado em ${dd.ano}. Alguns deles:`, ...zerados.slice(0, 5).map(id => `• ${porId[id].nome}`)], fonte: refCovisa() };
+            return { linhas: [`${zerados.length} dos 96 distritos não têm nenhum registro de ${NOME[d]} ${d === "chikungunya" ? "autóctone " : ""}em ${anoDe(d)}. Alguns deles:`, ...zerados.slice(0, 5).map(id => `• ${porId[id].nome}`)], fonte: ref(d) };
           }
           ids = ids.slice().reverse();
         }
         const top = ids.slice(0, 5);
-        const linhas = [`Distritos com ${menores ? "**menor**" : "**maior**"} ${inc ? "incidência" : "número de casos"} de ${NOME[d]} em ${dd.ano}:`];
+        const linhas = [`Distritos com ${menores ? "**menor**" : "**maior**"} ${inc ? "incidência" : "número de casos"} de ${NOME[d]} em ${anoDe(d)}:`];
         top.forEach((id, i) => {
           const x = dados[id];
           linhas.push(`• ${i + 1}. ${porId[id].nome}: ${inc ? `**${fmt1.format(x.inc100k_ano)}** por 100 mil (${fmt.format(x.casos_ano)} casos)` : `**${fmt.format(x.casos_ano)}** ${casosRotulo(d)}`}`);
         });
         if (inc) linhas.push("Incidência é casos por 100 mil habitantes: compara distritos de tamanhos diferentes. É o acumulado desde janeiro.");
-        return { linhas, acoes: top.slice(0, 3).map(id => noMapa(id, d)), fonte: refCovisa() };
+        else if (doTabnet(d)) linhas.push("É o número de casos, sem levar em conta a população: distritos mais populosos tendem a aparecer no topo.", ...notaSrag(d));
+        return { linhas, acoes: top.slice(0, 3).map(id => noMapa(id, d)), fonte: ref(d) };
       },
 
       cidade(d, { ano = false, nivel = false } = {}) {
+        if (doTabnet(d)) {
+          const o = tab(d);
+          if (!o) return { linhas: [`Os dados de **${NOME[d]}** do TabNet da Prefeitura não carregaram agora.`] };
+          const linhas = [`**São Paulo**, ${NOME[d]} em ${o.ano}:`, `• **${fmt.format(o.total)}** ${casosRotulo(d)} de moradores da capital desde janeiro`];
+          if (o.sem_distrito) linhas.push(`• ${fmt.format(o.sem_distrito)} deles sem distrito informado (ficam fora do mapa)`);
+          linhas.push(...notaSrag(d), "Para essa doença o site tem só o acumulado do ano, sem série semana a semana nem nível de alerta.");
+          return { linhas, acoes: [pergunta(`Distritos com mais ${NOME[d]}`), pergunta(`Sintomas de ${NOME[d]}`)], fonte: ref(d) };
+        }
         if (!cd) return semCarga();
         const s = cd.doencas[d], a = s && s.atual;
         if (!a) return { linhas: [`O InfoDengue não tem série de **${NOME[d]}** para São Paulo neste momento, então não tenho o número da cidade.`], acoes: [pergunta("Como está a dengue em SP?")] };
@@ -370,6 +433,7 @@
       },
 
       tendencia(d) {
+        if (doTabnet(d)) return { linhas: [`Para **${NOME[d]}** o site tem só o acumulado do ano, do TabNet da Prefeitura, sem série semana a semana. Então não dá para dizer se está subindo ou caindo.`], acoes: [pergunta(`Como está ${NOME[d]} em SP?`)] };
         if (!cd) return semCarga();
         const s = cd.doencas[d], a = s && s.atual;
         if (!a || s.semanas.length < 8) return { linhas: [`Não tenho série semanal de **${NOME[d]}** para São Paulo no InfoDengue agora.`] };
@@ -395,11 +459,12 @@
     const SITE = {
       cores(d) {
         if (semDadosDistrito(d)) return { linhas: [`Para ${NOME[d]} o mapa fica todo **cinza**: o boletim da COVISA não traz essa doença por distrito.`, "Cinza no mapa sempre quer dizer “sem dados”, nunca “zero casos”."] };
+        if (doTabnet(d)) return { linhas: [`Para ${NOME[d]}, a cor é proporcional ao **número de casos** desde janeiro em cada distrito: verde tem menos, vermelho tem mais. O TabNet não traz incidência, então distritos mais populosos tendem a ficar mais escuros.`, "Cinza quer dizer “sem dados”, nunca “zero casos”."] };
         if (!temIncidencia(d)) return { linhas: [`Para ${NOME[d]}, a cor é proporcional ao número de **casos autóctones** (contraídos na cidade) confirmados desde janeiro em cada distrito: verde tem menos, vermelho tem mais. O boletim não traz incidência por distrito para essa doença.`, "Não é nível de alerta: o nível 1 a 4 existe só para a cidade toda."] };
         return { linhas: [`As cores mostram a **incidência acumulada no ano** de ${NOME[d]}: casos confirmados por 100 mil habitantes desde janeiro, por distrito.`, "• verde: menos de 20 por 100 mil", "• amarelo: por volta de 60", "• laranja: por volta de 150", "• vermelho: 300 ou mais", "Não é nível de alerta: o nível 1 a 4 existe só para a cidade toda. Cinza quer dizer “sem dados”."] };
       },
       fonte() {
-        return { linhas: ["Todos os números vêm de fontes oficiais:", "• **cidade**: InfoDengue (Fiocruz/FGV), casos notificados por semana e nível de alerta", "• **distritos**: boletim semanal de arboviroses da COVISA, da Secretaria Municipal da Saúde de São Paulo, com casos confirmados acumulados no ano", "• **mapa dos distritos**: GeoSampa, da Prefeitura", "Nada é estimado nem inventado: quando a fonte não traz um número, o mapa mostra “sem dados”."] };
+        return { linhas: ["Todos os números vêm de fontes oficiais:", "• **cidade**: InfoDengue (Fiocruz/FGV), casos notificados por semana e nível de alerta", "• **distritos**: boletim semanal de arboviroses da COVISA, da Secretaria Municipal da Saúde de São Paulo, com casos confirmados acumulados no ano", "• **SRAG, covid-19, tuberculose, meningite e sarampo**: TabNet da Secretaria Municipal da Saúde, casos acumulados no ano por distrito de residência", "• **mapa dos distritos**: GeoSampa, da Prefeitura", "Nada é estimado nem inventado: quando a fonte não traz um número, o mapa mostra “sem dados”."] };
       },
       atualizacao() {
         const l = ["O site busca os dados automaticamente **toda madrugada**. As fontes publicam por semana: o InfoDengue atualiza a série semanal e a COVISA solta um boletim por semana epidemiológica."];
@@ -432,13 +497,13 @@
         return { linhas: ["Os dados oficiais são por distrito e subprefeitura, não por zona. Escreva o nome do distrito ou da subprefeitura, por exemplo “Itaquera” ou “subprefeitura da Penha”."], acoes: [pergunta("Distritos com mais casos")] };
       },
       outras() {
-        return { linhas: ["Por enquanto o mapa cobre só as arboviroses urbanas: **dengue, chikungunya e zika**. Não tenho dados de outras doenças aqui."], acoes: [pergunta("Como está a dengue em SP?")] };
+        return { linhas: ["O mapa cobre **dengue, chikungunya, zika, SRAG (que inclui a gripe), covid-19, tuberculose, meningite e sarampo**: as doenças com dado oficial por distrito na cidade. Dessa outra não tenho dados aqui."], acoes: [pergunta("Como está a dengue em SP?"), pergunta("Distritos com mais tuberculose")] };
       },
       privacidade() {
         return { linhas: ["Eu funciono inteiro no seu navegador: o que você escreve aqui **não é enviado nem guardado** em lugar nenhum e some quando você fecha a página.", "O site não tem login e não coleta dados de saúde de quem usa."] };
       },
       sobre() {
-        return { linhas: ["O **Epimapa SP** mostra dengue, chikungunya e zika por distrito da cidade de São Paulo com dados públicos de vigilância (InfoDengue e COVISA).", "Eu sou o **Epi**, assistente informativo do Epimapa. Consulto os dados epidemiológicos carregados no site e apresento orientações de prevenção baseadas em fontes oficiais.", "Funciono por regras, no seu navegador, sem inteligência artificial generativa. Não sou médico: não faço diagnóstico, não indico tratamento e não faço previsão."], acoes: [pergunta("O que você sabe responder?")] };
+        return { linhas: ["O **Epimapa SP** mostra dengue, chikungunya, zika, SRAG, covid-19, tuberculose, meningite e sarampo por distrito da cidade de São Paulo com dados públicos de vigilância (InfoDengue, COVISA e TabNet da Prefeitura).", "Eu sou o **Epi**, assistente informativo do Epimapa. Consulto os dados epidemiológicos carregados no site e apresento orientações de prevenção baseadas em fontes oficiais.", "Funciono por regras, no seu navegador, sem inteligência artificial generativa. Não sou médico: não faço diagnóstico, não indico tratamento e não faço previsão."], acoes: [pergunta("O que você sabe responder?")] };
       },
       usar() {
         return { linhas: ["Como usar o mapa:", "• escolha a doença nos botões do topo", "• toque ou clique num distrito para ver os números dele", "• use a busca para achar um distrito ou uma subprefeitura", "• para voltar ao resumo da cidade, use “Ver a cidade toda”", "Ou me pergunte direto, por exemplo “dengue em Itaquera”."] };
@@ -450,15 +515,18 @@
 
     function texto(topico, d) {
       const t = TEXTOS[topico];
-      return t[d] || t.geral || t.dengue;
+      if (t[d]) return t[d];
+      // Os textos gerais falam do mosquito: não servem para SRAG, covid etc.
+      if (TABNET.includes(d)) return [`Sobre **${NOME[d]}**, esse tema eu ainda não tenho. Procure a UBS mais próxima (para saber qual é, ligue **156**) ou a página da doença no site do Ministério da Saúde.`, "Em emergência, ligue **192 (SAMU)**."];
+      return t.geral || t.dengue;
     }
     function respostaTexto(topico, d) {
       const r = { linhas: texto(topico, d).slice() };
       const seguintes = {
-        sintomas: [pergunta("Quais os sinais de alarme?"), pergunta("O que fazer se eu tiver sintomas?")],
-        oque: [pergunta(`Sintomas de ${NOME[d] || "dengue"}`), pergunta("Como evitar o mosquito?")],
+        sintomas: [pergunta(TABNET.includes(d) ? `Sinais de alarme de ${NOME[d]}` : "Quais os sinais de alarme?"), pergunta("O que fazer se eu tiver sintomas?")],
+        oque: [pergunta(`Sintomas de ${NOME[d] || "dengue"}`), TABNET.includes(d) ? pergunta(`Vacina de ${NOME[d]}`) : pergunta("Como evitar o mosquito?")],
         alarme: [pergunta("Onde procurar atendimento?")],
-        prevencao: [pergunta("Como denunciar um foco do mosquito?")],
+        prevencao: TABNET.includes(d) ? null : [pergunta("Como denunciar um foco do mosquito?")],
         mosquito: [pergunta("Como evitar o mosquito?")],
         tratamento: [pergunta("Quais os sinais de alarme?")],
         diferenca: [pergunta("O que fazer se eu tiver sintomas?")],
@@ -487,8 +555,7 @@
       // A doença da pergunta anterior vale para a seguinte ("dengue em Itaquera" → "e na Penha?"),
       // menos zika, que não tem número em lugar nenhum e deixaria as próximas respostas vazias.
       const lembrada = estado.doenca && estado.doenca !== "zika" ? estado.doenca : null;
-      // O Epi só conhece as arboviroses: com SRAG, covid etc. no mapa, ele responde sobre dengue.
-      const doencaDados = doencaCitada || lembrada || (ctx && DOENCAS.includes(ctx.doenca()) ? ctx.doenca() : "dengue");
+      const doencaDados = doencaCitada || lembrada || (ctx ? ctx.doenca() : "dengue");
       const lugares = acharLugares(t, original);
       const lugar = lugares.find(l => l.tipo !== "ambiguo");
       const ambiguo = lugares.find(l => l.tipo === "ambiguo");
@@ -505,7 +572,7 @@
       }
       // 2. conversa
       const palavras = t.split(" ").length;
-      if (tem(R.saudacao) && palavras <= 4 && !lugar && !citadas.length) return { linhas: ["Oi! Eu sou o **Epi**. Pergunte sobre o mapa, os números de um distrito ou sobre dengue, chikungunya e zika."], acoes: sugestoesPadrao().slice(0, 4) };
+      if (tem(R.saudacao) && palavras <= 4 && !lugar && !citadas.length) return { linhas: ["Oi! Eu sou o **Epi**. Pergunte sobre o mapa, os números de um distrito ou sobre as doenças do mapa."], acoes: sugestoesPadrao().slice(0, 4) };
       if (tem(R.obrigado) && palavras <= 5 && !lugar && !citadas.length) return { linhas: ["Por nada! Se tiver outra dúvida, é só perguntar."] };
       if (tem(R.privacidade)) return SITE.privacidade();
       if (tem(R.sobre)) return SITE.sobre();
@@ -688,7 +755,7 @@
         const sel = ctx && ctx.selecionado();
         mostrarBot({
           linhas: [
-            "Oi! Eu sou o **Epi**, o assistente do mapa. Respondo sobre os números por distrito e da cidade, e sobre dengue, chikungunya e zika.",
+            "Oi! Eu sou o **Epi**, o assistente do mapa. Respondo sobre os números por distrito e da cidade, e sobre as doenças do mapa: dengue, chikungunya, zika, SRAG, covid-19, tuberculose, meningite e sarampo.",
             sel ? `Você está vendo **${porId[sel].nome}** no mapa. Quer saber como está lá?` : "Pergunte do seu jeito ou escolha uma sugestão abaixo.",
           ],
           acoes: sel ? [pergunta(`Como está ${porId[sel].nome}?`)] : [],
