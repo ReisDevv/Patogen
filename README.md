@@ -52,7 +52,7 @@ python -m http.server 8000
 | `data/infodengue.json` | série semanal municipal (casos estimados, nível de alerta, Rt) | [InfoDengue](https://info.dengue.mat.br) — Fiocruz/FGV |
 | `data/casos_distrito.json` | casos por distrito, por doença (acumulado do ano) | boletim semanal de arboviroses da COVISA/SMS-SP, via `scripts/fetch_covisa.py` (ver abaixo) |
 | `data/covisa/SE-AAAA-SS.json` | snapshot imutável de cada boletim já lido | idem |
-| `data/tabnet_distrito.json` | SRAG, covid-19, tuberculose, meningite e sarampo por distrito (acumulado do ano) | TabNet da Secretaria Municipal da Saúde, via `scripts/fetch_tabnet.py` (ver [`docs/tabnet-formato.md`](docs/tabnet-formato.md)) |
+| `data/tabnet_distrito.json` | SRAG, covid-19, tuberculose, meningite e sarampo por distrito (acumulado do ano) | TabNet da Secretaria Municipal da Saúde, via `scripts/fetch_tabnet.py`, rodado **à mão** (o TabNet bloqueia o GitHub Actions; ver [`docs/tabnet-formato.md`](docs/tabnet-formato.md)) |
 
 ### Trazer dados reais do InfoDengue
 

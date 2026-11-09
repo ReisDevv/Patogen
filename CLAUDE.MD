@@ -52,7 +52,7 @@ scripts/fetch_tabnet.py            # rotina 1: consulta o TabNet da SMS-SP por d
 docs/covisa-formato.md             # como o boletim COVISA é por dentro e como o scraper o lê
 docs/tabnet-formato.md             # como o TabNet municipal é consultado, bases usadas e o formato do JSON
 requirements.txt                   # pdfplumber, só para fetch_covisa.py
-.github/workflows/atualizar-dados.yml  # roda os dois fetch toda madrugada e commita
+.github/workflows/atualizar-dados.yml  # roda InfoDengue e COVISA toda madrugada e commita (o TabNet é à mão)
 .github/workflows/deploy-pages.yml     # publica o site no GitHub Pages a cada push na main
 ```
 
@@ -77,7 +77,7 @@ Isso é o que mais confunde. Não invente APIs.
 |---|---|---|---|---|
 | InfoDengue (Fiocruz/FGV) `info.dengue.mat.br/api/alertcity` | município (geocode 3550308) | semanal, com nowcast | JSON/CSV, sem chave | integrado |
 | Boletim COVISA/SMS-SP (arboviroses urbanas) | **distrito administrativo** | semanal | PDF de 13 págs., link direto (ver `docs/covisa-formato.md`) | integrado (fase 3): dengue e chikungunya, **acumulado do ano** |
-| TabNet da SMS-SP (SIVEP-Gripe, e-SUS VE, TBWEB, SINAN) | **distrito administrativo de residência** | atualizado em dias, sem cadência fixa | formulário CGI, resposta em texto `;` (ver `docs/tabnet-formato.md`) | integrado (2026-11-09): SRAG, covid-19, tuberculose, meningite, sarampo, **acumulado do ano**, só casos |
+| TabNet da SMS-SP (SIVEP-Gripe, e-SUS VE, TBWEB, SINAN) | **distrito administrativo de residência** | atualizado em dias, sem cadência fixa; **bloqueia o GitHub Actions (403)**, atualização à mão | formulário CGI, resposta em texto `;` (ver `docs/tabnet-formato.md`) | integrado (2026-11-09): SRAG, covid-19, tuberculose, meningite, sarampo, **acumulado do ano**, só casos |
 | OpenDataSUS / SINAN | município | atraso de semanas ou meses | CSV grandes, API Elasticsearch p/ síndrome gripal | avaliar depois |
 | GeoSampa (Prefeitura) | polígonos de distritos, subprefeituras, logradouros | estática | shapefile/GeoJSON | integrado (distritos) |
 | Pets (CCZ, CVE) | boletins esparsos | irregular | PDF | fase 6, sem API pública |
@@ -110,7 +110,7 @@ Regras derivadas disso:
   aparecem no "+" da seção "Outras doenças no mapa" da página inicial. Tema sem texto próprio para uma
   doença nova manda à UBS, nunca ao texto do mosquito.
 - O TabNet (firewall Zenedge) devolve **403 para o GitHub Actions** e 200 para endereço no Brasil: o passo
-  *Buscar TabNet* do workflow falha lá. Ver "Próximo passo concreto".
+  TabNet ficou fora do workflow e é atualizado à mão (decisão do dono, 2026-11-09). Ver "Próximo passo concreto".
 - A COVISA revisa o acumulado de semanas anteriores. `novos_desde_boletim` continua no JSON
   (histórico técnico), mas **não aparece na interface** desde 2026-11-01: a diferença entre dois
   boletins mistura casos novos com confirmações tardias, descartes e reclassificações, e não há
@@ -342,8 +342,8 @@ dizendo qual fonte não atualizou. O site é republicado depois de cada atualiza
 deploy: foi por isso que o site ficou parado no commit de 2026-10-08.
 
 1. Depois do merge, disparar manualmente *Atualizar dados* e conferir que o *Publicar site* roda em seguida
-   O passo *Buscar TabNet* recebe 403 do GitHub Actions (2026-11-09): a atualização do TabNet precisa rodar
-   de uma máquina no Brasil (`python scripts/fetch_tabnet.py`, commit e push de `data/tabnet_distrito.json`).
+   O TabNet devolve 403 ao GitHub Actions (2026-11-09) e saiu do workflow: o dono atualiza **à mão**, de uma
+   máquina no Brasil, quando quiser (`python scripts/fetch_tabnet.py && git add data/tabnet_distrito.json && git commit -m "dados: TabNet $(date +%F)" && git push`). A data de atualização aparece no site.
 2. Acompanhar os próximos boletins: se a COVISA mudar o layout de novo, o script para e o
    último conjunto válido continua no ar.
 3. Só depois disso abrir a fase 2 (Postgres/PostGIS + API). Os snapshots em `data/covisa/`

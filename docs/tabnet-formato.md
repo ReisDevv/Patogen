@@ -67,6 +67,18 @@ o bloco anterior dela continua no arquivo.
 `total` = soma dos distritos + `sem_distrito` (moradores da capital). Sem incidência: o TabNet não traz
 população, e o site não estima. O mapa usa a cor proporcional a casos, como já fazia com a chikungunya.
 
+## Atualização: à mão
+
+O TabNet fica atrás do firewall Zenedge, que responde 200 a endereços no Brasil (qualquer User-Agent) e **403 ao
+GitHub Actions** (testado em 2026-11-09). Por isso ele não está no workflow diário. Para atualizar, de uma
+máquina no Brasil, na raiz do repositório:
+
+```bash
+python scripts/fetch_tabnet.py && git add data/tabnet_distrito.json && git commit -m "dados: TabNet $(date +%F)" && git push
+```
+
+O push publica na Vercel. Se uma doença falhar, o script diz qual e mantém o conjunto anterior dela.
+
 ## Virada de ano
 
 O script consulta o ano corrente. Enquanto o TabNet não tiver arquivo (ou opção) do ano novo, a doença falha

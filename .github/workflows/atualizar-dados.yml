@@ -4,6 +4,8 @@
 # O boletim da COVISA sai às segundas; nos outros dias fetch_covisa.py
 # reconhece que a SE já foi extraída e não grava nada.
 #
+# O TabNet (SRAG, covid-19 etc.) não roda aqui: devolve 403 para o GitHub Actions. Ver docs/tabnet-formato.md.
+#
 # As duas fontes são independentes: se uma falhar, a outra ainda é gravada,
 # e o job termina em vermelho dizendo qual falhou. Nenhum script grava dado
 # que não passou na própria validação, então o último conjunto válido fica.
@@ -40,21 +42,16 @@ jobs:
         id: covisa
         continue-on-error: true
         run: python scripts/fetch_covisa.py
-      - name: Buscar TabNet (SRAG, covid-19, tuberculose, meningite, sarampo)
-        id: tabnet
-        continue-on-error: true
-        run: python scripts/fetch_tabnet.py
       - name: Commitar o que passou na validação
         run: |
           git config user.name "epimapa-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/infodengue.json data/casos_distrito.json data/covisa/ data/tabnet_distrito.json
-          git diff --cached --quiet && echo "sem mudanças" || git commit -m "dados: InfoDengue, COVISA e TabNet $(date -u +%F)"
+          git add data/infodengue.json data/casos_distrito.json data/covisa/
+          git diff --cached --quiet && echo "sem mudanças" || git commit -m "dados: InfoDengue e COVISA $(date -u +%F)"
           git push
       - name: Falhar se alguma fonte não foi atualizada
-        if: steps.infodengue.outcome == 'failure' || steps.covisa.outcome == 'failure' || steps.tabnet.outcome == 'failure'
+        if: steps.infodengue.outcome == 'failure' || steps.covisa.outcome == 'failure'
         run: |
           [ "${{ steps.infodengue.outcome }}" = failure ] && echo "::error title=InfoDengue::falhou; data/infodengue.json anterior mantido. Veja o passo 'Buscar InfoDengue'."
           [ "${{ steps.covisa.outcome }}" = failure ] && echo "::error title=COVISA::falhou; último boletim válido mantido. Veja o passo 'Buscar boletim COVISA' e docs/covisa-formato.md."
-          [ "${{ steps.tabnet.outcome }}" = failure ] && echo "::error title=TabNet::alguma doença falhou; o conjunto anterior dela foi mantido. Veja o passo 'Buscar TabNet' e docs/tabnet-formato.md."
           exit 1
