@@ -268,10 +268,22 @@ depois; define o que pode ser construído.
   sobre a consulta volta para a organização: não há contagem de acessos, distrito de colaborador
   nem cruzamento com localização de pessoas. Assinatura mensal (valor a definir) e Selo Pathogen
   aparecem como proposta no piloto; o Selo atesta engajamento, não ausência de casos, e ainda
-  não é emitido. Não há canal comercial: o contato está marcado para a equipe preencher
-  (comentário `EQUIPE:` nas duas páginas). Fora do escopo por ora: IA preditiva, previsão de
+  não é emitido. Não há canal comercial: o e-mail entra em `data-email` da seção `#contato`
+  (comentário `EQUIPE:`). Fora do escopo por ora: IA preditiva, previsão de
   demanda, índice de vulnerabilidade, marketplace, vacinas, denúncia própria (o site leva ao
   SP156), cadastro de sintomas, FastAPI/PostGIS, login empresarial, app nativo, pets.
+- Posicionamento comercial (2026-11-12, pedido do dono: "o que uma empresa compraria"): o que se vende não é o
+  dado (é público), é a **prevenção documentada por unidade** para quem cuida de muitos endereços. Prioridade:
+  administradoras de condomínios e empresas de controle de pragas/facilities (canal), depois redes, escolas e obras;
+  RH e patrocínio ficam em segundo plano. `organizacoes.html` ganhou: seção "para quem" com as três perguntas
+  (onde agir, o que fazer, como mostrar), bloco "Comunicado da semana" (texto montado só com números do boletim e
+  orientações do Ministério da Saúde), conta do afastamento (`#conta`, só com números digitados, nada gravado),
+  planos propostos (`#planos`: piloto grátis 60 dias; Essencial R$ 29/unidade/mês com mínimo de R$ 149; Carteira
+  R$ 12/unidade/mês acima de 50; Parceiro R$ 490/mês + R$ 5 por cliente; contrato anual) e pedido de piloto
+  (`#contato`, monta o texto no navegador; `data-email` vazio = só copiar). Os valores são hipótese a validar e a
+  página diz isso; se mudarem, mude a tabela e `planoAnual()` juntos. O Selo Pathogen saiu da página (selo sem
+  auditoria). Continua valendo: sem previsão, sem promessa de redução de casos, sem dado de pessoas. A análise
+  completa está no doc "Pathogen: diagnóstico e estratégia comercial".
 - Scripts Python só com biblioteca padrão enquanto der. Se precisar de dependência, crie
   `requirements.txt` e justifique no commit. Única exceção aceita até agora: `pdfplumber`
   em `fetch_covisa.py` (tabela em PDF sem grade; não dá com stdlib).

@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <script src="tema.js?v=727388d"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pathogen para empresas: prevenção de dengue por distrito</title>
-<meta name="description" content="Os números oficiais de dengue do distrito de cada unidade da sua empresa, plano de prevenção, relatório e um link para os colaboradores. Protótipo da Pathogen.">
+<title>Pathogen para empresas: prevenção de dengue por unidade, com registro</title>
+<meta name="description" content="Para quem cuida de muitos endereços: a situação oficial do território de cada unidade, o comunicado da semana pronto, o registro das checagens e o relatório. Protótipo da Pathogen, aberto a pilotos.">
 <meta name="theme-color" content="#0F766E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10.56' fill='%230F172A'/%3E%3Cg transform='translate(7.68 7.68) scale(0.68)'%3E%3Ccircle cx='24' cy='24' r='18.7' fill='none' stroke='%23F8FAFC' stroke-width='6.6'/%3E%3Cpath d='M22.91 16.17A11 11 0 0 1 31.96 26.04' fill='none' stroke='%2322D3EE' stroke-width='3.3' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='27' r='4.6' fill='%2314B8A6'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="institucional.css?v=727388d">
+<link rel="stylesheet" href="institucional.css?v=c0mer01">
 </head>
 <body>
 
@@ -25,7 +25,8 @@
       <a href="index.html">Epimapa SP</a>
       <a href="mapa.html">Mapa</a>
       <a href="organizacoes.html" aria-current="page">Para empresas</a>
-      <a href="#impacto">Patrocínio</a>
+      <a href="#planos">Planos</a>
+      <a href="#contato">Pedir piloto</a>
     </nav>
     <button type="button" class="tema-btn" data-tema-btn aria-pressed="false" aria-label="Usar tema escuro"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="lua" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/><g class="sol"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></button>
   </div>
@@ -35,18 +36,35 @@
   <section class="abertura" aria-labelledby="titulo">
     <div class="wrap abertura__grade">
       <div class="abertura__texto">
-        <p class="abertura__estado">Protótipo para projeto-piloto</p>
-        <h1 id="titulo">A dengue não chega igual a todas as suas unidades.</h1>
-        <p class="abertura__lead">A cada boletim da COVISA, o Pathogen mostra os números oficiais do distrito de cada unidade, ajuda a planejar a prevenção e entrega um link para os colaboradores consultarem o próprio distrito. Sem coletar dado de ninguém.</p>
+        <p class="abertura__estado">Protótipo aberto a projetos-piloto</p>
+        <h1 id="titulo">Prevenção de dengue em cada unidade, com registro do que foi feito.</h1>
+        <p class="abertura__lead">Para quem cuida de muitos endereços. A cada boletim oficial, o Pathogen mostra a situação do território de cada unidade, entrega o comunicado da semana pronto para enviar e guarda o registro das checagens para o relatório. Sem coletar dado de saúde de ninguém.</p>
         <div class="acoes">
-          <a class="btn btn--primario" href="#demonstracao">Ver a demonstração</a>
-          <a class="btn btn--fantasma" href="#piloto">Como funciona o piloto</a>
+          <a class="btn btn--primario" href="#contato">Pedir um piloto</a>
+          <a class="btn btn--fantasma" href="#demonstracao">Ver a demonstração</a>
         </div>
       </div>
       <figure class="mosaico">
         <svg id="mosaico" role="img" aria-labelledby="mosaico-legenda"></svg>
         <figcaption id="mosaico-legenda">Dengue em 2026 nos 96 distritos, boletim da COVISA <span id="mosaico-se">mais recente</span>. A, B, C e D são unidades de exemplo; os números são reais.</figcaption>
       </figure>
+    </div>
+  </section>
+
+  <section class="secao" id="para-quem" aria-labelledby="quem-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="quem-titulo">Feito para quem responde por muitos endereços.</h2>
+      <p class="lead">O número da dengue é público. O trabalho de transformar esse número em checagem feita, aviso enviado e relatório entregue, unidade por unidade, é o que o Pathogen assume.</p>
+      <div class="publicos">
+        <article class="publico"><h3>Administradoras de condomínios</h3><p>Uma carteira de prédios com caixa d'água, laje e jardim. Cada síndico recebe a situação do distrito e o comunicado para os moradores.</p></article>
+        <article class="publico"><h3>Redes, escolas e obras</h3><p>Lojas, pátios, canteiros e unidades de ensino. Quem cuida de facilities ou de segurança do trabalho vê qual unidade já fez a checagem.</p></article>
+        <article class="publico"><h3>Controle de pragas e facilities</h3><p>Para quem já vende vistoria: o território de cada cliente e um relatório para entregar depois da visita.</p></article>
+      </div>
+      <ol class="perguntas" aria-label="As três perguntas que o painel responde">
+        <li><strong>Onde agir primeiro?</strong><span>As unidades, com a incidência oficial do distrito de cada uma e a posição entre os 96.</span></li>
+        <li><strong>O que fazer nesta semana?</strong><span>O plano de checagens por unidade e o comunicado pronto para a equipe ou os moradores.</span></li>
+        <li><strong>Como mostrar que foi feito?</strong><span>O histórico de atividades e o relatório, com o dado oficial separado do que a organização registrou.</span></li>
+      </ol>
     </div>
   </section>
 
@@ -100,7 +118,7 @@
       <ol class="passos">
         <li><strong>Cadastre as unidades</strong><span>Só um nome e o distrito de cada uma. Não pedimos endereço nem lista de funcionários.</span></li>
         <li><strong>Mande o link aos colaboradores</strong><span>Por e-mail, pela intranet ou num cartaz com QR code. Cada pessoa consulta o próprio distrito.</span></li>
-        <li><strong>Acompanhe a cada boletim</strong><span>Os números das unidades se atualizam sozinhos. Você registra as ações e gera o relatório.</span></li>
+        <li><strong>Acompanhe a cada boletim</strong><span>Os números se atualizam sozinhos. Você envia o comunicado da semana, registra as checagens e gera o relatório.</span></li>
       </ol>
     </div>
   </section>
@@ -211,6 +229,18 @@
         <p class="vazio" id="a-vazio">Nenhuma atividade registrada.</p>
       </div>
 
+      <div class="bloco" id="b-comunicado">
+        <h3>Comunicado da semana</h3>
+        <p>Um texto pronto para o grupo da equipe, o mural ou os moradores, montado com os números oficiais do distrito da unidade e as orientações do Ministério da Saúde. Revise antes de enviar.</p>
+        <div class="form">
+          <label class="campo">Unidade<select id="com-unidade"></select></label>
+          <label class="campo">Para quem<select id="com-publico"><option value="equipe">Equipe da unidade</option><option value="moradores">Moradores do condomínio</option><option value="familias">Famílias de alunos</option></select></label>
+        </div>
+        <label class="campo campo--largo com-saida">Texto do comunicado<textarea id="com-texto" rows="14" readonly></textarea></label>
+        <div class="acoes"><button type="button" class="btn btn--secundario" id="com-copiar">Copiar comunicado</button></div>
+        <p class="fonte" id="com-status" role="status"></p>
+      </div>
+
       <div class="bloco" id="b-colaboradores">
         <h3>Link para os colaboradores</h3>
         <p>Mande este link pelo canal interno (e-mail, intranet ou cartaz com QR code). Cada pessoa vê, no próprio celular, os números oficiais do distrito onde mora ou trabalha, com a fonte e a semana do boletim, e as orientações de prevenção. O distrito consultado não volta para a organização nem para o Pathogen: a página não guarda nem envia nada.</p>
@@ -239,20 +269,47 @@
     </div>
   </section>
 
-  <section class="secao secao--cinza" id="piloto" aria-labelledby="piloto-titulo">
+  <section class="secao" id="conta" aria-labelledby="conta-titulo">
     <div class="wrap">
-      <h2 class="titulo" id="piloto-titulo">Como funcionaria um piloto.</h2>
-      <p class="lead">O produto ainda não opera com nenhuma organização. O piloto é a etapa de teste com uma organização interessada, por um período combinado.</p>
-      <ol class="passos">
-        <li><strong>Combinar</strong><span>Quais unidades entram, por quanto tempo e quem na organização acompanha.</span></li>
-        <li><strong>Acompanhar</strong><span>A cada boletim da COVISA, os números se atualizam e a organização registra as ações no plano.</span></li>
-        <li><strong>Avaliar</strong><span>Relatórios com dados oficiais e ações registradas, e uma conversa sobre o que foi útil para o gestor.</span></li>
-      </ol>
-      <div class="grade">
-        <article class="painel"><h3>Depois do piloto: assinatura mensal</h3><p>Por organização e de valor baixo, com o painel das unidades, o link dos colaboradores e um relatório a cada boletim. O valor ainda não foi definido.</p></article>
-        <article class="painel"><h3>Selo Pathogen, em proposta</h3><p>Para quem mantém a prevenção em dia: comunicação de prevenção a cada 3 meses, ações registradas no plano de cada unidade e afastamento sem punição nem perda de bônus. Atesta engajamento em prevenção, não ausência de casos. Ainda não é emitido.</p></article>
+      <h2 class="titulo" id="conta-titulo">Quanto custa um afastamento na sua operação.</h2>
+      <p class="lead">A conta usa só os números que você digitar. O Pathogen não estima quantos casos a sua equipe terá nem promete evitar algum: a conta mostra o tamanho do problema e quantos afastamentos equivalem ao valor da assinatura.</p>
+      <form class="form" id="f-conta" novalidate>
+        <label class="campo">Unidades<input id="k-unidades" type="number" inputmode="numeric" min="1" max="5000" step="1" placeholder="Ex.: 12"></label>
+        <label class="campo">Custo de um dia de ausência (R$) <small>salário, encargos e cobertura</small><input id="k-dia" type="number" inputmode="decimal" min="0" step="10" placeholder="Ex.: 250"></label>
+        <label class="campo">Dias por afastamento <small>use a média dos seus atestados</small><input id="k-dias" type="number" inputmode="decimal" min="0" max="30" step="0.5" placeholder="Ex.: 5"></label>
+      </form>
+      <div class="numeros" id="conta-saida" aria-live="polite">
+        <div><div class="v" id="k-afast">—</div><div class="k">custo de um afastamento, pelos seus números</div></div>
+        <div><div class="v" id="k-plano">—</div><div class="k" id="k-plano-k">assinatura proposta por ano</div></div>
+        <div><div class="v" id="k-equivale">—</div><div class="k">afastamentos que equivalem à assinatura do ano</div></div>
       </div>
-      <p class="fonte">O piloto não inclui dados de saúde de pessoas nem promete redução de casos: medir esse efeito exigiria um estudo específico.</p>
+      <p class="fonte">Referências públicas para comparar com os seus números: infectologistas citam de 3 a 10 dias de afastamento por dengue (<a href="https://diariodocomercio.com.br/economia/dengue-afasta-15-trabalhadores-por-dia-minas-gerais/" rel="noopener">Diário do Comércio</a>); num levantamento da consultoria B2P, 2.651 afastamentos no 1º trimestre de 2024 custaram R$ 1,3 milhão às empresas da amostra (<a href="https://exame.com/carreira/afastamentos-de-funcionarios-por-dengue-disparam-1-088-aponta-pesquisa" rel="noopener">Exame</a>). Nada do que você digita aqui é gravado ou enviado.</p>
+    </div>
+  </section>
+
+  <section class="secao secao--cinza" id="planos" aria-labelledby="planos-titulo">
+    <div class="wrap">
+      <h2 class="titulo" id="planos-titulo">Piloto gratuito, depois assinatura por unidade.</h2>
+      <p class="lead">O produto ainda não opera com nenhuma organização. Os valores abaixo são a proposta para os primeiros pilotos e podem mudar com o que aprendermos neles.</p>
+      <div class="rolagem">
+        <table class="tabela planos">
+          <caption class="sr">Planos propostos</caption>
+          <thead><tr><th scope="col">Plano</th><th scope="col">Para quem</th><th scope="col">Valor proposto</th><th scope="col">O que inclui</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Piloto</th><td>Qualquer organização</td><td><strong>Gratuito</strong><small>60 dias, até 10 unidades</small></td><td>Tudo do Essencial e uma conversa de avaliação no fim</td></tr>
+            <tr><th scope="row">Essencial</th><td>Redes, escolas e obras</td><td><strong>R$ 29 por unidade por mês</strong><small>mínimo de R$ 149 por mês, contrato anual</small></td><td>Painel das unidades, plano de prevenção, comunicado da semana, relatório e link dos colaboradores</td></tr>
+            <tr><th scope="row">Carteira</th><td>Administradoras e redes com mais de 50 unidades</td><td><strong>R$ 12 por unidade por mês</strong><small>contrato anual</small></td><td>Essencial e relatórios por unidade gerados em lote</td></tr>
+            <tr><th scope="row">Parceiro</th><td>Controle de pragas e facilities</td><td><strong>R$ 490 por mês</strong><small>mais R$ 5 por cliente atendido</small></td><td>Relatório com a marca do parceiro para entregar ao cliente</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="subtitulo" id="piloto">Como funciona o piloto</h3>
+      <ol class="passos">
+        <li><strong>Combinar</strong><span>Quais unidades entram, quem acompanha na organização e o que seria um piloto útil para vocês.</span></li>
+        <li><strong>Acompanhar</strong><span>Por 60 dias, a cada boletim: situação das unidades, comunicado enviado e checagens registradas.</span></li>
+        <li><strong>Avaliar</strong><span>Relatório final com o dado oficial e o que foi feito, e uma conversa franca sobre o que valeu a pena.</span></li>
+      </ol>
+      <p class="fonte">O contrato é anual porque a dengue se concentra no primeiro semestre: o plano de prevenção começa antes da temporada. O piloto não inclui dados de saúde de pessoas nem promete redução de casos; medir esse efeito exigiria um estudo específico. Itens ainda em construção: contas com mais de um usuário, aviso por e-mail a cada boletim e relatórios em lote.</p>
     </div>
   </section>
 
@@ -292,11 +349,27 @@
     </div>
   </section>
 
-  <section class="secao secao--cinza" id="contato" aria-labelledby="contato-titulo">
+  <section class="secao secao--cinza" id="contato" data-email="" aria-labelledby="contato-titulo">
     <div class="wrap">
-      <h2 class="titulo" id="contato-titulo">Fale com a equipe.</h2>
-      <!-- EQUIPE: o projeto não tem canal de contato comercial configurado. Preencha aqui o canal oficial (e-mail ou formulário) quando ele existir. -->
-      <p class="aviso-demo"><span>Canal de contato para piloto e patrocínio ainda não configurado pela equipe Pathogen.</span></p>
+      <h2 class="titulo" id="contato-titulo">Peça um piloto.</h2>
+      <p class="lead">Conte o básico da sua operação. O pedido é montado aqui mesmo, no seu navegador, e só sai dele quando você enviar.</p>
+      <!-- EQUIPE: preencha data-email na <section id="contato"> com o e-mail comercial oficial (ex.: data-email="contato@dominio"). Enquanto estiver vazio, a página só deixa copiar o pedido e avisa que o canal não está configurado. -->
+      <form class="form" id="f-piloto">
+        <label class="campo">Organização<input id="p-org" maxlength="80" autocomplete="organization" required></label>
+        <label class="campo">Tipo<select id="p-tipo"><option>Administradora de condomínios</option><option>Rede de lojas ou serviços</option><option>Escola ou rede de ensino</option><option>Construção e obras</option><option>Logística e indústria</option><option>Controle de pragas ou facilities</option><option>Outro</option></select></label>
+        <label class="campo">Unidades na cidade de São Paulo<input id="p-unidades" type="number" inputmode="numeric" min="1" max="5000" required></label>
+        <label class="campo campo--largo">O que você gostaria de resolver <small>opcional; não inclua dados de saúde de pessoas</small><input id="p-obs" maxlength="240" autocomplete="off"></label>
+        <button class="btn btn--primario" type="submit">Montar pedido</button>
+      </form>
+      <div id="p-saida" hidden>
+        <label class="campo campo--largo com-saida">Seu pedido<textarea id="p-texto" rows="7" readonly></textarea></label>
+        <div class="acoes">
+          <a class="btn btn--primario" id="p-email" hidden>Enviar por e-mail</a>
+          <button type="button" class="btn btn--secundario" id="p-copiar">Copiar pedido</button>
+        </div>
+        <p class="aviso-demo" id="p-sem-canal" hidden><span>O e-mail comercial da Pathogen ainda não foi configurado nesta página. Copie o pedido e envie pelo contato que você recebeu da equipe.</span></p>
+        <p class="fonte" id="p-status" role="status"></p>
+      </div>
     </div>
   </section>
 </main>
@@ -308,12 +381,14 @@
       <a href="index.html">Epimapa SP</a>
       <a href="mapa.html">Mapa</a>
       <a href="organizacoes.html">Para empresas</a>
+      <a href="organizacoes.html#planos">Planos e piloto</a>
       <a href="organizacoes.html#impacto">Patrocínio de campanhas</a>
     </nav>
     <p>Projeto independente, sem vínculo com a Prefeitura, o Ministério da Saúde ou a Fiocruz. Dados: boletim de arboviroses da COVISA/SMS-SP (distritos) e InfoDengue (cidade). Não substitui orientação médica nem a vigilância em saúde.</p>
   </div>
 </footer>
 
+<script src="nivel.js?v=727388d"></script>
 <script>
 (async function () {
   "use strict";
@@ -452,7 +527,7 @@
     c.checked ? comparar.add(c.dataset.comparar) : comparar.delete(c.dataset.comparar);
     renderComparacao();
   });
-  $("org-nome").addEventListener("change", () => { estado.organizacao = $("org-nome").value.trim(); gravar("Nome da organização gravado neste navegador."); renderLink(); });
+  $("org-nome").addEventListener("change", () => { estado.organizacao = $("org-nome").value.trim(); gravar("Nome da organização gravado neste navegador."); renderLink(); renderComunicado(); });
 
   // Link dos colaboradores: index.html?de=<nome>. A página inicial só exibe o nome (textContent).
   function renderLink() {
@@ -594,7 +669,83 @@
   $("imprimir").addEventListener("click", () => { renderRelatorio(); print(); });
   addEventListener("beforeprint", renderRelatorio);   // Ctrl+P também sai com o relatório atualizado
 
-  function tudo() { renderVisao(); renderUnidades(); renderComparacao(); renderAcoes(); renderLink(); }
+
+  // ---------- comunicado da semana: só números do boletim e orientações do Ministério da Saúde ----------
+  const N = () => window.PathogenNivel;
+  const copiar = (campo, status, ok) => {
+    const falhou = () => { campo.select(); status.textContent = "Não deu para copiar sozinho: o texto está selecionado, use Ctrl+C."; };
+    navigator.clipboard ? navigator.clipboard.writeText(campo.value).then(() => { status.textContent = ok; }, falhou) : falhou();
+  };
+  const SAUDACAO = { equipe: "Pessoal", moradores: "Prezados moradores", familias: "Prezadas famílias" };
+  const LOCAL = { equipe: "na unidade e em casa", moradores: "no condomínio e em cada apartamento", familias: "na escola e em casa" };
+  function renderComunicado() {
+    const selU = $("com-unidade"), antes = selU.value;
+    selU.innerHTML = estado.unidades.map(u => `<option value="${esc(u.id)}">${esc(u.nome)} (${esc(nomeDistrito(u.distrito))})</option>`).join("");
+    if (unidadeDe(antes)) selU.value = antes;
+    const u = unidadeDe(selU.value), pub = $("com-publico").value;
+    $("com-copiar").disabled = !u;
+    if (!u) { $("com-texto").value = "Adicione uma unidade para montar o comunicado."; return; }
+    const id = u.distrito, casos = casosDengue(id), inc = incDengue(id), p = posicao(id);
+    const aj = N() ? N().ajustar(dengue)[id] : null;
+    const faixa = N() && inc !== null ? N().nivel(aj ? aj.inc : inc, casos) : null;
+    const d = cid.doencas && cid.doencas.dengue && cid.doencas.dengue.atual;
+    const linhas = [
+      `${SAUDACAO[pub]}, segue o aviso de prevenção da dengue desta semana${estado.organizacao ? ` (${estado.organizacao})` : ""}.`,
+      "",
+      `SITUAÇÃO OFICIAL: distrito de ${nomeDistrito(id)}`,
+      casos === null
+        ? "O boletim da Prefeitura não traz o número deste distrito nesta semana."
+        : `${fmt.format(casos)} casos confirmados de dengue em ${cov.ano}${inc === null ? "" : `, ${fmt1.format(inc)} por 100 mil habitantes`}${p === null ? "" : ` (${p}º entre os ${incs.length} distritos)`}.`,
+      faixa ? `Faixa ${faixa} de 4 na convenção da Pathogen pela incidência.` : null,
+      d ? `Na cidade de São Paulo: ${fmt.format(d.casos)} casos notificados na semana ${d.se}/${d.ano}; alerta municipal ${NIVEL[d.nivel] || "sem dado"} (InfoDengue).` : null,
+      "",
+      `O QUE CONFERIR NESTA SEMANA, ${LOCAL[pub]}:`,
+      "- Eliminar o que acumula água: pratos de vasos, baldes, pneus, garrafas e lonas.",
+      "- Manter caixas d'água, tonéis e reservatórios totalmente tampados ou com tela.",
+      "- Limpar calhas, ralos e lajes onde a água fica parada depois da chuva.",
+      "",
+      "Febre com dor no corpo? Procure a UBS mais próxima.",
+      `Água parada em imóvel de terceiros: peça vistoria no SP156 (${SP156}).`,
+      `Consulte o seu distrito: ${$("link-colab").value}`,
+      "",
+      `Fontes: boletim de arboviroses da COVISA/SMS-SP, ${boletim}${cov.dados_ate ? `, dados até ${dia(cov.dados_ate)}` : ""} (acumulado do ano, sujeito a revisão); InfoDengue (Fiocruz/FGV); orientações do Ministério da Saúde. O número descreve o distrito inteiro, não este endereço.`,
+    ];
+    $("com-texto").value = linhas.filter(l => l !== null).join("\n");
+  }
+  $("com-unidade").addEventListener("change", renderComunicado);
+  $("com-publico").addEventListener("change", renderComunicado);
+  $("com-copiar").addEventListener("click", () => copiar($("com-texto"), $("com-status"), "Comunicado copiado."));
+
+  // ---------- conta do afastamento: só com o que a pessoa digita; nada é gravado ----------
+  const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  // Valores propostos na tabela de planos (#planos). Se mudar lá, mude aqui.
+  function planoAnual(n) { return n > 50 ? { nome: "Carteira", ano: n * 12 * 12 } : { nome: "Essencial", ano: Math.max(149, n * 29) * 12 }; }
+  function renderConta() {
+    const n = Math.floor(+$("k-unidades").value), diaR = +$("k-dia").value, dias = +$("k-dias").value;
+    const afast = diaR > 0 && dias > 0 ? diaR * dias : null, plano = n >= 1 ? planoAnual(n) : null;
+    $("k-afast").textContent = afast === null ? "—" : brl.format(afast);
+    $("k-plano").textContent = plano ? brl.format(plano.ano) : "—";
+    $("k-plano-k").textContent = plano ? `assinatura proposta por ano, plano ${plano.nome}, ${fmt.format(n)} ${n === 1 ? "unidade" : "unidades"}` : "assinatura proposta por ano";
+    $("k-equivale").textContent = afast !== null && plano ? fmt1.format(plano.ano / afast) : "—";
+  }
+  $("f-conta").addEventListener("input", renderConta);
+  $("f-conta").addEventListener("submit", (e) => e.preventDefault());
+
+  // ---------- pedido de piloto: montado no navegador; só sai daqui se a pessoa enviar ----------
+  $("f-piloto").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const org = $("p-org").value.trim(), n = Math.floor(+$("p-unidades").value), obs = $("p-obs").value.trim();
+    if (!org || !(n >= 1)) return;
+    const texto = [`Pedido de piloto do Pathogen`, `Organização: ${org}`, `Tipo: ${$("p-tipo").value}`, `Unidades na cidade de São Paulo: ${fmt.format(n)}`, obs ? `O que gostaria de resolver: ${obs}` : null, `Enviado a partir de ${location.origin}${location.pathname}`].filter(Boolean).join("\n");
+    $("p-texto").value = texto;
+    const bruto = ($("contato").dataset.email || "").trim(), email = /^[^\s@?&]+@[^\s@?&]+$/.test(bruto) ? bruto : "";
+    $("p-email").hidden = !email; $("p-sem-canal").hidden = !!email;
+    if (email) $("p-email").href = `mailto:${email}?subject=${encodeURIComponent("Pedido de piloto: " + org)}&body=${encodeURIComponent(texto)}`;
+    $("p-saida").hidden = false; $("p-status").textContent = "";
+  });
+  $("p-copiar").addEventListener("click", () => copiar($("p-texto"), $("p-status"), "Pedido copiado."));
+
+  function tudo() { renderVisao(); renderUnidades(); renderComparacao(); renderAcoes(); renderLink(); renderComunicado(); }
   $("org-nome").value = estado.organizacao || "";
   const local = (d) => d.toLocaleDateString("sv-SE");   // AAAA-MM-DD no fuso do aparelho
   $("a-inicio").value = local(new Date());
@@ -603,7 +754,6 @@
   if (boletimNovo) persistir();   // quem já tinha dados gravados: registra que este boletim já foi visto
 })();
 </script>
-<script src="nivel.js?v=727388d"></script>
 <script src="empresas.js?v=727388d"></script>
 </body>
 </html>

@@ -10,18 +10,25 @@ O site tem duas páginas: a **página inicial** (`index.html`), que explica o pr
 mostra a situação da semana com os dados ao vivo, abre a ficha de qualquer distrito ali mesmo
 e leva ao **mapa** (`mapa.html`).
 
-O Epimapa SP é o produto gratuito da **Pathogen** para o cidadão. Duas páginas apresentam as
-outras frentes, ainda em protótipo:
+O Epimapa SP é o produto gratuito da **Pathogen** para o cidadão. A frente comercial, ainda em
+protótipo, fica em `organizacoes.html` (**Para empresas**): prevenção por unidade com registro, para
+quem cuida de muitos endereços (administradoras de condomínios, redes, escolas, obras e empresas de
+controle de pragas).
 
-- `organizacoes.html`: **Pathogen Organizações**, com um painel demonstrativo em que se
-  configuram unidades (nome + distrito), comparam-se os indicadores oficiais dos distritos,
-  monta-se um plano de prevenção e gera-se um relatório executivo (imprimir ou salvar em PDF).
-  Tudo fica no navegador de quem usa, com botão para apagar.
-- `impacto.html`: **Pathogen Impacto**, como uma empresa pode patrocinar campanhas de prevenção.
+- painel das unidades (nome + distrito) com os indicadores oficiais de cada distrito;
+- plano de prevenção e registro das checagens por unidade;
+- **comunicado da semana**, montado com os números do boletim, pronto para copiar;
+- relatório executivo (imprimir ou salvar em PDF) e link para os colaboradores;
+- conta do custo de um afastamento, só com os números que a pessoa digita;
+- planos propostos (piloto gratuito de 60 dias, depois assinatura por unidade) e pedido de piloto.
+
+Tudo roda no navegador de quem usa: não há login, banco nem envio de dados. O patrocínio de campanhas
+é a seção `#impacto` da mesma página (`impacto.html` só redireciona). O e-mail comercial entra no
+atributo `data-email` da seção `#contato`; vazio, a página só deixa copiar o pedido.
 
 O que dá para fazer no site:
 
-- ver dengue, chikungunya e zika por distrito, com a fonte e a semana do boletim ao lado de cada número;
+- ver dengue, chikungunya, SRAG, covid-19, tuberculose, meningite e sarampo por distrito (zika só na cidade), com a fonte e a semana do boletim ao lado de cada número;
 - achar o distrito pela busca (inclusive alguns bairros conhecidos), pelo mapa ou por **Meu distrito**,
   que usa a localização do aparelho sem enviá-la a lugar nenhum;
 - abrir a **lista dos 96 distritos**, ordenar, filtrar e baixar em CSV;
@@ -136,8 +143,10 @@ O workflow de dados roda os mesmos testes antes de buscar qualquer coisa.
 
 - [x] **1.** Malha + choropleth + busca + série municipal do InfoDengue
 - [x] **2.** Scraper do boletim COVISA para dados por distrito (no workflow diário, com testes)
-- [ ] **3.** Login leve e relatos da comunidade (camada separada dos dados oficiais)
-- [ ] **4.** Chatbot sobre os agregados
+- [x] **3.** Página para empresas com painel demonstrativo, comunicado, planos propostos e pedido de piloto
+- [ ] **4.** Três pilotos com organizações reais (critério para seguir: ao menos uma aceitar pagar)
+- [ ] **5.** Backend: conta, equipe, histórico e aviso por e-mail a cada boletim
+- [ ] **6.** Municípios fora da capital pelo InfoDengue; SRAG e covid-19 no painel das unidades
 
 ## Créditos e licenças dos dados
 
